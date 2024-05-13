@@ -9,37 +9,161 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+## Mock data example
 ```{r}
-library(phyloseq)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("DESeq2")
+BiocManager::install("edgeR")
+```
+
+
+```{r}
+# Load necessary libraries
+library(tibble)
+library(dplyr)
+library(caret)
 library(DESeq2)
 library(edgeR)
-library(pheatmap)
-library(pROC)
-library(dada2)
-library(ShortRead)
 library(ggplot2)
+
+# 1. Generate Fake Data
+set.seed(123)
+
+# Create a count matrix with metadata
+sample_size <- 100
+taxa_count <- 50
+counts <- matrix(rnbinom(sample_size * taxa_count, size=10, mu=20), nrow=sample_size, ncol=taxa_count)
+rownames(counts) <- paste0("Sample_", 1:sample_size)
+metadata <- tibble(
+  sample_id = rownames(counts),
+  group = sample(c("Control", "Treatment"), sample_size, replace = TRUE)
+)
+
+# Combine into a single data frame
+data <- as_tibble(counts) %>%
+  add_column(sample_id = metadata$sample_id, .before = 1) %>%
+  add_column(group = metadata$group, .after = sample_size)
+
+# 2. Data Perturbation
+# Filter out rare taxa
+filter_threshold <- 5
+filtered_data <- data %>%
+  select(-sample_id, -group) %>%
+  select_if(~ mean(.) > filter_threshold) %>%
+  bind_cols(data %>% select(sample_id, group))
+
+# Ensure filtered_data and metadata alignment
+filtered_metadata <- metadata %>%
+  filter(sample_id %in% filtered_data$sample_id)
+filtered_data <- filtered_data %>%
+  filter(sample_id %in% filtered_metadata$sample_id)
+
+# Check if the count data and metadata are aligned
+if (!all(rownames(counts) == filtered_metadata$sample_id)) {
+  stop("Count data and metadata are not aligned.")
+}
+
+# Apply log transformation
+log_transformed_data <- filtered_data %>%
+  mutate_at(vars(-sample_id, -group), log1p)
+
+# Split data using k-fold cross-validation
+folds <- createFolds(filtered_metadata$group, k = 5, list = TRUE)
+
+# 3. Model Perturbation
+# Differential abundance analysis using DESeq2
+dds <- DESeqDataSetFromMatrix(countData = as.matrix(filtered_data %>% select(-sample_id, -group)),
+                              colData = filtered_metadata,
+                              design = ~ group)
+dds <- DESeq(dds)
+results_deseq2 <- results(dds)
+
+# Differential abundance analysis using edgeR
+group <- factor(filtered_metadata$group)
+dge <- DGEList(counts=as.matrix(filtered_data %>% select(-sample_id, -group)), group=group)
+dge <- calcNormFactors(dge)
+design <- model.matrix(~group)
+dge <- estimateDisp(dge, design)
+fit <- glmFit(dge, design)
+lrt <- glmLRT(fit)
+results_edger <- topTags(lrt, n=nrow(dge))$table
+
+# 4. Prediction Evaluation
+# Type I/II error rates
+type_i_errors_deseq2 <- sum(results_deseq2$padj < 0.05 & results_deseq2$log2FoldChange == 0, na.rm=TRUE) / nrow(results_deseq2)
+type_ii_errors_deseq2 <- sum(results_deseq2$padj >= 0.05 & results_deseq2$log2FoldChange != 0, na.rm=TRUE) / nrow(results_deseq2)
+
+type_i_errors_edger <- sum(results_edger$FDR < 0.05 & results_edger$logFC == 0) / nrow(results_edger)
+type_ii_errors_edger <- sum(results_edger$FDR >= 0.05 & results_edger$logFC != 0) / nrow(results_edger)
+
+# Shuffle real data for control
+shuffled_metadata <- filtered_metadata %>%
+  mutate(group = sample(group))
+dds_shuffled <- DESeqDataSetFromMatrix(countData = as.matrix(filtered_data %>% select(-sample_id, -group)),
+                                       colData = shuffled_metadata,
+                                       design = ~ group)
+dds_shuffled <- DESeq(dds_shuffled)
+results_deseq2_shuffled <- results(dds_shuffled)
+
+dge_shuffled <- DGEList(counts=as.matrix(filtered_data %>% select(-sample_id, -group)), group=factor(shuffled_metadata$group))
+dge_shuffled <- calcNormFactors(dge_shuffled)
+design_shuffled <- model.matrix(~group)
+dge_shuffled <- estimateDisp(dge_shuffled, design_shuffled)
+fit_shuffled <- glmFit(dge_shuffled, design_shuffled)
+lrt_shuffled <- glmLRT(fit_shuffled)
+results_edger_shuffled <- topTags(lrt_shuffled, n=nrow(dge_shuffled))$table
+
+# 5. Stability Metric Calculation
+# Calculate differences in ASVs/OTUs/species/clades
+stability_metric <- function(results) {
+  significant_taxa <- sum(results$padj < 0.05, na.rm=TRUE)
+  return(significant_taxa)
+}
+stability_deseq2 <- stability_metric(results_deseq2)
+stability_deseq2_shuffled <- stability_metric(results_deseq2_shuffled)
+
+stability_metric_edger <- function(results) {
+  significant_taxa <- sum(results$FDR < 0.05)
+  return(significant_taxa)
+}
+stability_edger <- stability_metric_edger(results_edger)
+stability_edger_shuffled <- stability_metric_edger(results_edger_shuffled)
+
+# Summarize stability metrics
+stability_summary <- tibble(
+  method = c("DESeq2", "DESeq2_shuffled", "edgeR", "edgeR_shuffled"),
+  stability = c(stability_deseq2, stability_deseq2_shuffled, stability_edger, stability_edger_shuffled),
+  type_i_errors = c(type_i_errors_deseq2, NA, type_i_errors_edger, NA),
+  type_ii_errors = c(type_ii_errors_deseq2, NA, type_ii_errors_edger, NA)
+)
+
+# Print stability summary
+print(stability_summary)
+
+# 6. Visualization
+# Plot stability metrics
+ggplot(stability_summary, aes(x=method, y=stability, fill=method)) +
+  geom_bar(stat="identity", position="dodge") +
+  theme_minimal() +
+  labs(title="Stability Metrics for DESeq2 and edgeR",
+       x="Method",
+       y="Number of Significant Taxa")
+
+# Plot Type I/II error rates
+error_rates <- stability_summary %>%
+  filter(!is.na(type_i_errors)) %>%
+  select(method, type_i_errors, type_ii_errors) %>%
+  pivot_longer(cols = c(type_i_errors, type_ii_errors), names_to = "error_type", values_to = "rate")
+
+ggplot(error_rates, aes(x=method, y=rate, fill=error_type)) +
+  geom_bar(stat="identity", position="dodge") +
+  theme_minimal() +
+  labs(title="Type I/II Error Rates for DESeq2 and edgeR",
+       x="Method",
+       y="Error Rate")
+
 ```
 
-```{r}
-fastq_file <- "SRR053232.sff"
-# fastq_file <- sff2fastq(fastq_file)
-`
-filt_path <- "filtered" # 过滤后的FASTQ文件存储路径
-if (!dir.exists(filt_path)) dir.create(filt_path)
-
-# 质控过滤
-fastq_filt <- file.path(filt_path, basename(fastq_file))
-filterAndTrim(fastq_file, fastq_filt, truncLen=250, maxN=0, maxEE=2, truncQ=2, rm.phix=TRUE, compress=TRUE, multithread=TRUE)
-
-# 去噪
-err <- learnErrors(fastq_filt, multithread=TRUE)
-dada_out <- dada(fastq_filt, err=err, multithread=TRUE)
-
-# 生成ASV表
-seqtab <- makeSequenceTable(dada_out)
-
-# 移除嵌合体
-seqtab_nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
-
-```
 
