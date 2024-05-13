@@ -10,6 +10,36 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+library(phyloseq)
+library(DESeq2)
+library(edgeR)
+library(pheatmap)
+library(pROC)
+library(dada2)
+library(ShortRead)
+library(ggplot2)
+```
+
+```{r}
+fastq_file <- "SRR053232.sff"
+# fastq_file <- sff2fastq(fastq_file)
+`
+filt_path <- "filtered" # 过滤后的FASTQ文件存储路径
+if (!dir.exists(filt_path)) dir.create(filt_path)
+
+# 质控过滤
+fastq_filt <- file.path(filt_path, basename(fastq_file))
+filterAndTrim(fastq_file, fastq_filt, truncLen=250, maxN=0, maxEE=2, truncQ=2, rm.phix=TRUE, compress=TRUE, multithread=TRUE)
+
+# 去噪
+err <- learnErrors(fastq_filt, multithread=TRUE)
+dada_out <- dada(fastq_filt, err=err, multithread=TRUE)
+
+# 生成ASV表
+seqtab <- makeSequenceTable(dada_out)
+
+# 移除嵌合体
+seqtab_nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 
 ```
 
