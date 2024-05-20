@@ -2,11 +2,11 @@
 
 body {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; /* center vertically */
+  justify-content: center; /* center horizontally */
   overflow: hidden;
-  background-image: url('./wavy-lines.svg');
-  background-size: cover;
+  /* background-image: url('./wavy-lines.svg'); */
+  /* background-size: cover; */
   user-select: none;
 }
 

@@ -166,4 +166,27 @@ ggplot(error_rates, aes(x=method, y=rate, fill=error_type)) +
 
 ```
 
+```{r}
+data(iris)
+write.csv(iris, file = "iris_dataset.csv", row.names = FALSE)
+
+library(ggplot2)
+
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Sepal Length by Species", x = "Species", y = "Sepal Length")
+
+ggplot(iris, aes(x = Petal.Length, fill = Species)) +
+  geom_density(alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Petal Length Density by Species", x = "Petal Length", y = "Density")
+
+ggplot(iris, aes(x = Petal.Length, y = Petal.Width, color = Species)) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Petal Length vs Petal Width", x = "Petal Length", y = "Petal Width")
+
+
+```
 

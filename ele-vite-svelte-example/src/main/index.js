@@ -20,7 +20,10 @@ function createWindow() {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
-
+  
+  // This handler is fired when the window content attempts to open a new window. 
+  // It will open the new window's URL using the default browser and prevent the default behavior 
+  // (i.e. opening a new window within the Electron app).
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
