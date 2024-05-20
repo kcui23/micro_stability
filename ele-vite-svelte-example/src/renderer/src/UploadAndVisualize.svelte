@@ -39,8 +39,8 @@
 
   {#if visualizations.plot1}
     <h2>Visualizations</h2>
-    <img src={visualizations.plot1} alt="Sepal Length by Species" />
-    <img src={visualizations.plot2} alt="Petal Length Density by Species" />
-    <img src={visualizations.plot3} alt="Petal Length vs Petal Width" />
+    <img src={visualizations.plot1} alt="Sepal Length by Species" style="width: 300px; height: auto;" />
+    <img src={visualizations.plot2} alt="Petal Length Density by Species" style="width: 300px; height: auto;" />
+    <img src={visualizations.plot3} alt="Petal Length vs Petal Width" style="width: 300px; height: auto;" />
   {/if}
 </div>
