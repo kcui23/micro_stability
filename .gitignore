@@ -183,3 +183,4 @@ dist
 out
 .DS_Store
 *.log*
+plot*.png

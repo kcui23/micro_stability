@@ -24,20 +24,18 @@ function(req) {
   if (!all(required_cols %in% names(iris_df))) {
     stop("CSV file must contain the columns: 'Species', 'Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width'")
   }
-  
-  # Boxplot: Sepal Length by Species
+
+  # plots
   p1 <- ggplot(iris_df, aes(x = Species, y = Sepal.Length, fill = Species)) +
     geom_boxplot() +
     theme_minimal() +
     labs(title = "Sepal Length by Species", x = "Species", y = "Sepal Length")
   
-  # Density plot: Petal Length by Species
   p2 <- ggplot(iris_df, aes(x = Petal.Length, fill = Species)) +
     geom_density(alpha = 0.5) +
     theme_minimal() +
     labs(title = "Petal Length Density by Species", x = "Petal Length", y = "Density")
   
-  # Scatter plot: Petal Length vs Petal Width
   p3 <- ggplot(iris_df, aes(x = Petal.Length, y = Petal.Width, color = Species)) +
     geom_point(size = 3) +
     theme_minimal() +
