@@ -6,13 +6,17 @@
   let currentStep = 'Raw data';
   let previewContent = [];
   let groupingsContentPreview = [];
+  let fileDimensions = { rows: 0, columns: 0 };
+  let groupingsDimensions = { rows: 0, columns: 0 };
 
   const handleFileChange = (event) => {
     files = event.target.files;
     if (files.length > 0) {
       const reader = new FileReader();
       reader.onload = () => {
-        previewContent = previewFileContent(reader.result);
+        const content = reader.result;
+        previewContent = previewFileContent(content);
+        fileDimensions = getFileDimensions(content);
       };
       reader.readAsText(files[0]);
     }
@@ -23,7 +27,9 @@
     if (groupingsFile) {
       const reader = new FileReader();
       reader.onload = () => {
-        groupingsContentPreview = previewFileContent(reader.result);
+        const content = reader.result;
+        groupingsContentPreview = previewFileContent(content);
+        groupingsDimensions = getFileDimensions(content);
       };
       reader.readAsText(groupingsFile);
     }
@@ -74,12 +80,21 @@
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
   const goToStep = (step) => {
+    if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
+      return; // Do not allow navigation if files are not uploaded
+    }
     currentStep = step;
   };
 
   const previewFileContent = (fileContent) => {
     const rows = fileContent.split('\n').slice(0, 5); // Get first 5 rows
     return rows.map(row => row.split('\t').slice(0, 5)); // Get first 5 columns of each row
+  };
+
+  const getFileDimensions = (fileContent) => {
+    const rows = fileContent.split('\n');
+    const columns = rows[0].split('\t').length;
+    return { rows: rows.length, columns };
   };
 </script>
 
@@ -144,15 +159,16 @@
     {/each}
   </div>
 
-  <!-- File Upload and Preview Section -->
-  <div class="upload-section">
+  <!-- Content for Current Step -->
+  <div class="upload-section" hidden={currentStep !== 'Raw data'}>
     <h1>Upload ASV Dataset</h1>
     <input type="file" accept=".tsv" on:change={handleFileChange} />
     <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
-    
+
     {#if files.length > 0}
       <div class="preview">
         <h2>Preview of TSV File</h2>
+        <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
         <table>
           {#each previewContent as row}
             <tr>
@@ -168,6 +184,7 @@
     {#if groupingsFile}
       <div class="preview">
         <h2>Preview of Groupings File</h2>
+        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
         <table>
           {#each groupingsContentPreview as row}
             <tr>
@@ -180,6 +197,41 @@
       </div>
     {/if}
   </div>
+
+  <!-- Data Perturbation Step Preview -->
+  {#if currentStep === 'Data Perturbation'}
+    {#if files.length > 0}
+      <div class="preview">
+        <h2>Preview of TSV File</h2>
+        <p>{fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
+        <table>
+          {#each previewContent as row}
+            <tr>
+              {#each row as cell}
+                <td>{cell}</td>
+              {/each}
+            </tr>
+          {/each}
+        </table>
+      </div>
+    {/if}
+
+    {#if groupingsFile}
+      <div class="preview">
+        <h2>Preview of Groupings File</h2>
+        <p>{groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+        <table>
+          {#each groupingsContentPreview as row}
+            <tr>
+              {#each row as cell}
+                <td>{cell}</td>
+              {/each}
+            </tr>
+          {/each}
+        </table>
+      </div>
+    {/if}
+  {/if}
 
   <!-- Method Selection Section -->
   {#if currentStep === 'Model Perturbation'}
