@@ -40,25 +40,63 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file) {
   }
 
   # Run DESeq2 analysis
-  # dds <- DESeq2::DESeqDataSetFromMatrix(countData = ASV_table,
-  #                                       colData = groupings,
-  #                                       design = ~ comparison)
-  # dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
+  dds <- DESeq2::DESeqDataSetFromMatrix(countData = ASV_table,
+                                        colData = groupings,
+                                        design = ~ comparison)
+  dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
 
-  # res <- DESeq2::results(dds_res, tidy = TRUE, format = "DataFrame")
+  res <- DESeq2::results(dds_res, tidy = TRUE, format = "DataFrame")
 
-  # rownames(res) <- res$row
-  # res <- res[,-1]
+  rownames(res) <- res$row
+  res <- res[,-1]
 
-  # # Save results to output file
-  # write_tsv(as.data.frame(res), output_file)
+  # Save results to output file
+  write_tsv(as.data.frame(res), output_file)
 
-  # message("Results written to ", output_file)
+  message("Results written to ", output_file)
   
   # Return paths to the result files (for example, if there are plots)
   list(
     plot1 = "./plot1.png",
     plot2 = "./plot2.png",
     plot3 = "./plot3.png"
+  )
+}
+
+visualize_deseq2 <- function(input_file, output_dir) {
+  # Read DESeq2 results
+  deseq2_results <- read_tsv(input_file)
+  
+  # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
+  deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
+  
+  p1 <- ggplot(deseq2_results, aes(x = log2FoldChange, y = log10pvalue)) +
+    geom_point() +
+    theme_minimal() +
+    labs(title = "Volcano plot", x = "log2FoldChange", y = "-log10(pvalue)")
+  
+  ggsave(file.path(output_dir, "deseq2_plot1.png"), plot = p1)
+  
+  # Visualization 2: MA plot of baseMean vs. log2FoldChange
+  p2 <- ggplot(deseq2_results, aes(x = baseMean, y = log2FoldChange)) +
+    geom_point(alpha = 0.5) +
+    theme_minimal() +
+    scale_x_log10() +
+    labs(title = "MA plot", x = "baseMean", y = "log2FoldChange")
+  
+  ggsave(file.path(output_dir, "deseq2_plot2.png"), plot = p2)
+  
+  # Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(deseq2_results, aes(x = pvalue)) +
+    geom_histogram(binwidth = 0.05) +
+    theme_minimal() +
+    labs(title = "Histogram of p-value distribution", x = "p-value", y = "Frequency")
+  
+  ggsave(file.path(output_dir, "deseq2_plot3.png"), plot = p3)
+  
+  list(
+    plot1 = file.path(output_dir, "deseq2_plot1.png"),
+    plot2 = file.path(output_dir, "deseq2_plot2.png"),
+    plot3 = file.path(output_dir, "deseq2_plot3.png")
   )
 }

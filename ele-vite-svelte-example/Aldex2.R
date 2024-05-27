@@ -39,24 +39,63 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file) {
   }
 
   # Run ALDEx2 analysis
-  # results <- aldex(reads = ASV_table, 
-  #                  conditions = groupings[,2], 
-  #                  mc.samples = 128, 
-  #                  test = "t", 
-  #                  effect = TRUE,
-  #                  include.sample.summary = FALSE, 
-  #                  verbose = TRUE, 
-  #                  denom = "all")
+  results <- aldex(reads = ASV_table, 
+                   conditions = groupings[,2], 
+                   mc.samples = 128, 
+                   test = "t", 
+                   effect = TRUE,
+                   include.sample.summary = FALSE, 
+                   verbose = TRUE, 
+                   denom = "all")
 
-  # # Save results to output file
-  # write_tsv(as.data.frame(results), output_file)
+  # Save results to output file
+  write_tsv(as.data.frame(results), output_file)
 
-  # message("Results table saved to ", output_file)
+  message("Results table saved to ", output_file)
   
   # Return paths to the result files (for example, if there are plots)
   list(
     plot1 = "./plot1.png",
     plot2 = "./plot2.png",
     plot3 = "./plot3.png"
+  )
+}
+
+visualize_aldex2 <- function(input_file, output_dir) {
+  # Read ALDEx2 results
+  aldex2_results <- read_tsv(input_file)
+  
+  # Visualization 1: Boxplot of rab.all values
+  p1 <- ggplot(aldex2_results, aes(x = "All", y = rab.all)) +
+    geom_boxplot() +
+    theme_minimal() +
+    labs(title = "Boxplot of rab.all", x = "All", y = "rab.all")
+
+  ggsave(file.path(output_dir, "aldex2_plot1.png"), plot = p1)
+
+  # Visualization 2: Scatter plot of diff.btw vs. effect
+  p2 <- ggplot(aldex2_results, aes(x = diff.btw, y = effect)) +
+    geom_point() +
+    theme_minimal() +
+    labs(title = "Scatter plot of diff.btw vs. effect", x = "diff.btw", y = "effect")
+  
+  ggsave(file.path(output_dir, "aldex2_plot2.png"), plot = p2)
+
+  # Visualization 3: Density plot of rab.win.Rhizosphere and rab.win.Soil
+  aldex2_long <- aldex2_results %>% 
+    select(rab.win.Rhizosphere, rab.win.Soil) %>%
+    gather(key = "Condition", value = "Value")
+
+  p3 <- ggplot(aldex2_long, aes(x = Value, fill = Condition)) +
+    geom_density(alpha = 0.5) +
+    theme_minimal() +
+    labs(title = "Density plot of rab.win.Rhizosphere and rab.win.Soil", x = "Value", y = "Density")
+
+  ggsave(file.path(output_dir, "aldex2_plot3.png"), plot = p3)
+  
+  list(
+    plot1 = file.path(output_dir, "aldex2_plot1.png"),
+    plot2 = file.path(output_dir, "aldex2_plot2.png"),
+    plot3 = file.path(output_dir, "aldex2_plot3.png")
   )
 }
