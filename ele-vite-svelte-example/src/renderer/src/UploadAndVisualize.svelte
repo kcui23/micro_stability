@@ -4,13 +4,29 @@
   let selectedMethod = '';
   let groupingsFile = null;
   let currentStep = 'Raw data';
+  let previewContent = [];
+  let groupingsContentPreview = [];
 
   const handleFileChange = (event) => {
     files = event.target.files;
+    if (files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        previewContent = previewFileContent(reader.result);
+      };
+      reader.readAsText(files[0]);
+    }
   };
 
   const handleGroupingsChange = (event) => {
     groupingsFile = event.target.files[0];
+    if (groupingsFile) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        groupingsContentPreview = previewFileContent(reader.result);
+      };
+      reader.readAsText(groupingsFile);
+    }
   };
 
   const handleMethodChange = (event) => {
@@ -62,19 +78,9 @@
   };
 
   const previewFileContent = (fileContent) => {
-    // Function to display a preview of the TSV file content
     const rows = fileContent.split('\n').slice(0, 5); // Get first 5 rows
     return rows.map(row => row.split('\t').slice(0, 5)); // Get first 5 columns of each row
   };
-
-  let previewContent = [];
-  if (files.length > 0) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      previewContent = previewFileContent(reader.result);
-    };
-    reader.readAsText(files[0]);
-  }
 </script>
 
 <style>
@@ -109,6 +115,18 @@
     justify-content: space-between;
     margin: 20px 0;
   }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
 </style>
 
 <div>
@@ -132,11 +150,26 @@
     <input type="file" accept=".tsv" on:change={handleFileChange} />
     <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
     
-    {#if files.length > 0 && groupingsFile}
+    {#if files.length > 0}
       <div class="preview">
         <h2>Preview of TSV File</h2>
         <table>
           {#each previewContent as row}
+            <tr>
+              {#each row as cell}
+                <td>{cell}</td>
+              {/each}
+            </tr>
+          {/each}
+        </table>
+      </div>
+    {/if}
+
+    {#if groupingsFile}
+      <div class="preview">
+        <h2>Preview of Groupings File</h2>
+        <table>
+          {#each groupingsContentPreview as row}
             <tr>
               {#each row as cell}
                 <td>{cell}</td>
