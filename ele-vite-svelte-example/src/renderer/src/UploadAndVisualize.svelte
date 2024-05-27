@@ -8,6 +8,9 @@
   let groupingsContentPreview = [];
   let fileDimensions = { rows: 0, columns: 0 };
   let groupingsDimensions = { rows: 0, columns: 0 };
+  let threshold = 0.0;
+  let filteredContent = [];
+  let filteredDimensions = { rows: 0, columns: 0 };
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -17,6 +20,8 @@
         const content = reader.result;
         previewContent = previewFileContent(content);
         fileDimensions = getFileDimensions(content);
+        filteredContent = previewContent;
+        filteredDimensions = fileDimensions;
       };
       reader.readAsText(files[0]);
     }
@@ -59,7 +64,8 @@
           },
           body: JSON.stringify({
             asv: asvContent,
-            groupings: groupingsContent
+            groupings: groupingsContent,
+            threshold: threshold
           })
         });
 
@@ -72,6 +78,32 @@
       };
 
       groupingsReader.readAsText(groupings);
+    };
+
+    asvReader.readAsText(file);
+  };
+
+  const handleFilter = async () => {
+    const file = files[0];
+
+    const asvReader = new FileReader();
+    asvReader.onload = async () => {
+      const asvContent = asvReader.result;
+
+      const response = await fetch(`http://localhost:8000/filter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          asv: asvContent,
+          threshold: threshold
+        })
+      });
+
+      const result = await response.json();
+      filteredContent = previewFileContent(result.filteredAsv);
+      filteredDimensions = getFileDimensions(result.filteredAsv);
     };
 
     asvReader.readAsText(file);
@@ -115,6 +147,9 @@
     color: white;
   }
   .preview {
+    margin: 20px 0;
+  }
+  .filters {
     margin: 20px 0;
   }
   .methods {
@@ -198,14 +233,14 @@
     {/if}
   </div>
 
-  <!-- Data Perturbation Step Preview -->
+  <!-- Data Perturbation Step Preview and Filters -->
   {#if currentStep === 'Data Perturbation'}
     {#if files.length > 0}
       <div class="preview">
         <h2>Preview of TSV File</h2>
-        <p>{fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
+        <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
         <table>
-          {#each previewContent as row}
+          {#each filteredContent as row}
             <tr>
               {#each row as cell}
                 <td>{cell}</td>
@@ -219,7 +254,7 @@
     {#if groupingsFile}
       <div class="preview">
         <h2>Preview of Groupings File</h2>
-        <p>{groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
         <table>
           {#each groupingsContentPreview as row}
             <tr>
@@ -231,6 +266,25 @@
         </table>
       </div>
     {/if}
+
+    <!-- Placeholder for Filtering -->
+    <div class="filters">
+      <label for="threshold">Threshold for Rare Genes:</label>
+      <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
+      <span>{threshold}</span>
+      <button on:click={handleFilter}>Apply Threshold</button>
+    </div>
+
+    <!-- Placeholders for additional options -->
+    <div class="filters">
+      <label>Additional Option 1:</label>
+      <input type="text" />
+    </div>
+
+    <div class="filters">
+      <label>Additional Option 2:</label>
+      <input type="text" />
+    </div>
   {/if}
 
   <!-- Method Selection Section -->
