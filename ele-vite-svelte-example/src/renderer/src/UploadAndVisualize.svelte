@@ -2,9 +2,14 @@
   let files = [];
   let visualizations = { plot1: '', plot2: '', plot3: '' };
   let selectedMethod = '';
+  let groupingsFile = null;
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = (event) => {
     files = event.target.files;
+  };
+
+  const handleGroupingsChange = (event) => {
+    groupingsFile = event.target.files[0];
   };
 
   const handleMethodChange = (event) => {
@@ -13,35 +18,51 @@
 
   const handleSubmit = async () => {
     const file = files[0];
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const fileContent = reader.result;
+    const groupings = groupingsFile;
 
-      const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain'
-        },
-        body: fileContent
-      });
+    const asvReader = new FileReader();
+    const groupingsReader = new FileReader();
 
-      const result = await response.json();
-      visualizations = {
-        plot1: `data:image/png;base64,${result.plot1}`,
-        plot2: `data:image/png;base64,${result.plot2}`,
-        plot3: `data:image/png;base64,${result.plot3}`
+    asvReader.onload = () => {
+      const asvContent = asvReader.result;
+
+      groupingsReader.onload = async () => {
+        const groupingsContent = groupingsReader.result;
+
+        const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: asvContent,
+            groupings: groupingsContent
+          })
+        });
+
+        const result = await response.json();
+        visualizations = {
+          plot1: `data:image/png;base64,${result.plot1}`,
+          plot2: `data:image/png;base64,${result.plot2}`,
+          plot3: `data:image/png;base64,${result.plot3}`
+        };
       };
+
+      groupingsReader.readAsText(groupings);
     };
-    reader.readAsText(file);
+
+    asvReader.readAsText(file);
   };
 </script>
 
 <div>
   <h1>Upload ASV Dataset</h1>
   <input type="file" accept=".tsv" on:change={handleFileChange} />
+  <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
 
-  {#if files.length > 0}
+  {#if files.length > 0 && groupingsFile}
     <p>File: {files[0].name}</p>
+    <p>Groupings File: {groupingsFile.name}</p>
     
     <label>
       Select Method:
