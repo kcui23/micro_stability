@@ -7,6 +7,8 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file) {
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
+  print('======dim in deseq2==========')
+  print(dim(ASV_table))
 
   # Read groupings table
   groupings <- read_tsv(groupings_file, col_names = TRUE)

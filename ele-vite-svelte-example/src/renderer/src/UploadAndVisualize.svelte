@@ -11,6 +11,7 @@
   let threshold = 0.0;
   let filteredContent = [];
   let filteredDimensions = { rows: 0, columns: 0 };
+  let filteredAsvContent = null; // Store the filtered ASV content
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -22,6 +23,7 @@
         fileDimensions = getFileDimensions(content);
         filteredContent = previewContent;
         filteredDimensions = fileDimensions;
+        filteredAsvContent = content; // Initialize with unfiltered content
       };
       reader.readAsText(files[0]);
     }
@@ -45,42 +47,59 @@
   };
 
   const handleSubmit = async () => {
-    const file = files[0];
+    console.log('Submit button pressed');
+    const asvContent = filteredAsvContent || files[0];
     const groupings = groupingsFile;
 
-    const asvReader = new FileReader();
+    if (typeof asvContent === 'string') {
+      processSubmit(asvContent, groupings);
+    } else {
+      const asvReader = new FileReader();
+      asvReader.onload = () => {
+        const asvContentText = asvReader.result;
+        console.log('ASV Content:', asvContentText);
+        processSubmit(asvContentText, groupings);
+      };
+      asvReader.readAsText(asvContent);
+    }
+  };
+
+  const processSubmit = async (asvContentText, groupings) => {
     const groupingsReader = new FileReader();
+    groupingsReader.onload = async () => {
+      const groupingsContent = groupingsReader.result;
+      console.log('Groupings Content:', groupingsContent);
 
-    asvReader.onload = () => {
-      const asvContent = asvReader.result;
-
-      groupingsReader.onload = async () => {
-        const groupingsContent = groupingsReader.result;
-
+      try {
         const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            asv: asvContent,
+            asv: asvContentText,
             groupings: groupingsContent,
             threshold: threshold
           })
         });
 
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
         const result = await response.json();
+        console.log('Server Response:', result);
         visualizations = {
           plot1: `data:image/png;base64,${result.plot1}`,
           plot2: `data:image/png;base64,${result.plot2}`,
           plot3: `data:image/png;base64,${result.plot3}`
         };
-      };
-
-      groupingsReader.readAsText(groupings);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
     };
 
-    asvReader.readAsText(file);
+    groupingsReader.readAsText(groupings);
   };
 
   const handleFilter = async () => {
@@ -102,8 +121,26 @@
       });
 
       const result = await response.json();
-      filteredContent = previewFileContent(result.filteredAsv);
-      filteredDimensions = getFileDimensions(result.filteredAsv);
+      const filteredAsv = result.filteredAsv;
+
+      // Debugging: log the received filtered ASV content
+      console.log("Filtered ASV content received:", filteredAsv);
+
+      // Ensure the filtered ASV content is treated as a string
+      if (typeof filteredAsv === 'string') {
+        filteredContent = previewFileContent(filteredAsv);
+        filteredDimensions = getFileDimensions(filteredAsv);
+        filteredAsvContent = filteredAsv; // Store the filtered content
+      } else {
+        console.error('Filtered ASV content is not a string:', filteredAsv);
+        // Attempt to handle array if received as array
+        if (Array.isArray(filteredAsv)) {
+          const filteredAsvString = filteredAsv.join('\n');
+          filteredContent = previewFileContent(filteredAsvString);
+          filteredDimensions = getFileDimensions(filteredAsvString);
+          filteredAsvContent = filteredAsvString; // Store the filtered content
+        }
+      }
     };
 
     asvReader.readAsText(file);
@@ -219,7 +256,7 @@
     {#if groupingsFile}
       <div class="preview">
         <h2>Preview of Groupings File</h2>
-        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
         <table>
           {#each groupingsContentPreview as row}
             <tr>
@@ -254,7 +291,7 @@
     {#if groupingsFile}
       <div class="preview">
         <h2>Preview of Groupings File</h2>
-        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
         <table>
           {#each groupingsContentPreview as row}
             <tr>
