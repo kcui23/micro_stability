@@ -1,4 +1,6 @@
 library(ALDEx2)
+library(tidyr)
+library(dplyr)
 library(readr)
 
 run_aldex2 <- function(ASV_file, groupings_file, output_file) {
@@ -81,10 +83,11 @@ visualize_aldex2 <- function(input_file, output_dir) {
   
   ggsave(file.path(output_dir, "aldex2_plot2.png"), plot = p2)
 
-  # Visualization 3: Density plot of rab.win.Rhizosphere and rab.win.Soil
+# Visualization 3: Density plot of rab.win.Rhizosphere and rab.win.Soil
+  print(colnames(aldex2_results))
   aldex2_long <- aldex2_results %>% 
-    select(rab.win.Rhizosphere, rab.win.Soil) %>%
-    gather(key = "Condition", value = "Value")
+    dplyr::select(rab.win.Rhizosphere, rab.win.Soil) %>%
+    tidyr::pivot_longer(cols = everything(), names_to = "Condition", values_to = "Value")
 
   p3 <- ggplot(aldex2_long, aes(x = Value, fill = Condition)) +
     geom_density(alpha = 0.5) +
