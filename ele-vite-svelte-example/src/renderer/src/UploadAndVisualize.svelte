@@ -6,7 +6,9 @@
     deseq2_plot3: '',
     aldex2_plot1: '',
     aldex2_plot2: '',
-    aldex2_plot3: ''
+    aldex2_plot3: '',
+    overlap_volcano: '',
+    overlap_pvalue_distribution: ''
   };
   let selectedMethod = '';
   let groupingsFile = null;
@@ -18,7 +20,7 @@
   let threshold = 0.0;
   let filteredContent = [];
   let filteredDimensions = { rows: 0, columns: 0 };
-  let filteredAsvContent = null; // Store the filtered ASV content
+  let filteredAsvContent = null;
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -30,7 +32,7 @@
         fileDimensions = getFileDimensions(content);
         filteredContent = previewContent;
         filteredDimensions = fileDimensions;
-        filteredAsvContent = content; // Initialize with unfiltered content
+        filteredAsvContent = content;
       };
       reader.readAsText(files[0]);
     }
@@ -54,7 +56,6 @@
   };
 
   const handleSubmit = async () => {
-    console.log('Submit button pressed');
     const asvContent = filteredAsvContent || files[0];
     const groupings = groupingsFile;
 
@@ -64,7 +65,6 @@
       const asvReader = new FileReader();
       asvReader.onload = () => {
         const asvContentText = asvReader.result;
-        console.log('ASV Content:', asvContentText);
         processSubmit(asvContentText, groupings);
       };
       asvReader.readAsText(asvContent);
@@ -75,7 +75,6 @@
     const groupingsReader = new FileReader();
     groupingsReader.onload = async () => {
       const groupingsContent = groupingsReader.result;
-      console.log('Groupings Content:', groupingsContent);
 
       try {
         const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
@@ -95,11 +94,15 @@
         }
 
         const result = await response.json();
-        console.log('Server Response:', result);
         visualizations = {
-          deseq2_plot1: `data:image/png;base64,${result.plot1}`,
-          deseq2_plot2: `data:image/png;base64,${result.plot2}`,
-          deseq2_plot3: `data:image/png;base64,${result.plot3}`
+          deseq2_plot1: `data:image/png;base64,${result.deseq2_plot1}`,
+          deseq2_plot2: `data:image/png;base64,${result.deseq2_plot2}`,
+          deseq2_plot3: `data:image/png;base64,${result.deseq2_plot3}`,
+          aldex2_plot1: `data:image/png;base64,${result.aldex2_plot1}`,
+          aldex2_plot2: `data:image/png;base64,${result.aldex2_plot2}`,
+          aldex2_plot3: `data:image/png;base64,${result.aldex2_plot3}`,
+          overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
+          overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
         };
       } catch (error) {
         console.error('Fetch error:', error);
@@ -130,19 +133,17 @@
       const result = await response.json();
       const filteredAsv = result.filteredAsv;
 
-      console.log("Filtered ASV content received:", filteredAsv);
-
       if (typeof filteredAsv === 'string') {
         filteredContent = previewFileContent(filteredAsv);
         filteredDimensions = getFileDimensions(filteredAsv);
-        filteredAsvContent = filteredAsv; 
+        filteredAsvContent = filteredAsv;
       } else {
         console.error('Filtered ASV content is not a string:', filteredAsv);
         if (Array.isArray(filteredAsv)) {
           const filteredAsvString = filteredAsv.join('\n');
           filteredContent = previewFileContent(filteredAsvString);
           filteredDimensions = getFileDimensions(filteredAsvString);
-          filteredAsvContent = filteredAsvString; 
+          filteredAsvContent = filteredAsvString;
         }
       }
     };
@@ -151,7 +152,6 @@
   };
 
   const handleQuickExplore = async () => {
-    console.log('Quick Explore button pressed');
     const asvContent = filteredAsvContent || files[0];
     const groupings = groupingsFile;
 
@@ -171,7 +171,6 @@
     const groupingsReader = new FileReader();
     groupingsReader.onload = async () => {
       const groupingsContent = groupingsReader.result;
-      console.log('Groupings Content for Quick Explore:', groupingsContent);
 
       try {
         const response = await fetch(`http://localhost:8000/quick_explore`, {
@@ -182,7 +181,7 @@
           body: JSON.stringify({
             asv: asvContentText,
             groupings: groupingsContent,
-            method: selectedMethod // Add the selected method here
+            method: selectedMethod
           })
         });
 
@@ -191,14 +190,15 @@
         }
 
         const result = await response.json();
-        console.log('Server Response for Quick Explore:', result);
         visualizations = {
           deseq2_plot1: `data:image/png;base64,${result.deseq2_plot1}`,
           deseq2_plot2: `data:image/png;base64,${result.deseq2_plot2}`,
           deseq2_plot3: `data:image/png;base64,${result.deseq2_plot3}`,
           aldex2_plot1: `data:image/png;base64,${result.aldex2_plot1}`,
           aldex2_plot2: `data:image/png;base64,${result.aldex2_plot2}`,
-          aldex2_plot3: `data:image/png;base64,${result.aldex2_plot3}`
+          aldex2_plot3: `data:image/png;base64,${result.aldex2_plot3}`,
+          overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
+          overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
         };
       } catch (error) {
         console.error('Fetch error:', error);
@@ -212,14 +212,14 @@
 
   const goToStep = (step) => {
     if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
-      return; 
+      return;
     }
     currentStep = step;
   };
 
   const previewFileContent = (fileContent) => {
-    const rows = fileContent.split('\n').slice(0, 5); 
-    return rows.map(row => row.split('\t').slice(0, 5)); 
+    const rows = fileContent.split('\n').slice(0, 5);
+    return rows.map(row => row.split('\t').slice(0, 5));
   };
 
   const getFileDimensions = (fileContent) => {
@@ -275,6 +275,10 @@
   }
   th {
     background-color: #f2f2f2;
+  }
+  img.large {
+    width: 100%;
+    height: auto;
   }
 </style>
 
@@ -408,6 +412,9 @@
     <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
     <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
     <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+    <h2>Overlap Visualizations</h2>
+    <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
+    <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
   {/if}
 
   <!-- Navigation Buttons -->

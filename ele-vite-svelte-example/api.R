@@ -71,7 +71,8 @@ function(req) {
 
   temp_asv_file <- tempfile(fileext = ".tsv")
   temp_groupings_file <- tempfile(fileext = ".tsv")
-  output_file <- tempfile(fileext = ".tsv")
+  deseq2_output_file <- tempfile(fileext = ".tsv")
+  aldex2_output_file <- tempfile(fileext = ".tsv")
   output_dir <- tempfile()
 
   dir.create(output_dir)
@@ -80,16 +81,19 @@ function(req) {
   writeLines(as.character(body$groupings), temp_groupings_file)
   
   asv_data <- read_tsv(temp_asv_file, col_types = cols(.default = "c"))
-  subset_asv_data <- asv_data %>% sample_frac(0.1)
+  subset_asv_data <- asv_data %>% sample_frac(0.05)
   write_tsv(subset_asv_data, temp_asv_file)
 
   source("DESeq2.R")
-  deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, output_file)
-  deseq2_plots <- visualize_deseq2(output_file, output_dir)
+  deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file)
+  deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
   
   source("Aldex2.R")
-  aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file)
-  aldex2_plots <- visualize_aldex2(output_file, output_dir)
+  aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file)
+  aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
+  
+  source("overlap_plots.R")
+  overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, output_dir)
 
   list(
     deseq2_plot1 = base64enc::base64encode(deseq2_plots$plot1),
@@ -97,6 +101,8 @@ function(req) {
     deseq2_plot3 = base64enc::base64encode(deseq2_plots$plot3),
     aldex2_plot1 = base64enc::base64encode(aldex2_plots$plot1),
     aldex2_plot2 = base64enc::base64encode(aldex2_plots$plot2),
-    aldex2_plot3 = base64enc::base64encode(aldex2_plots$plot3)
+    aldex2_plot3 = base64enc::base64encode(aldex2_plots$plot3),
+    overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
+    overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
   )
 }
