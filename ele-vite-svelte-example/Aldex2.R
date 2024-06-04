@@ -67,13 +67,20 @@ visualize_aldex2 <- function(input_file, output_dir) {
   # Read ALDEx2 results
   aldex2_results <- read_tsv(input_file)
   
-  # Visualization 1: Boxplot of rab.all values
-  p1 <- ggplot(aldex2_results, aes(x = "All", y = rab.all)) +
-    geom_boxplot() +
+  # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
+  alog <- aldex2_results %>%
+    mutate(neg_log10_pvalue = -log10(we.eBH))
+  
+  p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
+    geom_point(aes(color = we.eBH < 0.05)) +  # Coloring significant points
+    scale_color_manual(values = c("red", "black")) +  # Red for significant
     theme_minimal() +
-    labs(title = "Boxplot of rab.all", x = "All", y = "rab.all")
-
+    labs(title = "Volcano plot of Effect Size vs. -log10(pvalue)",
+         x = "Log2 Fold Change",
+         y = "-log10(pvalue)")
+  
   ggsave(file.path(output_dir, "aldex2_plot1.png"), plot = p1)
+
 
   # Visualization 2: Scatter plot of diff.btw vs. effect
   p2 <- ggplot(aldex2_results, aes(x = diff.btw, y = effect)) +
@@ -83,16 +90,11 @@ visualize_aldex2 <- function(input_file, output_dir) {
   
   ggsave(file.path(output_dir, "aldex2_plot2.png"), plot = p2)
 
-# Visualization 3: Density plot of rab.win.Rhizosphere and rab.win.Soil
-  print(colnames(aldex2_results))
-  aldex2_long <- aldex2_results %>% 
-    dplyr::select(rab.win.Rhizosphere, rab.win.Soil) %>%
-    tidyr::pivot_longer(cols = everything(), names_to = "Condition", values_to = "Value")
-
-  p3 <- ggplot(aldex2_long, aes(x = Value, fill = Condition)) +
-    geom_density(alpha = 0.5) +
+# Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(aldex2_results, aes(x = we.eBH)) +
+    geom_histogram(binwidth = 0.1) +
     theme_minimal() +
-    labs(title = "Density plot of rab.win.Rhizosphere and rab.win.Soil", x = "Value", y = "Density")
+    labs(title = "Histogram of p-value distribution", x = "pvalue", y = "Frequency")
 
   ggsave(file.path(output_dir, "aldex2_plot3.png"), plot = p3)
   

@@ -1,6 +1,13 @@
 <script>
   let files = [];
-  let visualizations = { plot1: '', plot2: '', plot3: '' };
+  let visualizations = {
+    deseq2_plot1: '',
+    deseq2_plot2: '',
+    deseq2_plot3: '',
+    aldex2_plot1: '',
+    aldex2_plot2: '',
+    aldex2_plot3: ''
+  };
   let selectedMethod = '';
   let groupingsFile = null;
   let currentStep = 'Raw data';
@@ -90,9 +97,9 @@
         const result = await response.json();
         console.log('Server Response:', result);
         visualizations = {
-          plot1: `data:image/png;base64,${result.plot1}`,
-          plot2: `data:image/png;base64,${result.plot2}`,
-          plot3: `data:image/png;base64,${result.plot3}`
+          deseq2_plot1: `data:image/png;base64,${result.plot1}`,
+          deseq2_plot2: `data:image/png;base64,${result.plot2}`,
+          deseq2_plot3: `data:image/png;base64,${result.plot3}`
         };
       } catch (error) {
         console.error('Fetch error:', error);
@@ -123,22 +130,19 @@
       const result = await response.json();
       const filteredAsv = result.filteredAsv;
 
-      // Debugging: log the received filtered ASV content
       console.log("Filtered ASV content received:", filteredAsv);
 
-      // Ensure the filtered ASV content is treated as a string
       if (typeof filteredAsv === 'string') {
         filteredContent = previewFileContent(filteredAsv);
         filteredDimensions = getFileDimensions(filteredAsv);
-        filteredAsvContent = filteredAsv; // Store the filtered content
+        filteredAsvContent = filteredAsv; 
       } else {
         console.error('Filtered ASV content is not a string:', filteredAsv);
-        // Attempt to handle array if received as array
         if (Array.isArray(filteredAsv)) {
           const filteredAsvString = filteredAsv.join('\n');
           filteredContent = previewFileContent(filteredAsvString);
           filteredDimensions = getFileDimensions(filteredAsvString);
-          filteredAsvContent = filteredAsvString; // Store the filtered content
+          filteredAsvContent = filteredAsvString; 
         }
       }
     };
@@ -146,18 +150,76 @@
     asvReader.readAsText(file);
   };
 
+  const handleQuickExplore = async () => {
+    console.log('Quick Explore button pressed');
+    const asvContent = filteredAsvContent || files[0];
+    const groupings = groupingsFile;
+
+    if (typeof asvContent === 'string') {
+      processQuickExplore(asvContent, groupings);
+    } else {
+      const asvReader = new FileReader();
+      asvReader.onload = () => {
+        const asvContentText = asvReader.result;
+        processQuickExplore(asvContentText, groupings);
+      };
+      asvReader.readAsText(asvContent);
+    }
+  };
+
+  const processQuickExplore = async (asvContentText, groupings) => {
+    const groupingsReader = new FileReader();
+    groupingsReader.onload = async () => {
+      const groupingsContent = groupingsReader.result;
+      console.log('Groupings Content for Quick Explore:', groupingsContent);
+
+      try {
+        const response = await fetch(`http://localhost:8000/quick_explore`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: asvContentText,
+            groupings: groupingsContent,
+            method: selectedMethod // Add the selected method here
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        console.log('Server Response for Quick Explore:', result);
+        visualizations = {
+          deseq2_plot1: `data:image/png;base64,${result.deseq2_plot1}`,
+          deseq2_plot2: `data:image/png;base64,${result.deseq2_plot2}`,
+          deseq2_plot3: `data:image/png;base64,${result.deseq2_plot3}`,
+          aldex2_plot1: `data:image/png;base64,${result.aldex2_plot1}`,
+          aldex2_plot2: `data:image/png;base64,${result.aldex2_plot2}`,
+          aldex2_plot3: `data:image/png;base64,${result.aldex2_plot3}`
+        };
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    groupingsReader.readAsText(groupings);
+  };
+
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
   const goToStep = (step) => {
     if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
-      return; // Do not allow navigation if files are not uploaded
+      return; 
     }
     currentStep = step;
   };
 
   const previewFileContent = (fileContent) => {
-    const rows = fileContent.split('\n').slice(0, 5); // Get first 5 rows
-    return rows.map(row => row.split('\t').slice(0, 5)); // Get first 5 columns of each row
+    const rows = fileContent.split('\n').slice(0, 5); 
+    return rows.map(row => row.split('\t').slice(0, 5)); 
   };
 
   const getFileDimensions = (fileContent) => {
@@ -268,6 +330,8 @@
         </table>
       </div>
     {/if}
+
+    <button on:click={handleQuickExplore}>Quick Explore</button>
   </div>
 
   <!-- Data Perturbation Step Preview and Filters -->
@@ -335,12 +399,15 @@
     </div>
   {/if}
 
-  <!-- Visualizations Section -->
-  {#if visualizations.plot1}
-    <h2>Visualizations</h2>
-    <img src={visualizations.plot1} alt="Plot 1" style="width: 300px; height: auto;" />
-    <img src={visualizations.plot2} alt="Plot 2" style="width: 300px; height: auto;" />
-    <img src={visualizations.plot3} alt="Plot 3" style="width: 300px; height: auto;" />
+  {#if visualizations.deseq2_plot1 || visualizations.aldex2_plot1}
+    <h2>Visualizations (DESeq2)</h2>
+    <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+    <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+    <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+    <h2>Visualizations (ALDEx2)</h2>
+    <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+    <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+    <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
   {/if}
 
   <!-- Navigation Buttons -->
