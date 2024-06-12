@@ -3,7 +3,11 @@ library(tidyr)
 library(dplyr)
 library(readr)
 
-run_aldex2 <- function(ASV_file, groupings_file, output_file) {
+run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
+  set.seed(seed)
+  print('======seed==========')
+  print(seed)
+
   # Read ASV table
   ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
   ASV_table <- as.data.frame(ASV_table)

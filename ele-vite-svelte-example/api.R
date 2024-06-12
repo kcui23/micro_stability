@@ -13,6 +13,7 @@ library(dplyr)
 #* @parser json
 function(req, method) {
   body <- fromJSON(req$postBody)
+  seed <- if (!is.null(body$seed)) as.integer(body$seed) else 1234
 
   temp_asv_file <- tempfile(fileext = ".tsv")
   temp_groupings_file <- tempfile(fileext = ".tsv")
@@ -26,11 +27,11 @@ function(req, method) {
   
   if (method == "deseq2") {
     source("DESeq2.R")
-    result <- run_deseq2(temp_asv_file, temp_groupings_file, output_file)
+    result <- run_deseq2(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_deseq2(output_file, output_dir)
   } else if (method == "aldex2") {
     source("Aldex2.R")
-    result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file)
+    result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_aldex2(output_file, output_dir)
   } else {
     stop("Invalid method selected. Please choose 'deseq2' or 'aldex2'.")
@@ -68,6 +69,7 @@ function(req) {
 #* @parser json
 function(req) {
   body <- fromJSON(req$postBody)
+  seed <- if (!is.null(body$seed)) as.integer(body$seed) else 1234
 
   temp_asv_file <- tempfile(fileext = ".tsv")
   temp_groupings_file <- tempfile(fileext = ".tsv")
@@ -81,15 +83,16 @@ function(req) {
   writeLines(as.character(body$groupings), temp_groupings_file)
   
   asv_data <- read_tsv(temp_asv_file, col_types = cols(.default = "c"))
+  set.seed(seed)
   subset_asv_data <- asv_data %>% sample_frac(0.05)
   write_tsv(subset_asv_data, temp_asv_file)
 
   source("DESeq2.R")
-  deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file)
+  deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file, seed)
   deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
   
   source("Aldex2.R")
-  aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file)
+  aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
   aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
   
   source("overlap_plots.R")

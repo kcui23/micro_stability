@@ -22,7 +22,9 @@
   let filteredDimensions = { rows: 0, columns: 0 };
   let filteredAsvContent = null;
   let showAllPlots = false;
+  let showDetailedPlots = false;
   let isCalculating = false;
+  let randomSeed = 1234;
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -56,6 +58,7 @@
   const handleMethodChange = (method) => {
     selectedMethod = method;
     showAllPlots = false;
+    showDetailedPlots = false;
   };
 
   const handleQuickExplore = async () => {
@@ -107,7 +110,8 @@
           body: JSON.stringify({
             asv: asvContentText,
             groupings: groupingsContent,
-            threshold: threshold
+            threshold: threshold,
+            seed: randomSeed
           })
         });
 
@@ -150,7 +154,8 @@
           body: JSON.stringify({
             asv: asvContentText,
             groupings: groupingsContent,
-            method: selectedMethod
+            method: selectedMethod,
+            seed: randomSeed
           })
         });
 
@@ -237,6 +242,10 @@
     const columns = rows[0].split('\t').length;
     return { rows: rows.length, columns };
   };
+
+  const showMoreDetails = () => {
+    showDetailedPlots = true;
+  };
 </script>
 
 <style>
@@ -322,6 +331,10 @@
     <h1>Upload ASV Dataset</h1>
     <input type="file" accept=".tsv" on:change={handleFileChange} />
     <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
+    <div>
+      <label for="randomSeed">Set Random Seed:</label>
+      <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
+    </div>
 
     {#if files.length > 0}
       <div class="preview">
@@ -432,17 +445,22 @@
       </div>
     {:else}
       {#if showAllPlots}
-        <h3>DESeq2 Plots</h3>
-        <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-        <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-        <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-        <h3>ALDEx2 Plots</h3>
-        <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-        <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-        <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
         <h3>Overlap Visualizations</h3>
         <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
         <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
+        {#if !showDetailedPlots}
+          <button on:click={showMoreDetails}>Show More Details</button>
+        {/if}
+        {#if showDetailedPlots}
+          <h3>DESeq2 Plots</h3>
+          <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+          <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+          <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+          <h3>ALDEx2 Plots</h3>
+          <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+          <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+          <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+        {/if}
       {:else if selectedMethod === 'deseq2'}
         <h3>DESeq2 Plots</h3>
         <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
