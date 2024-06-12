@@ -74,7 +74,6 @@
       };
       asvReader.readAsText(asvContent);
     }
-    isCalculating = false;
   };
 
   const handleSubmit = async () => {
@@ -92,7 +91,6 @@
       };
       asvReader.readAsText(asvContent);
     }
-    isCalculating = false;
   };
 
   const processSubmit = async (asvContentText, groupings) => {
@@ -128,8 +126,10 @@
           overlap_volcano: visualizations.overlap_volcano,
           overlap_pvalue_distribution: visualizations.overlap_pvalue_distribution
         };
+        isCalculating = false;
       } catch (error) {
         console.error('Fetch error:', error);
+        isCalculating = false;
       }
     };
 
@@ -169,8 +169,10 @@
           overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
           overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
         };
+        isCalculating = false;
       } catch (error) {
         console.error('Fetch error:', error);
+        isCalculating = false;
       }
     };
 
@@ -422,7 +424,7 @@
   {/if}
 
   <!-- Visualizations Section -->
-  {#if visualizations.deseq2_plot1 || visualizations.aldex2_plot1 || showAllPlots}
+  {#if showAllPlots || selectedMethod}
     <h2>Visualizations</h2>
     {#if isCalculating}
       <div class="loader">
