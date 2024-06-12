@@ -1,4 +1,8 @@
 <script>
+  import { onMount } from 'svelte';
+  import { select } from 'd3-selection';
+  import { graphlib, layout } from 'dagre';
+  
   let files = [];
   let visualizations = {
     deseq2_plot1: '',
@@ -25,6 +29,8 @@
   let showDetailedPlots = false;
   let isCalculating = false;
   let randomSeed = 1234;
+
+  const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -223,8 +229,6 @@
     asvReader.readAsText(file);
   };
 
-  const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
-
   const goToStep = (step) => {
     if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
       return;
@@ -246,9 +250,83 @@
   const showMoreDetails = () => {
     showDetailedPlots = true;
   };
+
+  const drawADG = () => {
+    const g = new graphlib.Graph().setGraph({}).setDefaultEdgeLabel(() => ({}));
+
+    // Nodes
+    steps.forEach((step, index) => {
+      g.setNode(index, { label: step });
+    });
+
+    // Edges
+    for (let i = 0; i < steps.length - 1; i++) {
+      g.setEdge(i, i + 1);
+    }
+
+    layout(g);
+
+    const svg = select('#adg-container');
+    const inner = svg.append('g');
+
+    g.nodes().forEach((v) => {
+      const node = g.node(v);
+      inner.append('circle')
+        .attr('r', 10)
+        .attr('cx', node.x)
+        .attr('cy', node.y)
+        .on('click', () => {
+          currentStep = steps[v];
+        });
+
+      inner.append('text')
+        .attr('x', node.x)
+        .attr('y', node.y)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .text(node.label);
+    });
+
+    g.edges().forEach((e) => {
+      const edge = g.edge(e);
+      inner.append('path')
+        .attr('d', `M${edge.points[0].x},${edge.points[0].y}L${edge.points[1].x},${edge.points[1].y}`)
+        .attr('marker-end', 'url(#arrowhead)');
+    });
+
+    // Define arrowhead marker
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '-0 -5 10 10')
+      .attr('refX', 13)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('stroke', '#000')
+      .attr('fill', '#000');
+  };
+
+  onMount(() => {
+    drawADG();
+  });
 </script>
 
 <style>
+  .container {
+    display: flex;
+  }
+  .sidebar {
+    width: 200px;
+    border-right: 1px solid #ccc;
+    padding: 10px;
+  }
+  .content {
+    flex-grow: 1;
+    padding: 20px;
+  }
   .steps {
     display: flex;
     justify-content: space-around;
@@ -311,178 +389,176 @@
   }
 </style>
 
-<div>
-  <!-- Logo Section -->
-  <div class="logo">
-    <h1>Logo</h1>
+<div class="container">
+  <!-- ADG Sidebar -->
+  <div class="sidebar">
+    <svg id="adg-container" width="200" height="600"></svg>
   </div>
 
-  <!-- Steps Navigation -->
-  <div class="steps">
-    {#each steps as step}
-      <div class:active={step === currentStep} class="step" on:click={() => goToStep(step)}>
-        {step}
-      </div>
-    {/each}
-  </div>
-
-  <!-- Content for Current Step -->
-  <div class="upload-section" hidden={currentStep !== 'Raw data'}>
-    <h1>Upload ASV Dataset</h1>
-    <input type="file" accept=".tsv" on:change={handleFileChange} />
-    <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
-    <div>
-      <label for="randomSeed">Set Random Seed:</label>
-      <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
+  <!-- Main Content Area -->
+  <div class="content">
+    <div class="logo">
+      <h1>Logo</h1>
     </div>
 
-    {#if files.length > 0}
-      <div class="preview">
-        <h2>Preview of TSV File</h2>
-        <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
-        <table>
-          {#each previewContent as row}
-            <tr>
-              {#each row as cell}
-                <td>{cell}</td>
-              {/each}
-            </tr>
-          {/each}
-        </table>
-      </div>
-    {/if}
-
-    {#if groupingsFile}
-      <div class="preview">
-        <h2>Preview of Groupings File</h2>
-        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-        <table>
-          {#each groupingsContentPreview as row}
-            <tr>
-              {#each row as cell}
-                <td>{cell}</td>
-              {/each}
-            </tr>
-          {/each}
-        </table>
-      </div>
-    {/if}
-
-    <button on:click={handleQuickExplore}>Quick Explore</button>
-  </div>
-
-  <!-- Data Perturbation Step Preview and Filters -->
-  {#if currentStep === 'Data Perturbation'}
-    {#if files.length > 0}
-      <div class="preview">
-        <h2>Preview of TSV File</h2>
-        <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-        <table>
-          {#each filteredContent as row}
-            <tr>
-              {#each row as cell}
-                <td>{cell}</td>
-              {/each}
-            </tr>
-          {/each}
-        </table>
-      </div>
-    {/if}
-
-    {#if groupingsFile}
-      <div class="preview">
-        <h2>Preview of Groupings File</h2>
-        <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-        <table>
-          {#each groupingsContentPreview as row}
-            <tr>
-              {#each row as cell}
-                <td>{cell}</td>
-              {/each}
-            </tr>
-          {/each}
-        </table>
-      </div>
-    {/if}
-
-    <!-- Placeholder for Filtering -->
-    <div class="filters">
-      <label for="threshold">Threshold for Rare Genes:</label>
-      <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
-      <span>{threshold}</span>
-      <button on:click={handleFilter}>Apply Threshold</button>
+    <div class="steps">
+      {#each steps as step}
+        <button class:active={step === currentStep} class="step" on:click={() => goToStep(step)}>
+          {step}
+        </button>
+      {/each}
     </div>
 
-    <!-- Placeholders for additional options -->
-    <div class="filters">
-      <label>Additional Option 1:</label>
-      <input type="text" />
-    </div>
-
-    <div class="filters">
-      <label>Additional Option 2:</label>
-      <input type="text" />
-    </div>
-  {/if}
-
-  <!-- Method Selection Section -->
-  {#if currentStep === 'Model Perturbation'}
-    <div class="methods">
-      <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
-      <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
-      <button on:click={() => handleMethodChange('method3')} class:selected={selectedMethod === 'method3'}>Method 3</button>
-      <button on:click={() => handleMethodChange('method4')} class:selected={selectedMethod === 'method4'}>Method 4</button>
-      <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
-    </div>
-  {/if}
-
-  <!-- Visualizations Section -->
-  {#if showAllPlots || selectedMethod}
-    <h2>Visualizations</h2>
-    {#if isCalculating}
-      <div class="loader">
-        <p>Loading...</p>
+    <div class="upload-section" hidden={currentStep !== 'Raw data'}>
+      <h1>Upload ASV Dataset</h1>
+      <input type="file" accept=".tsv" on:change={handleFileChange} />
+      <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
+      <div>
+        <label for="randomSeed">Set Random Seed:</label>
+        <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
       </div>
-    {:else}
-      {#if showAllPlots}
-        <h3>Overlap Visualizations</h3>
-        <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
-        <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
-        {#if !showDetailedPlots}
-          <button on:click={showMoreDetails}>Show More Details</button>
-        {/if}
-        {#if showDetailedPlots}
+
+      {#if files.length > 0}
+        <div class="preview">
+          <h2>Preview of TSV File</h2>
+          <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
+          <table>
+            {#each previewContent as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </table>
+        </div>
+      {/if}
+
+      {#if groupingsFile}
+        <div class="preview">
+          <h2>Preview of Groupings File</h2>
+          <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
+          <table>
+            {#each groupingsContentPreview as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </table>
+        </div>
+      {/if}
+
+      <button on:click={handleQuickExplore}>Quick Explore</button>
+    </div>
+
+    <div class="preview-section" hidden={currentStep !== 'Data Perturbation'}>
+      {#if files.length > 0}
+        <div class="preview">
+          <h2>Preview of TSV File</h2>
+          <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+          <table>
+            {#each filteredContent as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </table>
+        </div>
+      {/if}
+
+      {#if groupingsFile}
+        <div class="preview">
+          <h2>Preview of Groupings File</h2>
+          <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
+          <table>
+            {#each groupingsContentPreview as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </table>
+        </div>
+      {/if}
+
+      <div class="filters">
+        <label for="threshold">Threshold for Rare Genes:</label>
+        <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
+        <span>{threshold}</span>
+        <button on:click={handleFilter}>Apply Threshold</button>
+      </div>
+
+      <div class="filters">
+        <label for="option1">Additional Option 1:</label>
+        <input type="text" id="option1" />
+      </div>
+
+      <div class="filters">
+        <label for="option2">Additional Option 2:</label>
+        <input type="text" id="option2" />
+      </div>
+    </div>
+
+    <div class="methods-section" hidden={currentStep !== 'Model Perturbation'}>
+      <div class="methods">
+        <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
+        <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
+        <button on:click={() => handleMethodChange('method3')} class:selected={selectedMethod === 'method3'}>Method 3</button>
+        <button on:click={() => handleMethodChange('method4')} class:selected={selectedMethod === 'method4'}>Method 4</button>
+        <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
+      </div>
+    </div>
+
+    <div class="visualizations-section" hidden={!showAllPlots && !selectedMethod}>
+      <h2>Visualizations</h2>
+      {#if isCalculating}
+        <div class="loader">
+          <p>Loading...</p>
+        </div>
+      {:else}
+        {#if showAllPlots}
+          <h3>Overlap Visualizations</h3>
+          <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
+          <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
+          {#if !showDetailedPlots}
+            <button on:click={showMoreDetails}>Show More Details</button>
+          {/if}
+          {#if showDetailedPlots}
+            <h3>DESeq2 Plots</h3>
+            <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+            <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+            <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+            <h3>ALDEx2 Plots</h3>
+            <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+            <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+            <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+          {/if}
+        {:else if selectedMethod === 'deseq2'}
           <h3>DESeq2 Plots</h3>
           <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
           <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
           <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+        {:else if selectedMethod === 'aldex2'}
           <h3>ALDEx2 Plots</h3>
           <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
           <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
           <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
         {/if}
-      {:else if selectedMethod === 'deseq2'}
-        <h3>DESeq2 Plots</h3>
-        <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-        <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-        <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-      {:else if selectedMethod === 'aldex2'}
-        <h3>ALDEx2 Plots</h3>
-        <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-        <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-        <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
       {/if}
+    </div>
+
+    <div class="navigation">
+      <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
+      <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])}>Next</button>
+    </div>
+
+    {#if files.length > 0 && groupingsFile && selectedMethod}
+      <button on:click={handleSubmit}>Submit</button>
     {/if}
-  {/if}
-
-  <!-- Navigation Buttons -->
-  <div class="navigation">
-    <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
-    <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])}>Next</button>
   </div>
-
-  <!-- Submit Button -->
-  {#if files.length > 0 && groupingsFile && selectedMethod}
-    <button on:click={handleSubmit}>Submit</button>
-  {/if}
 </div>
