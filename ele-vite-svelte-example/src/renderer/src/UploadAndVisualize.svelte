@@ -22,6 +22,7 @@
   let filteredDimensions = { rows: 0, columns: 0 };
   let filteredAsvContent = null;
   let showAllPlots = false;
+  let isCalculating = false;
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -52,14 +53,14 @@
     }
   };
 
-  const handleMethodChange = async (method) => {
+  const handleMethodChange = (method) => {
     selectedMethod = method;
     showAllPlots = false;
-    await handleSubmit();
   };
 
   const handleQuickExplore = async () => {
     showAllPlots = true;
+    isCalculating = true;
     const asvContent = filteredAsvContent || files[0];
     const groupings = groupingsFile;
 
@@ -67,15 +68,17 @@
       await processQuickExplore(asvContent, groupings);
     } else {
       const asvReader = new FileReader();
-      asvReader.onload = () => {
+      asvReader.onload = async () => {
         const asvContentText = asvReader.result;
-        processQuickExplore(asvContentText, groupings);
+        await processQuickExplore(asvContentText, groupings);
       };
       asvReader.readAsText(asvContent);
     }
+    isCalculating = false;
   };
 
   const handleSubmit = async () => {
+    isCalculating = true;
     const asvContent = filteredAsvContent || files[0];
     const groupings = groupingsFile;
 
@@ -89,6 +92,7 @@
       };
       asvReader.readAsText(asvContent);
     }
+    isCalculating = false;
   };
 
   const processSubmit = async (asvContentText, groupings) => {
@@ -263,6 +267,10 @@
   .methods button {
     margin: 5px 0;
   }
+  .methods button.selected {
+    background-color: #007bff;
+    color: white;
+  }
   .navigation {
     display: flex;
     justify-content: space-between;
@@ -283,6 +291,12 @@
   img.large {
     width: 100%;
     height: auto;
+  }
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
   }
 </style>
 
@@ -399,39 +413,45 @@
   <!-- Method Selection Section -->
   {#if currentStep === 'Model Perturbation'}
     <div class="methods">
-      <button on:click={() => handleMethodChange('deseq2')}>Method 1 (DESeq2)</button>
-      <button on:click={() => handleMethodChange('aldex2')}>Method 2 (ALDEx2)</button>
-      <button on:click={() => handleMethodChange('method3')}>Method 3</button>
-      <button on:click={() => handleMethodChange('method4')}>Method 4</button>
-      <button on:click={() => handleMethodChange('method5')}>Method 5</button>
+      <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
+      <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
+      <button on:click={() => handleMethodChange('method3')} class:selected={selectedMethod === 'method3'}>Method 3</button>
+      <button on:click={() => handleMethodChange('method4')} class:selected={selectedMethod === 'method4'}>Method 4</button>
+      <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
     </div>
   {/if}
 
   <!-- Visualizations Section -->
   {#if visualizations.deseq2_plot1 || visualizations.aldex2_plot1 || showAllPlots}
     <h2>Visualizations</h2>
-    {#if showAllPlots}
-      <h3>DESeq2 Plots</h3>
-      <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-      <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-      <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-      <h3>ALDEx2 Plots</h3>
-      <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-      <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-      <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
-      <h3>Overlap Visualizations</h3>
-      <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
-      <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
-    {:else if selectedMethod === 'deseq2'}
-      <h3>DESeq2 Plots</h3>
-      <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-      <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-      <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-    {:else if selectedMethod === 'aldex2'}
-      <h3>ALDEx2 Plots</h3>
-      <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-      <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-      <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+    {#if isCalculating}
+      <div class="loader">
+        <p>Loading...</p>
+      </div>
+    {:else}
+      {#if showAllPlots}
+        <h3>DESeq2 Plots</h3>
+        <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+        <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+        <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+        <h3>ALDEx2 Plots</h3>
+        <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+        <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+        <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+        <h3>Overlap Visualizations</h3>
+        <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
+        <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
+      {:else if selectedMethod === 'deseq2'}
+        <h3>DESeq2 Plots</h3>
+        <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+        <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+        <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+      {:else if selectedMethod === 'aldex2'}
+        <h3>ALDEx2 Plots</h3>
+        <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+        <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+        <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+      {/if}
     {/if}
   {/if}
 
@@ -446,4 +466,3 @@
     <button on:click={handleSubmit}>Submit</button>
   {/if}
 </div>
-
