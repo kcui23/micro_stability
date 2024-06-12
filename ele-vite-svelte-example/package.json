@@ -21,6 +21,7 @@
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "d3": "^7.9.0",
+    "d3-selection": "^3.0.0",
     "dagre": "^0.8.5"
   },
   "devDependencies": {
