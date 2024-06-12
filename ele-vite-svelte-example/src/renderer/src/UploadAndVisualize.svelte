@@ -21,6 +21,7 @@
   let filteredContent = [];
   let filteredDimensions = { rows: 0, columns: 0 };
   let filteredAsvContent = null;
+  let showAllPlots = false;
 
   const handleFileChange = (event) => {
     files = event.target.files;
@@ -51,8 +52,27 @@
     }
   };
 
-  const handleMethodChange = (event) => {
-    selectedMethod = event.target.value;
+  const handleMethodChange = async (method) => {
+    selectedMethod = method;
+    showAllPlots = false;
+    await handleSubmit();
+  };
+
+  const handleQuickExplore = async () => {
+    showAllPlots = true;
+    const asvContent = filteredAsvContent || files[0];
+    const groupings = groupingsFile;
+
+    if (typeof asvContent === 'string') {
+      await processQuickExplore(asvContent, groupings);
+    } else {
+      const asvReader = new FileReader();
+      asvReader.onload = () => {
+        const asvContentText = asvReader.result;
+        processQuickExplore(asvContentText, groupings);
+      };
+      asvReader.readAsText(asvContent);
+    }
   };
 
   const handleSubmit = async () => {
@@ -60,12 +80,12 @@
     const groupings = groupingsFile;
 
     if (typeof asvContent === 'string') {
-      processSubmit(asvContent, groupings);
+      await processSubmit(asvContent, groupings);
     } else {
       const asvReader = new FileReader();
-      asvReader.onload = () => {
+      asvReader.onload = async () => {
         const asvContentText = asvReader.result;
-        processSubmit(asvContentText, groupings);
+        await processSubmit(asvContentText, groupings);
       };
       asvReader.readAsText(asvContent);
     }
@@ -86,6 +106,47 @@
             asv: asvContentText,
             groupings: groupingsContent,
             threshold: threshold
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        visualizations = {
+          deseq2_plot1: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot1}` : visualizations.deseq2_plot1,
+          deseq2_plot2: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot2}` : visualizations.deseq2_plot2,
+          deseq2_plot3: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot3}` : visualizations.deseq2_plot3,
+          aldex2_plot1: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot1}` : visualizations.aldex2_plot1,
+          aldex2_plot2: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot2}` : visualizations.aldex2_plot2,
+          aldex2_plot3: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot3}` : visualizations.aldex2_plot3,
+          overlap_volcano: visualizations.overlap_volcano,
+          overlap_pvalue_distribution: visualizations.overlap_pvalue_distribution
+        };
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    groupingsReader.readAsText(groupings);
+  };
+
+  const processQuickExplore = async (asvContentText, groupings) => {
+    const groupingsReader = new FileReader();
+    groupingsReader.onload = async () => {
+      const groupingsContent = groupingsReader.result;
+
+      try {
+        const response = await fetch(`http://localhost:8000/quick_explore`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: asvContentText,
+            groupings: groupingsContent,
+            method: selectedMethod
           })
         });
 
@@ -149,63 +210,6 @@
     };
 
     asvReader.readAsText(file);
-  };
-
-  const handleQuickExplore = async () => {
-    const asvContent = filteredAsvContent || files[0];
-    const groupings = groupingsFile;
-
-    if (typeof asvContent === 'string') {
-      processQuickExplore(asvContent, groupings);
-    } else {
-      const asvReader = new FileReader();
-      asvReader.onload = () => {
-        const asvContentText = asvReader.result;
-        processQuickExplore(asvContentText, groupings);
-      };
-      asvReader.readAsText(asvContent);
-    }
-  };
-
-  const processQuickExplore = async (asvContentText, groupings) => {
-    const groupingsReader = new FileReader();
-    groupingsReader.onload = async () => {
-      const groupingsContent = groupingsReader.result;
-
-      try {
-        const response = await fetch(`http://localhost:8000/quick_explore`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            asv: asvContentText,
-            groupings: groupingsContent,
-            method: selectedMethod
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const result = await response.json();
-        visualizations = {
-          deseq2_plot1: `data:image/png;base64,${result.deseq2_plot1}`,
-          deseq2_plot2: `data:image/png;base64,${result.deseq2_plot2}`,
-          deseq2_plot3: `data:image/png;base64,${result.deseq2_plot3}`,
-          aldex2_plot1: `data:image/png;base64,${result.aldex2_plot1}`,
-          aldex2_plot2: `data:image/png;base64,${result.aldex2_plot2}`,
-          aldex2_plot3: `data:image/png;base64,${result.aldex2_plot3}`,
-          overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
-          overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
-        };
-      } catch (error) {
-        console.error('Fetch error:', error);
-      }
-    };
-
-    groupingsReader.readAsText(groupings);
   };
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
@@ -395,26 +399,40 @@
   <!-- Method Selection Section -->
   {#if currentStep === 'Model Perturbation'}
     <div class="methods">
-      <button on:click={() => handleMethodChange({ target: { value: 'deseq2' } })}>Method 1 (DESeq2)</button>
-      <button on:click={() => handleMethodChange({ target: { value: 'aldex2' } })}>Method 2 (ALDEx2)</button>
-      <button on:click={() => handleMethodChange({ target: { value: 'method3' } })}>Method 3</button>
-      <button on:click={() => handleMethodChange({ target: { value: 'method4' } })}>Method 4</button>
-      <button on:click={() => handleMethodChange({ target: { value: 'method5' } })}>Method 5</button>
+      <button on:click={() => handleMethodChange('deseq2')}>Method 1 (DESeq2)</button>
+      <button on:click={() => handleMethodChange('aldex2')}>Method 2 (ALDEx2)</button>
+      <button on:click={() => handleMethodChange('method3')}>Method 3</button>
+      <button on:click={() => handleMethodChange('method4')}>Method 4</button>
+      <button on:click={() => handleMethodChange('method5')}>Method 5</button>
     </div>
   {/if}
 
-  {#if visualizations.deseq2_plot1 || visualizations.aldex2_plot1}
-    <h2>Visualizations (DESeq2)</h2>
-    <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-    <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-    <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-    <h2>Visualizations (ALDEx2)</h2>
-    <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-    <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-    <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
-    <h2>Overlap Visualizations</h2>
-    <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
-    <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
+  <!-- Visualizations Section -->
+  {#if visualizations.deseq2_plot1 || visualizations.aldex2_plot1 || showAllPlots}
+    <h2>Visualizations</h2>
+    {#if showAllPlots}
+      <h3>DESeq2 Plots</h3>
+      <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+      <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+      <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+      <h3>ALDEx2 Plots</h3>
+      <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+      <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+      <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+      <h3>Overlap Visualizations</h3>
+      <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
+      <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
+    {:else if selectedMethod === 'deseq2'}
+      <h3>DESeq2 Plots</h3>
+      <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
+      <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
+      <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
+    {:else if selectedMethod === 'aldex2'}
+      <h3>ALDEx2 Plots</h3>
+      <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
+      <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
+      <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
+    {/if}
   {/if}
 
   <!-- Navigation Buttons -->
@@ -428,3 +446,4 @@
     <button on:click={handleSubmit}>Submit</button>
   {/if}
 </div>
+
