@@ -27,6 +27,7 @@
   let showDetailedPlots = false;
   let isCalculating = false;
   let randomSeed = 1234;
+  let edgeThicknesses = [1,2,3,4];
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
@@ -329,7 +330,7 @@
 <div class="container">
   <!-- ADG Sidebar -->
   <div class="sidebar">
-    <ADGPlot {steps} {currentStep} setCurrentStep={goToStep} />
+    <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} />
   </div>
 
   <!-- Main Content Area -->
