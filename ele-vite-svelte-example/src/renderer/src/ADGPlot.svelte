@@ -2,7 +2,6 @@
 todos:
   - fix the bug that the active node is not updating when the steps change
 some thoughts:
-  - edge.points[0].y is NaN and .x are fixed
   - maybe we can use the adg_plot.js as a reference code
 -->
 <script>

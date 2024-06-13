@@ -256,9 +256,9 @@
     display: flex;
   }
   .sidebar {
-    width: 220px;
+    width: 260px;
     border-right: 1px solid #ccc;
-    padding: 10px;
+    padding: 20px;
     background-color: #f9f9f9;
   }
   .content {
