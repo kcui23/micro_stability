@@ -16,5 +16,6 @@
     "javascript",
     "javascriptreact",
     "svelte"
-  ]
+  ],
+  "r.lsp.promptToInstall": false
 }
