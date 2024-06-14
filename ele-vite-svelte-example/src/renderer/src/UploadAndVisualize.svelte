@@ -15,6 +15,7 @@
   let selectedMethod = '';
   let groupingsFile = null;
   let currentStep = 'Raw data';
+  let lastStep = 'Raw data';
   let previewContent = [];
   let groupingsContentPreview = [];
   let fileDimensions = { rows: 0, columns: 0 };
@@ -232,6 +233,7 @@
     if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
       return;
     }
+    lastStep = currentStep;
     currentStep = step;
   };
 
@@ -330,7 +332,7 @@
 <div class="container">
   <!-- ADG Sidebar -->
   <div class="sidebar">
-    <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} />
+    <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} lastStep={lastStep} />
   </div>
 
   <!-- Main Content Area -->

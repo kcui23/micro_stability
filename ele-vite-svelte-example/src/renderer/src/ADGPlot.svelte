@@ -2,11 +2,13 @@
     import { onMount } from 'svelte';
     import { select } from 'd3-selection';
     import { graphlib, layout } from 'dagre';
+    import 'd3-transition';
   
     export let steps;
     export let currentStep;
     export let setCurrentStep;
     export let edgeThicknesses = [];
+    export let lastStep;
     const basicThickness = 2;
   
     const drawADG = () => {
@@ -31,16 +33,22 @@
         g.nodes().forEach((v) => {
             const node = g.node(v);
             if (node && !isNaN(node.x) && !isNaN(node.y)) {
-                inner.append('circle')
-                    .attr('r', 10)
-                    .attr('cx', node.x)
-                    .attr('cy', node.y)
-                    .attr('class', currentStep === steps[v] ? 'active' : '')
-                    .style('fill', currentStep === steps[v] ? '#007bff' : '#ccc')
-                    .style('cursor', 'pointer')
-                    .on('click', () => {
-                        setCurrentStep(steps[v]);
-                    });
+                const circle = inner.append('circle')
+                .attr('r', 10)
+                .attr('cx', node.x)
+                .attr('cy', node.y)
+                .style('fill', '#ccc')
+                .style('fill', lastStep === steps[v] ? '#007bff' : '#ccc')
+                .style('cursor', 'pointer')
+                .on('click', () => {
+                    setCurrentStep(steps[v]);
+                });
+
+                circle.transition().duration(250)
+                    .style('fill', '#ccc');
+
+                circle.transition().duration(1500)
+                    .style('fill', currentStep === steps[v] ? '#007bff' : '#ccc');
   
                 inner.append('text')
                     .attr('x', node.x + 15) // Position text to the right of the node
@@ -100,7 +108,10 @@
         cursor: pointer;
     }
     circle.active {
-        fill: #007bff;
+
+    }
+    circle.last{
+
     }
     text {
         font-size: 12px;
