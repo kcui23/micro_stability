@@ -235,6 +235,11 @@
     }
     lastStep = currentStep;
     currentStep = step;
+
+    const contentContainer = document.querySelector('.content');
+    if (contentContainer) {
+      contentContainer.scrollTo(0, 0);
+    }
   };
 
   const previewFileContent = (fileContent) => {
@@ -264,11 +269,12 @@
     border-right: 1px solid #ccc;
     padding: 20px;
     padding-top: 60px;
-    background-color: #f59292;
+    background-color: #b9f2cc;
   }
   .content {
     flex-grow: 1;
     padding: 20px;
+    overflow-y: auto; /* allow content to scroll */
   }
   .steps {
     display: flex;
@@ -332,7 +338,7 @@
   }
 </style>
 
-<div class="container">
+<div id="app" class="container">
   <!-- ADG Sidebar -->
   <div class="sidebar">
     <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} lastStep={lastStep} />
