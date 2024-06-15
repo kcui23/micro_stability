@@ -256,12 +256,15 @@
 <style>
   .container {
     display: flex;
+    height: 100vh;
   }
   .sidebar {
     width: 260px;
+    height: 100vh; 
     border-right: 1px solid #ccc;
     padding: 20px;
-    background-color: #f9f9f9;
+    padding-top: 60px;
+    background-color: #f59292;
   }
   .content {
     flex-grow: 1;

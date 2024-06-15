@@ -2,9 +2,9 @@
 
 body {
   display: flex;
-  align-items: flex-start; /* center vertically */
-  justify-content: flex-start; /* center horizontally */
-  padding: 20px;
+  align-items: stretch;
+  justify-content: stretch;
+  /* padding: 20px; */
   overflow: auto;
   /* background-image: url('./wavy-lines.svg'); */
   /* background-size: cover; */
@@ -29,10 +29,11 @@ code {
 
 #app {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
   flex-direction: column;
-  margin-bottom: 80px;
+  width: 100%;
+  height: 100vh;
 }
 
 .logo {
