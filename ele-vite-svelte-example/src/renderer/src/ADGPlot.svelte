@@ -45,9 +45,6 @@
                 });
 
                 circle.transition().duration(250)
-                    .style('fill', '#ccc');
-
-                circle.transition().duration(1500)
                     .style('fill', currentStep === steps[v] ? '#007bff' : '#ccc');
   
                 inner.append('text')
