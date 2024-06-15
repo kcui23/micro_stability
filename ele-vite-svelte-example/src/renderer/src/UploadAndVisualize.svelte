@@ -341,13 +341,13 @@
       <h1>Logo</h1>
     </div>
 
-    <div class="steps">
+    <!-- <div class="steps">
       {#each steps as step}
         <button class:active={step === currentStep} class="step" on:click={() => goToStep(step)}>
           {step}
         </button>
       {/each}
-    </div>
+    </div> -->
 
     <div class="upload-section" hidden={currentStep !== 'Raw data'}>
       <h1>Upload ASV Dataset</h1>
