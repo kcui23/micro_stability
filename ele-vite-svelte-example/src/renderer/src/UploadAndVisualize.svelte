@@ -295,7 +295,7 @@
   .navigation {
     display: flex;
     justify-content: space-between;
-    margin: 20px 0;
+    margin: 20px 40px 20px 0;
   }
 </style>
 
@@ -364,7 +364,10 @@
         </div>
       {/if}
 
-      <button on:click={handleQuickExplore}>Quick Explore</button>
+      <div class="tooltip">
+        <button on:click={handleQuickExplore} disabled={files.length === 0 || !groupingsFile}>Quick Explore</button>
+        <span class="tooltiptext">Upload files to continue</span>
+      </div>
     </div>
 
     <div class="preview-section" hidden={currentStep !== 'Data Perturbation'}>
@@ -472,7 +475,10 @@
 
     <div class="navigation">
       <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
-      <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])}>Next</button>
+      <div class="tooltip">
+        <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={files.length === 0 || !groupingsFile}>Next</button>
+        <span class="tooltiptext">Upload files to continue</span>
+      </div>
     </div>
 
     {#if currentStep === 'Model Perturbation' && files.length > 0 && groupingsFile && selectedMethod}
