@@ -372,15 +372,17 @@
         <div class="preview">
           <h2>Preview of TSV File</h2>
           <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-          <table>
-            {#each filteredContent as row}
-              <tr>
-                {#each row as cell}
-                  <td>{cell}</td>
-                {/each}
-              </tr>
-            {/each}
-          </table>
+          <div class="table-container">
+            <table>
+              {#each filteredContent as row}
+                <tr>
+                  {#each row as cell}
+                    <td>{cell}</td>
+                  {/each}
+                </tr>
+              {/each}
+            </table>
+          </div>
         </div>
       {/if}
 
@@ -388,15 +390,17 @@
         <div class="preview">
           <h2>Preview of Groupings File</h2>
           <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-          <table>
-            {#each groupingsContentPreview as row}
-              <tr>
-                {#each row as cell}
-                  <td>{cell}</td>
-                {/each}
-              </tr>
-            {/each}
-          </table>
+          <div class="table-container">
+            <table>
+              {#each groupingsContentPreview as row}
+                <tr>
+                  {#each row as cell}
+                    <td>{cell}</td>
+                  {/each}
+                </tr>
+              {/each}
+            </table>
+          </div>
         </div>
       {/if}
 
@@ -471,7 +475,7 @@
       <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])}>Next</button>
     </div>
 
-    {#if files.length > 0 && groupingsFile && selectedMethod}
+    {#if currentStep === 'Model Perturbation' && files.length > 0 && groupingsFile && selectedMethod}
       <button on:click={handleSubmit}>Submit</button>
     {/if}
   </div>

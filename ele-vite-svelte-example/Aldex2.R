@@ -78,7 +78,7 @@ visualize_aldex2 <- function(input_file, output_dir) {
   
   p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
     geom_point(aes(color = we.eBH < 0.05, size=point_size)) +  # Coloring significant points
-    scale_color_manual(values = c("gray", "blue")) +  # Red for significant
+    scale_color_manual(values = c("gray", "#4C3BCF")) +  # Red for significant
     scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
     labs(title = "Volcano plot of Effect Size vs. -log10(pvalue)",

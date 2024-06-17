@@ -79,7 +79,7 @@ visualize_deseq2 <- function(input_file, output_dir) {
   
   p1 <- ggplot(deseq2_results, aes(x = log2FoldChange, y = log10pvalue)) +
     geom_point(aes(color = pvalue < 0.05, size=point_size)) +
-    scale_color_manual(values = c("gray", "blue")) +
+    scale_color_manual(values = c("gray", "#4C3BCF")) +
     scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
     labs(title = "Volcano plot", x = "log2FoldChange", y = "-log10(pvalue)")

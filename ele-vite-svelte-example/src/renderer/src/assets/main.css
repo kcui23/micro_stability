@@ -23,7 +23,7 @@ body {
   width: 260px;
   height: 100vh;
   border-right: 1px solid #ccc;
-  padding: 20px;
+  padding: 30px;
   padding-top: 60px;
   background-color: #ebf8fb;
   flex-shrink: 0; /* prevent sidebar from shrinking */
