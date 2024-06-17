@@ -259,23 +259,6 @@
 </script>
 
 <style>
-  .container {
-    display: flex;
-    height: 100vh;
-  }
-  .sidebar {
-    width: 260px;
-    height: 100vh; 
-    border-right: 1px solid #ccc;
-    padding: 20px;
-    padding-top: 60px;
-    background-color: #b9f2cc;
-  }
-  .content {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto; /* allow content to scroll */
-  }
   .steps {
     display: flex;
     justify-content: space-around;
@@ -314,28 +297,6 @@
     justify-content: space-between;
     margin: 20px 0;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-  }
-  th {
-    background-color: #f2f2f2;
-  }
-  img.large {
-    width: 100%;
-    height: auto;
-  }
-  .loader {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-  }
 </style>
 
 <div id="app" class="container">
@@ -371,15 +332,17 @@
         <div class="preview">
           <h2>Preview of TSV File</h2>
           <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
-          <table>
-            {#each previewContent as row}
-              <tr>
-                {#each row as cell}
-                  <td>{cell}</td>
-                {/each}
-              </tr>
-            {/each}
-          </table>
+          <div class="table-container">
+            <table>
+              {#each previewContent as row}
+                <tr>
+                  {#each row as cell}
+                    <td>{cell}</td>
+                  {/each}
+                </tr>
+              {/each}
+            </table>
+          </div>
         </div>
       {/if}
 
@@ -387,15 +350,17 @@
         <div class="preview">
           <h2>Preview of Groupings File</h2>
           <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-          <table>
-            {#each groupingsContentPreview as row}
-              <tr>
-                {#each row as cell}
-                  <td>{cell}</td>
-                {/each}
-              </tr>
-            {/each}
-          </table>
+          <div class="table-container">
+            <table>
+              {#each groupingsContentPreview as row}
+                <tr>
+                  {#each row as cell}
+                    <td>{cell}</td>
+                  {/each}
+                </tr>
+              {/each}
+            </table>
+          </div>
         </div>
       {/if}
 
