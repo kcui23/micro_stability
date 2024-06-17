@@ -73,11 +73,13 @@ visualize_aldex2 <- function(input_file, output_dir) {
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   alog <- aldex2_results %>%
-    mutate(neg_log10_pvalue = -log10(we.eBH))
+    mutate(neg_log10_pvalue = -log10(we.eBH),
+           point_size = ifelse(we.eBH < 0.05, 3, 1))
   
   p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
-    geom_point(aes(color = we.eBH < 0.05)) +  # Coloring significant points
-    scale_color_manual(values = c("red", "black")) +  # Red for significant
+    geom_point(aes(color = we.eBH < 0.05, size=point_size)) +  # Coloring significant points
+    scale_color_manual(values = c("gray", "blue")) +  # Red for significant
+    scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
     labs(title = "Volcano plot of Effect Size vs. -log10(pvalue)",
          x = "Log2 Fold Change",

@@ -75,10 +75,12 @@ visualize_deseq2 <- function(input_file, output_dir) {
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
+  deseq2_results$point_size <- ifelse(deseq2_results$pvalue < 0.05, 2, 1)
   
   p1 <- ggplot(deseq2_results, aes(x = log2FoldChange, y = log10pvalue)) +
-    geom_point(aes(color = pvalue < 0.05)) +
-    scale_color_manual(values = c("red", "black")) +
+    geom_point(aes(color = pvalue < 0.05, size=point_size)) +
+    scale_color_manual(values = c("gray", "blue")) +
+    scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
     labs(title = "Volcano plot", x = "log2FoldChange", y = "-log10(pvalue)")
   

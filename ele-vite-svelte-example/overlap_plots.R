@@ -17,7 +17,7 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, output_dir) {
   # Overlap volcano plot
   p1 <- ggplot(combined_results, aes(x = log2FoldChange, y = neg_log10_pvalue, color = method, shape = significant_0.05)) +
     geom_point(alpha = 0.5, size=4) +
-    scale_color_manual(values = c("brown", "purple")) +
+    scale_color_manual(values = c("#EF8354", "#102C57")) +
     scale_shape_manual(values = c(1, 16)) +
     theme_minimal() +
     labs(title = "Volcano plot overlap", x = "log2FoldChange", y = "-log10(pvalue)")
@@ -27,7 +27,7 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, output_dir) {
   # Overlap p-value distribution
   p2 <- ggplot(combined_results, aes(x = pvalue, fill = method)) +
     geom_histogram(binwidth = 0.05, alpha = 0.5, position = "identity") +
-    scale_fill_manual(values = c("brown", "purple")) +
+    scale_fill_manual(values = c("#EF8354", "#102C57")) +
     theme_minimal() +
     labs(title = "P-value distribution overlap", x = "p-value", y = "Frequency")
   
