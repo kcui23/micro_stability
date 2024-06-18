@@ -339,8 +339,16 @@
 
     <div class="upload-section" hidden={currentStep !== 'Raw data'}>
       <h1>Upload ASV Dataset</h1>
-      <input type="file" accept=".tsv" on:change={handleFileChange} />
-      <input type="file" accept=".tsv" on:change={handleGroupingsChange} />
+      <div class="custom-file-input">
+        <label for="fileInput1">Choose File</label>
+        <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
+      </div>
+      
+      <div class="custom-file-input">
+        <label for="fileInput2">Choose File</label>
+        <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
+      </div>
+      
       <div>
         <label for="randomSeed">Set Random Seed:</label>
         <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
@@ -493,10 +501,12 @@
 
     <div class="navigation">
       <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
-      <div class="tooltip">
-        <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={files.length === 0 || !groupingsFile}>Next</button>
-        <span class="tooltiptext">Upload files to continue</span>
-      </div>
+      {#if currentStep != 'Stability Metric'}
+        <div class="tooltip">
+          <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={files.length === 0 || !groupingsFile}>Next</button>
+          <span class="tooltiptext">Upload files to continue</span>
+        </div>
+      {/if}
     </div>
 
     {#if currentStep === 'Model Perturbation' && files.length > 0 && groupingsFile && selectedMethod}
