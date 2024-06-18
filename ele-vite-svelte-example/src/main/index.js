@@ -8,9 +8,10 @@ app.commandLine.appendSwitch('lang', 'en-US');
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
+    width: 1000,
     height: 670,
     show: false,
+    title: 'Micro-stability',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -20,7 +21,8 @@ function createWindow() {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow.setTitle('Micro-stability');
+    mainWindow.show();
   })
   
   // This handler is fired when the window content attempts to open a new window. 
