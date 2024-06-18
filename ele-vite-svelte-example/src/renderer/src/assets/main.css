@@ -70,6 +70,17 @@ img.large {
   height: 100px;
 }
 
+.upload-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.upload-section {
+  flex: 1;
+  margin-right: 20px;
+}
+
 .custom-file-input {
   position: relative;
   overflow: hidden;

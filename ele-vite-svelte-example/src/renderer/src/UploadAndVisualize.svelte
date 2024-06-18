@@ -319,6 +319,10 @@
     justify-content: space-between;
     margin: 20px 40px 20px 0;
   }
+
+  .navigation .next-button {
+    margin-left: auto;
+  }
 </style>
 
 <div id="app" class="container">
@@ -347,23 +351,29 @@
       {/each}
     </div> -->
 
-    <div class="upload-section" hidden={currentStep !== 'Raw data'}>
+    <div hidden={currentStep !== 'Raw data'}>
       <h1>Raw Data</h1>
-      <span class="file-label">Upload ASV File:</span>
-      <div class="custom-file-input">
-        <label for="fileInput1">Choose File</label>
-        <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
+      <div class="upload-container">
+        <div class="upload-section">
+          <span class="file-label">Upload ASV File:</span>
+          <div class="custom-file-input">
+            <label for="fileInput1">Choose File</label>
+            <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
+          </div>
+          <div class="note">Note: Please upload a .tsv file</div>
+          <div id="fileName1" class="file-name"></div>
+        </div>
+  
+        <div class="upload-section">
+          <span class="file-label">Upload Groupings File:</span>
+          <div class="custom-file-input">
+            <label for="fileInput2">Choose File</label>
+            <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
+          </div>
+          <div class="note">Note: Please upload a .tsv file</div>
+          <div id="fileName2" class="file-name"></div>
+        </div>
       </div>
-      <div class="note">Note: Please upload a .tsv file</div>
-      <div id="fileName1" class="file-name"></div>
-
-      <span class="file-label">Upload Groupings File:</span>
-      <div class="custom-file-input">
-        <label for="fileInput2">Choose File</label>
-        <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
-      </div>
-      <div class="note">Note: Please upload a .tsv file</div>
-      <div id="fileName2" class="file-name"></div>
 
       
       <div>
@@ -373,7 +383,7 @@
 
       {#if asvFiles.length > 0}
         <div class="preview">
-          <h2>Preview of TSV File</h2>
+          <h2>Preview of ASV File</h2>
           <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
           <div class="table-container">
             <table>
@@ -517,9 +527,11 @@
     </div>
 
     <div class="navigation">
-      <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
+      {#if currentStep != 'Raw data'}
+        <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
+      {/if}
       {#if currentStep != 'Stability Metric'}
-        <div class="tooltip">
+        <div class="tooltip next-button">
           <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={asvFiles.length === 0 || !groupingsFile}>Next</button>
           <span class="tooltiptext">Upload files to continue</span>
         </div>
