@@ -75,10 +75,10 @@ img.large {
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 120px;
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #fc9a37;
+  color: #fffefe;
   text-align: center;
-  border: 1px solid #d3d8de;
+  /* border: 1px solid #c17325; */
   border-radius: 6px;
   padding: 5px;
   position: absolute;
@@ -95,3 +95,33 @@ img.large {
   opacity: 1;
 }
 /* end of tooltip */
+
+/* notification */
+.notification {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fc9a37; 
+  color: white;
+  padding: 16px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: none; /* Hidden by default */
+  transition: opacity 0.5s ease, top 0.5s ease; /* Smooth transition */
+}
+
+.notification.show {
+  display: block;
+  opacity: 1;
+}
+
+.notification.hide {
+  opacity: 0;
+  top: 0;
+}
+
+.notification-icon {
+  margin-right: 8px;
+}

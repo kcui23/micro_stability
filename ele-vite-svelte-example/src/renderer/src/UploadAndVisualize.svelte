@@ -32,6 +32,17 @@
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
+  const showNotification = () => {
+    const notification = document.getElementById('notification');
+    notification.classList.add('show');
+    setTimeout(() => {
+      notification.classList.add('hide');
+      setTimeout(() => {
+        notification.classList.remove('show', 'hide');
+      }, 500); // Match the duration of the hide transition
+    }, 3000); // Duration to show the notification
+  };
+
   const handleFileChange = (event) => {
     files = event.target.files;
     if (files.length > 0) {
@@ -231,6 +242,7 @@
 
   const goToStep = (step) => {
     if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
+      showNotification();
       return;
     }
     lastStep = currentStep;
@@ -300,6 +312,12 @@
 </style>
 
 <div id="app" class="container">
+  <!-- Non-modal notification -->
+  <div id="notification" class="notification">
+    <span class="notification-icon">⚠️</span>
+    <span>Please upload the required files first.</span>
+  </div>
+
   <!-- ADG Sidebar -->
   <div class="sidebar">
     <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} lastStep={lastStep} />
