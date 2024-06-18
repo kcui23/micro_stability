@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import ADGPlot from './ADGPlot.svelte';
-  let files = [];
+  let asvFiles = [];
   let visualizations = {
     deseq2_plot1: '',
     deseq2_plot2: '',
@@ -44,8 +44,10 @@
   };
 
   const handleFileChange = (event) => {
-    files = event.target.files;
-    if (files.length > 0) {
+    const fileInput = event.target;
+    const fileNameDisplay = document.getElementById('fileName1');
+    asvFiles = fileInput.files;
+    if (fileInput.files.length > 0) {
       const reader = new FileReader();
       reader.onload = () => {
         const content = reader.result;
@@ -55,12 +57,17 @@
         filteredDimensions = fileDimensions;
         filteredAsvContent = content;
       };
-      reader.readAsText(files[0]);
+      fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
+      reader.readAsText(fileInput.files[0]);
+    } else {
+      fileNameDisplay.textContent = '';
     }
   };
 
   const handleGroupingsChange = (event) => {
-    groupingsFile = event.target.files[0];
+    const fileInput = event.target;
+    const fileNameDisplay = document.getElementById('fileName2');
+    groupingsFile = fileInput.files[0];
     if (groupingsFile) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -68,7 +75,10 @@
         groupingsContentPreview = previewFileContent(content);
         groupingsDimensions = getFileDimensions(content);
       };
+      fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
       reader.readAsText(groupingsFile);
+    } else {
+      fileNameDisplay.textContent = '';
     }
   };
 
@@ -81,7 +91,7 @@
   const handleQuickExplore = async () => {
     showAllPlots = true;
     isCalculating = true;
-    const asvContent = filteredAsvContent || files[0];
+    const asvContent = filteredAsvContent || asvFiles[0];
     const groupings = groupingsFile;
 
     if (typeof asvContent === 'string') {
@@ -98,7 +108,7 @@
 
   const handleSubmit = async () => {
     isCalculating = true;
-    const asvContent = filteredAsvContent || files[0];
+    const asvContent = filteredAsvContent || asvFiles[0];
     const groupings = groupingsFile;
 
     if (typeof asvContent === 'string') {
@@ -202,7 +212,7 @@
   };
 
   const handleFilter = async () => {
-    const file = files[0];
+    const file = asvFiles[0];
 
     const asvReader = new FileReader();
     asvReader.onload = async () => {
@@ -241,7 +251,7 @@
   };
 
   const goToStep = (step) => {
-    if (currentStep === 'Raw data' && (files.length === 0 || !groupingsFile)) {
+    if (currentStep === 'Raw data' && (asvFiles.length === 0 || !groupingsFile)) {
       showNotification();
       return;
     }
@@ -338,23 +348,30 @@
     </div> -->
 
     <div class="upload-section" hidden={currentStep !== 'Raw data'}>
-      <h1>Upload ASV Dataset</h1>
+      <h1>Raw Data</h1>
+      <span class="file-label">Upload ASV File:</span>
       <div class="custom-file-input">
         <label for="fileInput1">Choose File</label>
         <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
       </div>
-      
+      <div class="note">Note: Please upload a .tsv file</div>
+      <div id="fileName1" class="file-name"></div>
+
+      <span class="file-label">Upload Groupings File:</span>
       <div class="custom-file-input">
         <label for="fileInput2">Choose File</label>
         <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
       </div>
+      <div class="note">Note: Please upload a .tsv file</div>
+      <div id="fileName2" class="file-name"></div>
+
       
       <div>
         <label for="randomSeed">Set Random Seed:</label>
         <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
       </div>
 
-      {#if files.length > 0}
+      {#if asvFiles.length > 0}
         <div class="preview">
           <h2>Preview of TSV File</h2>
           <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
@@ -391,13 +408,13 @@
       {/if}
 
       <div class="tooltip">
-        <button on:click={handleQuickExplore} disabled={files.length === 0 || !groupingsFile}>Quick Explore</button>
+        <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
         <span class="tooltiptext">Upload files to continue</span>
       </div>
     </div>
 
     <div class="preview-section" hidden={currentStep !== 'Data Perturbation'}>
-      {#if files.length > 0}
+      {#if asvFiles.length > 0}
         <div class="preview">
           <h2>Preview of TSV File</h2>
           <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
@@ -503,13 +520,13 @@
       <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
       {#if currentStep != 'Stability Metric'}
         <div class="tooltip">
-          <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={files.length === 0 || !groupingsFile}>Next</button>
+          <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={asvFiles.length === 0 || !groupingsFile}>Next</button>
           <span class="tooltiptext">Upload files to continue</span>
         </div>
       {/if}
     </div>
 
-    {#if currentStep === 'Model Perturbation' && files.length > 0 && groupingsFile && selectedMethod}
+    {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
       <button on:click={handleSubmit}>Submit</button>
     {/if}
   </div>
