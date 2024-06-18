@@ -320,6 +320,10 @@
     margin: 20px 40px 20px 0;
   }
 
+  .navigation .previous-button {
+    margin-right: auto;
+  }
+
   .navigation .next-button {
     margin-left: auto;
   }
@@ -528,7 +532,9 @@
 
     <div class="navigation">
       {#if currentStep != 'Raw data'}
-        <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
+        <div class="previous-button">
+          <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
+        </div>
       {/if}
       {#if currentStep != 'Stability Metric'}
         <div class="tooltip next-button">
