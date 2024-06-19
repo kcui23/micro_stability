@@ -430,7 +430,7 @@
     <div class="preview-section" hidden={currentStep !== 'Data Perturbation'}>
       {#if asvFiles.length > 0}
         <div class="preview">
-          <h2>Preview of TSV File</h2>
+          <h2>Preview of ASV File</h2>
           <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
           <div class="table-container">
             <table>
