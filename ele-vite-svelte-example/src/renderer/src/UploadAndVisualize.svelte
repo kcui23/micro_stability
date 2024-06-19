@@ -12,6 +12,9 @@
     edger_plot1: '',
     edger_plot2: '',
     edger_plot3: '',
+    maaslin2_plot1: '',
+    maaslin2_plot2: '',
+    maaslin2_plot3: '',
     overlap_volcano: '',
     overlap_pvalue_distribution: ''
   };
@@ -160,6 +163,9 @@
           edger_plot1: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot1}` : visualizations.edger_plot1,
           edger_plot2: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot2}` : visualizations.edger_plot2,
           edger_plot3: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot3}` : visualizations.edger_plot3,
+          maaslin2_plot1: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot1}` : visualizations.maaslin2_plot1,
+          maaslin2_plot2: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot2}` : visualizations.maaslin2_plot2,
+          maaslin2_plot3: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot3}` : visualizations.maaslin2_plot3,
           overlap_volcano: visualizations.overlap_volcano,
           overlap_pvalue_distribution: visualizations.overlap_pvalue_distribution
         };
@@ -207,6 +213,9 @@
           edger_plot1: `data:image/png;base64,${result.edgeR_plot1}`,
           edger_plot2: `data:image/png;base64,${result.edgeR_plot2}`,
           edger_plot3: `data:image/png;base64,${result.edgeR_plot3}`,
+          maaslin2_plot1: `data:image/png;base64,${result.maaslin2_plot1}`,
+          maaslin2_plot2: `data:image/png;base64,${result.maaslin2_plot2}`,
+          maaslin2_plot3: `data:image/png;base64,${result.maaslin2_plot3}`,
           overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
           overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
         };
@@ -496,7 +505,7 @@
         <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
         <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
         <button on:click={() => handleMethodChange('edger')} class:selected={selectedMethod === 'edger'}>Method 3 (edgeR)</button>
-        <button on:click={() => handleMethodChange('method4')} class:selected={selectedMethod === 'method4'}>Method 4</button>
+        <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
         <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
       </div>
     </div>
@@ -528,6 +537,10 @@
             <img src={visualizations.edger_plot1} alt="edgeR Plot 1" style="width: 300px; height: auto;" />
             <img src={visualizations.edger_plot2} alt="edgeR Plot 2" style="width: 300px; height: auto;" />
             <img src={visualizations.edger_plot3} alt="edgeR Plot 3" style="width: 300px; height: auto;" />
+            <h3>Maaslin2 Plots</h3>
+            <img src={visualizations.maaslin2_plot1} alt="Maaslin2 Plot 1" style="width: 300px; height: auto;" />
+            <img src={visualizations.maaslin2_plot2} alt="Maaslin2 Plot 2" style="width: 300px; height: auto;" />
+            <img src={visualizations.maaslin2_plot3} alt="Maaslin2 Plot 3" style="width: 300px; height: auto;" />
           {/if}
         {:else if selectedMethod === 'deseq2'}
           <h3>DESeq2 Plots</h3>
@@ -544,6 +557,11 @@
           <img src={visualizations.edger_plot1} alt="edgeR Plot 1" style="width: 300px; height: auto;" />
           <img src={visualizations.edger_plot2} alt="edgeR Plot 2" style="width: 300px; height: auto;" />
           <img src={visualizations.edger_plot3} alt="edgeR Plot 3" style="width: 300px; height: auto;" />
+        {:else if selectedMethod === 'maaslin2'}
+          <h3>Maaslin2 Plots</h3>
+          <img src={visualizations.maaslin2_plot1} alt="Maaslin2 Plot 1" style="width: 300px; height: auto;" />
+          <img src={visualizations.maaslin2_plot2} alt="Maaslin2 Plot 2" style="width: 300px; height: auto;" />
+          <img src={visualizations.maaslin2_plot3} alt="Maaslin2 Plot 3" style="width: 300px; height: auto;" />
         {/if}
       {/if}
     </div>

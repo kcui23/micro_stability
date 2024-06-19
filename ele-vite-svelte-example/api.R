@@ -37,6 +37,11 @@ function(req, method) {
     source("edgeR.R")
     result <- run_edgeR(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_edgeR(output_file, output_dir)
+  } else if (method == "maaslin2") {
+    source("Maaslin2.R")
+    # This method is different, it requires a directory to store the output files
+    result <- run_maaslin2(temp_asv_file, temp_groupings_file, output_file, output_dir, seed)
+    plots <- visualize_maaslin2(output_file, output_dir)
   } else {
     stop("Invalid method selected. Please choose 'deseq2', 'aldex2', or 'edgeR'.")
   }
@@ -80,6 +85,7 @@ function(req) {
   deseq2_output_file <- tempfile(fileext = ".tsv")
   aldex2_output_file <- tempfile(fileext = ".tsv")
   edgeR_output_file <- tempfile(fileext = ".tsv")
+  maaslin2_output_file <- tempfile(fileext = ".tsv")
   output_dir <- tempfile()
 
   dir.create(output_dir)
@@ -103,6 +109,10 @@ function(req) {
   source("edgeR.R")
   edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
   edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
+
+  source("Maaslin2.R")
+  maaslin2_result <- run_maaslin2(temp_asv_file, temp_groupings_file, maaslin2_output_file, output_dir, seed)
+  maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
   
   source("overlap_plots.R")
   overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, output_dir)
@@ -117,6 +127,9 @@ function(req) {
     edgeR_plot1 = base64enc::base64encode(edgeR_plots$plot1),
     edgeR_plot2 = base64enc::base64encode(edgeR_plots$plot2),
     edgeR_plot3 = base64enc::base64encode(edgeR_plots$plot3),
+    maaslin2_plot1 = base64enc::base64encode(maaslin2_plots$plot1),
+    maaslin2_plot2 = base64enc::base64encode(maaslin2_plots$plot2),
+    maaslin2_plot3 = base64enc::base64encode(maaslin2_plots$plot3),
     overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
     overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
   )
