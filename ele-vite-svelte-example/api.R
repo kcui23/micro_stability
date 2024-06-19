@@ -33,8 +33,12 @@ function(req, method) {
     source("Aldex2.R")
     result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_aldex2(output_file, output_dir)
+  } else if (method == "edger") {
+    source("edgeR.R")
+    result <- run_edgeR(temp_asv_file, temp_groupings_file, output_file, seed)
+    plots <- visualize_edgeR(output_file, output_dir)
   } else {
-    stop("Invalid method selected. Please choose 'deseq2' or 'aldex2'.")
+    stop("Invalid method selected. Please choose 'deseq2', 'aldex2', or 'edgeR'.")
   }
 
   list(
@@ -75,6 +79,7 @@ function(req) {
   temp_groupings_file <- tempfile(fileext = ".tsv")
   deseq2_output_file <- tempfile(fileext = ".tsv")
   aldex2_output_file <- tempfile(fileext = ".tsv")
+  edgeR_output_file <- tempfile(fileext = ".tsv")
   output_dir <- tempfile()
 
   dir.create(output_dir)
@@ -94,6 +99,10 @@ function(req) {
   source("Aldex2.R")
   aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
   aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
+
+  source("edgeR.R")
+  edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
+  edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
   
   source("overlap_plots.R")
   overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, output_dir)
@@ -105,6 +114,9 @@ function(req) {
     aldex2_plot1 = base64enc::base64encode(aldex2_plots$plot1),
     aldex2_plot2 = base64enc::base64encode(aldex2_plots$plot2),
     aldex2_plot3 = base64enc::base64encode(aldex2_plots$plot3),
+    edgeR_plot1 = base64enc::base64encode(edgeR_plots$plot1),
+    edgeR_plot2 = base64enc::base64encode(edgeR_plots$plot2),
+    edgeR_plot3 = base64enc::base64encode(edgeR_plots$plot3),
     overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
     overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
   )
