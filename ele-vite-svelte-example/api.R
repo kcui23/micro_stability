@@ -4,6 +4,10 @@ library(ggplot2)
 library(base64enc)
 library(jsonlite)
 library(dplyr)
+library(tools)
+
+# Create a persistent temp directory to save the output files
+persistent_temp_dir <- tempdir()
 
 #* @apiTitle ASV Data Processing API
 
@@ -43,9 +47,14 @@ function(req, method) {
     result <- run_maaslin2(temp_asv_file, temp_groupings_file, output_file, output_dir, seed)
     plots <- visualize_maaslin2(output_file, output_dir)
   } else {
-    stop("Invalid method selected. Please choose 'deseq2', 'aldex2', or 'edgeR'.")
+    stop("Invalid method selected. Please choose 'deseq2', 'aldex2', 'edger', or 'maaslin2'.")
   }
 
+  # Save the output file to the persistent temp directory
+  output_file_name <- paste0(method, "_results.tsv")
+  permanent_output_file <- file.path(persistent_temp_dir, output_file_name)
+  file.copy(output_file, permanent_output_file, overwrite = TRUE)
+  
   list(
     plot1 = base64enc::base64encode(plots$plot1),
     plot2 = base64enc::base64encode(plots$plot2),
@@ -134,3 +143,25 @@ function(req) {
     overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
   )
 }
+
+#* Download the result file for the selected method
+#* @get /download
+#* @param method The processing method to use (deseq2, aldex2, edger, maaslin2)
+#* @serializer contentType list(type = "text/tab-separated-values")
+function(req, res, method) {
+  output_file_name <- paste0(method, "_results.tsv")
+  permanent_output_file <- file.path(persistent_temp_dir, output_file_name)
+
+  print(head(read_tsv(permanent_output_file)))
+  
+  if (!file.exists(permanent_output_file)) {
+    res$status <- 404
+    return(list(error = "File not found"))
+  }
+  
+  file_content <- readLines(permanent_output_file)
+  res$body <- paste(file_content, collapse = "\n")
+  res$headers$`Content-Disposition` <- paste0("attachment; filename=", method, "_results.tsv")
+  return(res)
+}
+

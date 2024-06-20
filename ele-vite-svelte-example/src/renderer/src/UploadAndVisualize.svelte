@@ -35,6 +35,7 @@
   let isCalculating = false;
   let randomSeed = 1234;
   let edgeThicknesses = [1,2,3,4];
+  let isSubmitted = false;
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
@@ -92,6 +93,7 @@
     selectedMethod = method;
     showAllPlots = false;
     showDetailedPlots = false;
+    isSubmitted = false;
   };
 
   const handleQuickExplore = async () => {
@@ -112,8 +114,33 @@
     }
   };
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/download?method=${selectedMethod}`, {
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob(); // Read response as Blob
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${selectedMethod}_results.tsv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     isCalculating = true;
+    isSubmitted = true;
     const asvContent = filteredAsvContent || asvFiles[0];
     const groupings = groupingsFile;
 
@@ -582,6 +609,7 @@
 
     {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
       <button on:click={handleSubmit}>Submit</button>
+      <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
     {/if}
   </div>
 </div>
