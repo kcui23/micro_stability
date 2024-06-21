@@ -78,7 +78,7 @@ visualize_aldex2 <- function(input_file, output_dir) {
   
   p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
     geom_point(aes(color = we.eBH < 0.05, size=point_size)) +  # Coloring significant points
-    scale_color_manual(values = c("gray", "#4C3BCF")) +  # Red for significant
+    scale_color_manual(values = c("gray", "#4C3BCF")) +
     scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
     labs(title = "Volcano plot of Effect Size vs. -log10(pvalue)",
@@ -89,10 +89,13 @@ visualize_aldex2 <- function(input_file, output_dir) {
 
 
   # Visualization 2: Scatter plot of diff.btw vs. effect
-  p2 <- ggplot(aldex2_results, aes(x = diff.btw, y = effect)) +
-    geom_point() +
+  p2 <- ggplot(alog, aes(x = rab.all, y = effect)) +
+    geom_point(aes(color = we.eBH < 0.05, size=point_size), alpha = 0.5) +
+    scale_color_manual(values = c("gray", "#4C3BCF"), name = "Significant") +
+    scale_size_continuous(range = c(1, 3), guide = "none") +
     theme_minimal() +
-    labs(title = "Scatter plot of diff.btw vs. effect", x = "diff.btw", y = "effect")
+    scale_x_log10() +
+    labs(title = "MA-like plot", x = "Mean Abundance", y = "Effect Size")
   
   ggsave(file.path(output_dir, "aldex2_plot2.png"), plot = p2)
 

@@ -88,7 +88,8 @@ visualize_deseq2 <- function(input_file, output_dir) {
   
   # Visualization 2: MA plot of baseMean vs. log2FoldChange
   p2 <- ggplot(deseq2_results, aes(x = baseMean, y = log2FoldChange)) +
-    geom_point(alpha = 0.5) +
+    geom_point(aes(color = padj < 0.05), alpha = 0.5) +
+    scale_color_manual(values = c("gray", "#4C3BCF"), name = "Significant") +
     theme_minimal() +
     scale_x_log10() +
     labs(title = "MA plot", x = "baseMean", y = "log2FoldChange")

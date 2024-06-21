@@ -127,7 +127,8 @@ visualize_edgeR <- function(input_file, output_dir) {
 
   # Visualization 2: Scatter plot of logCPM vs. logFC
   p2 <- ggplot(edgeR_results, aes(x = logCPM, y = logFC)) +
-    geom_point() +
+    geom_point(aes(color = FDR < 0.05), alpha = 0.5) +
+    scale_color_manual(values = c("gray", "#4C3BCF"), name = "Significant") +
     theme_minimal() +
     labs(title = "Scatter plot of logCPM vs. logFC", x = "logCPM", y = "logFC")
   

@@ -122,12 +122,16 @@ visualize_maaslin2 <- function(results_file, output_dir) {
   
   ggsave(file.path(output_dir, "maaslin2_plot1.png"), plot = p1)
 
-  # Visualization 2: Scatter plot of coef vs. metadata
-  p2 <- ggplot(maaslin2_results, aes(x = value, y = coef, color = value)) +
-    geom_point(size = 3) +
+  # Visualization 2: MA-like scatter plot
+  #use 'N.not.0' as a proxy for 'baseMean' and 'coef' for 'log2FoldChange'
+  p2 <- ggplot(maaslin2_results, aes(x = N.not.0, y = coef)) +
+    geom_point(aes(color = qval < 0.05), alpha = 0.5) +
+    scale_color_manual(values = c("gray", "#4C3BCF")) +
     theme_minimal() +
-    labs(title = "Scatter plot of Feature vs. Effect Size", x = "Feature", y = "Effect Size") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    scale_x_log10() +
+    labs(title = "MA-like plot",
+         x = "Number of Non-Zero Samples",
+         y = "Coefficient (Effect Size)")
   
   ggsave(file.path(output_dir, "maaslin2_plot2.png"), plot = p2)
 
