@@ -1,25 +1,17 @@
 <script>
   import { onMount } from 'svelte';
   import ADGPlot from './ADGPlot.svelte';
+
   let asvFiles = [];
+  let groupingsFile = null;
   let visualizations = {
-    deseq2_plot1: '',
-    deseq2_plot2: '',
-    deseq2_plot3: '',
-    aldex2_plot1: '',
-    aldex2_plot2: '',
-    aldex2_plot3: '',
-    edger_plot1: '',
-    edger_plot2: '',
-    edger_plot3: '',
-    maaslin2_plot1: '',
-    maaslin2_plot2: '',
-    maaslin2_plot3: '',
-    overlap_volcano: '',
-    overlap_pvalue_distribution: ''
+    deseq2_plot1: '', deseq2_plot2: '', deseq2_plot3: '',
+    aldex2_plot1: '', aldex2_plot2: '', aldex2_plot3: '',
+    edger_plot1: '', edger_plot2: '', edger_plot3: '',
+    maaslin2_plot1: '', maaslin2_plot2: '', maaslin2_plot3: '',
+    overlap_volcano: '', overlap_pvalue_distribution: ''
   };
   let selectedMethod = '';
-  let groupingsFile = null;
   let currentStep = 'Raw data';
   let lastStep = 'Raw data';
   let previewContent = [];
@@ -50,6 +42,18 @@
     }, 3000); // Duration to show the notification
   };
 
+  const previewFileContent = (fileContent) => {
+    const rows = fileContent.split('\n').slice(0, 5);
+    return rows.map(row => row.split('\t').slice(0, 5));
+  };
+
+  const getFileDimensions = (fileContent) => {
+    const rows = fileContent.split('\n');
+    const columns = rows[0].split('\t').length;
+    return { rows: rows.length, columns };
+  };
+
+  // Event handlers
   const handleFileChange = (event) => {
     const fileInput = event.target;
     const fileNameDisplay = document.getElementById('fileName1');
@@ -100,41 +104,16 @@
     showAllPlots = true;
     isCalculating = true;
     const asvContent = filteredAsvContent || asvFiles[0];
-    const groupings = groupingsFile;
 
     if (typeof asvContent === 'string') {
-      await processQuickExplore(asvContent, groupings);
+      await processQuickExplore(asvContent, groupingsFile);
     } else {
       const asvReader = new FileReader();
       asvReader.onload = async () => {
         const asvContentText = asvReader.result;
-        await processQuickExplore(asvContentText, groupings);
+        await processQuickExplore(asvContentText, groupingsFile);
       };
       asvReader.readAsText(asvContent);
-    }
-  };
-
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(`http://localhost:8000/download?method=${selectedMethod}`, {
-        method: 'GET'
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const blob = await response.blob(); // Read response as Blob
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${selectedMethod}_results.tsv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Fetch error:', error);
     }
   };
 
@@ -142,70 +121,77 @@
     isCalculating = true;
     isSubmitted = true;
     const asvContent = filteredAsvContent || asvFiles[0];
-    const groupings = groupingsFile;
 
     if (typeof asvContent === 'string') {
-      await processSubmit(asvContent, groupings);
+      await processSubmit(asvContent, groupingsFile);
     } else {
       const asvReader = new FileReader();
       asvReader.onload = async () => {
         const asvContentText = asvReader.result;
-        await processSubmit(asvContentText, groupings);
+        await processSubmit(asvContentText, groupingsFile);
       };
       asvReader.readAsText(asvContent);
     }
   };
 
-  const processSubmit = async (asvContentText, groupings) => {
-    const groupingsReader = new FileReader();
-    groupingsReader.onload = async () => {
-      const groupingsContent = groupingsReader.result;
+  const handleFilter = async () => {
+    const file = asvFiles[0];
+
+    const asvReader = new FileReader();
+    asvReader.onload = async () => {
+      const asvContent = asvReader.result;
 
       try {
-        const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
+        const response = await fetch(`http://localhost:8000/filter`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            asv: asvContentText,
-            groupings: groupingsContent,
-            threshold: threshold,
-            seed: randomSeed
+            asv: asvContent,
+            threshold: threshold
           })
         });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+        // Parse the JSON response
+        const result = await response.json();
+        let filteredAsv = result.filteredAsv;
+
+        // Ensure filteredAsv is a string
+        if (typeof filteredAsv !== 'string') {
+          filteredAsv = String(filteredAsv);
         }
 
-        const result = await response.json();
-        visualizations = {
-          deseq2_plot1: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot1}` : visualizations.deseq2_plot1,
-          deseq2_plot2: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot2}` : visualizations.deseq2_plot2,
-          deseq2_plot3: selectedMethod === 'deseq2' ? `data:image/png;base64,${result.plot3}` : visualizations.deseq2_plot3,
-          aldex2_plot1: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot1}` : visualizations.aldex2_plot1,
-          aldex2_plot2: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot2}` : visualizations.aldex2_plot2,
-          aldex2_plot3: selectedMethod === 'aldex2' ? `data:image/png;base64,${result.plot3}` : visualizations.aldex2_plot3,
-          edger_plot1: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot1}` : visualizations.edger_plot1,
-          edger_plot2: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot2}` : visualizations.edger_plot2,
-          edger_plot3: selectedMethod === 'edger' ? `data:image/png;base64,${result.plot3}` : visualizations.edger_plot3,
-          maaslin2_plot1: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot1}` : visualizations.maaslin2_plot1,
-          maaslin2_plot2: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot2}` : visualizations.maaslin2_plot2,
-          maaslin2_plot3: selectedMethod === 'maaslin2' ? `data:image/png;base64,${result.plot3}` : visualizations.maaslin2_plot3,
-          overlap_volcano: visualizations.overlap_volcano,
-          overlap_pvalue_distribution: visualizations.overlap_pvalue_distribution
-        };
-        isCalculating = false;
+        filteredContent = previewFileContent(filteredAsv);
+        filteredDimensions = getFileDimensions(filteredAsv);
+        filteredAsvContent = filteredAsv;
       } catch (error) {
-        console.error('Fetch error:', error);
-        isCalculating = false;
+        console.error('Error in filtering:', error);
       }
     };
 
-    groupingsReader.readAsText(groupings);
+    asvReader.readAsText(file);
   };
 
+  const goToStep = (step) => {
+    if (currentStep === 'Raw data' && (asvFiles.length === 0 || !groupingsFile)) {
+      showNotification();
+      return;
+    }
+    lastStep = currentStep;
+    currentStep = step;
+
+    const contentContainer = document.querySelector('.content');
+    if (contentContainer) {
+      contentContainer.scrollTo(0, 0);
+    }
+  };
+
+  const showMoreDetails = () => {
+    showDetailedPlots = true;
+  };
+
+  // API calls
   const processQuickExplore = async (asvContentText, groupings) => {
     const groupingsReader = new FileReader();
     groupingsReader.onload = async () => {
@@ -256,72 +242,68 @@
     groupingsReader.readAsText(groupings);
   };
 
-  const handleFilter = async () => {
-    const file = asvFiles[0];
+  const processSubmit = async (asvContentText, groupings) => {
+    const groupingsReader = new FileReader();
+    groupingsReader.onload = async () => {
+      const groupingsContent = groupingsReader.result;
 
-    const asvReader = new FileReader();
-    asvReader.onload = async () => {
-      const asvContent = asvReader.result;
+      try {
+        const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: asvContentText,
+            groupings: groupingsContent,
+            threshold: threshold,
+            seed: randomSeed
+          })
+        });
 
-      const response = await fetch(`http://localhost:8000/filter`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          asv: asvContent,
-          threshold: threshold
-        })
-      });
-
-      const result = await response.json();
-      const filteredAsv = result.filteredAsv;
-
-      if (typeof filteredAsv === 'string') {
-        filteredContent = previewFileContent(filteredAsv);
-        filteredDimensions = getFileDimensions(filteredAsv);
-        filteredAsvContent = filteredAsv;
-      } else {
-        console.error('Filtered ASV content is not a string:', filteredAsv);
-        if (Array.isArray(filteredAsv)) {
-          const filteredAsvString = filteredAsv.join('\n');
-          filteredContent = previewFileContent(filteredAsvString);
-          filteredDimensions = getFileDimensions(filteredAsvString);
-          filteredAsvContent = filteredAsvString;
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
+
+        const result = await response.json();
+        visualizations = {
+          ...visualizations,
+          [`${selectedMethod}_plot1`]: `data:image/png;base64,${result.plot1}`,
+          [`${selectedMethod}_plot2`]: `data:image/png;base64,${result.plot2}`,
+          [`${selectedMethod}_plot3`]: `data:image/png;base64,${result.plot3}`
+        };
+        isCalculating = false;
+      } catch (error) {
+        console.error('Fetch error:', error);
+        isCalculating = false;
       }
     };
 
-    asvReader.readAsText(file);
+    groupingsReader.readAsText(groupings);
   };
 
-  const goToStep = (step) => {
-    if (currentStep === 'Raw data' && (asvFiles.length === 0 || !groupingsFile)) {
-      showNotification();
-      return;
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/download?method=${selectedMethod}`, {
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${selectedMethod}_results.tsv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Fetch error:', error);
     }
-    lastStep = currentStep;
-    currentStep = step;
-
-    const contentContainer = document.querySelector('.content');
-    if (contentContainer) {
-      contentContainer.scrollTo(0, 0);
-    }
-  };
-
-  const previewFileContent = (fileContent) => {
-    const rows = fileContent.split('\n').slice(0, 5);
-    return rows.map(row => row.split('\t').slice(0, 5));
-  };
-
-  const getFileDimensions = (fileContent) => {
-    const rows = fileContent.split('\n');
-    const columns = rows[0].split('\t').length;
-    return { rows: rows.length, columns };
-  };
-
-  const showMoreDetails = () => {
-    showDetailedPlots = true;
   };
 </script>
 
