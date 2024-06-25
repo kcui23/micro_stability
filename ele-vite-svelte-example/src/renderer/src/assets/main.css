@@ -157,6 +157,7 @@ img.large {
   bottom: 100%; /* Position the tooltip above the text */
   left: 50%;
   margin-left: -60px;
+  margin-bottom: 3px;
   opacity: 0;
   transition: opacity 0.3s, visibility 0.1s;
 }

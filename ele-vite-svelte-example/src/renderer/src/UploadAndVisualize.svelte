@@ -187,10 +187,6 @@
     }
   };
 
-  const showMoreDetails = () => {
-    showDetailedPlots = true;
-  };
-
   // API calls
   const processQuickExplore = async (asvContentText, groupings) => {
     const groupingsReader = new FileReader();
@@ -411,11 +407,6 @@
         <label for="randomSeed">Set Random Seed:</label>
         <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
       </div>
-
-      <div class="tooltip">
-        <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
-        <span class="tooltiptext">Upload files to continue</span>
-      </div>
     </div>
 
     <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
@@ -454,6 +445,13 @@
           </div>
         </div>
       {/if}
+    </div>
+
+    <div class="quick-explore-section" hidden={currentStep !== 'Raw data'}>
+      <div class="tooltip">
+        <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
+        <span class="tooltiptext">Upload files to continue</span>
+      </div>
     </div>
 
     <div class="filter-section" hidden={currentStep !== 'Data Perturbation'}>
@@ -497,7 +495,9 @@
           <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
           <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
           {#if !showDetailedPlots}
-            <button on:click={showMoreDetails}>Show More Details</button>
+            <button on:click={() => showDetailedPlots = true}>Show More Details</button>
+          {:else}
+            <button on:click={() => showDetailedPlots = false}>Collapse</button>
           {/if}
           {#if showDetailedPlots}
             <h3>DESeq2 Plots</h3>
