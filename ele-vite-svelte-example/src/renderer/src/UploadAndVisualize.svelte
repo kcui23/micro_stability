@@ -412,49 +412,13 @@
         <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
       </div>
 
-      {#if asvFiles.length > 0}
-        <div class="preview">
-          <h2>Preview of ASV File</h2>
-          <p>Dimensions: {fileDimensions.rows} rows, {fileDimensions.columns} columns</p>
-          <div class="table-container">
-            <table>
-              {#each previewContent as row}
-                <tr>
-                  {#each row as cell}
-                    <td>{cell}</td>
-                  {/each}
-                </tr>
-              {/each}
-            </table>
-          </div>
-        </div>
-      {/if}
-
-      {#if groupingsFile}
-        <div class="preview">
-          <h2>Preview of Groupings File</h2>
-          <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-          <div class="table-container">
-            <table>
-              {#each groupingsContentPreview as row}
-                <tr>
-                  {#each row as cell}
-                    <td>{cell}</td>
-                  {/each}
-                </tr>
-              {/each}
-            </table>
-          </div>
-        </div>
-      {/if}
-
       <div class="tooltip">
         <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
         <span class="tooltiptext">Upload files to continue</span>
       </div>
     </div>
 
-    <div class="preview-section" hidden={currentStep !== 'Data Perturbation'}>
+    <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
       {#if asvFiles.length > 0}
         <div class="preview">
           <h2>Preview of ASV File</h2>
@@ -490,7 +454,9 @@
           </div>
         </div>
       {/if}
+    </div>
 
+    <div class="filter-section" hidden={currentStep !== 'Data Perturbation'}>
       <div class="filters">
         <label for="threshold">Threshold for Rare Genes:</label>
         <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
