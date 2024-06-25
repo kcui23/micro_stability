@@ -11,6 +11,12 @@
     maaslin2_plot1: '', maaslin2_plot2: '', maaslin2_plot3: '',
     overlap_volcano: '', overlap_pvalue_distribution: ''
   };
+  let methodFileStatus = {
+    deseq2: false,
+    aldex2: false,
+    edger: false,
+    maaslin2: false
+  };
   let selectedMethod = '';
   let currentStep = 'Raw data';
   let lastStep = 'Raw data';
@@ -124,7 +130,8 @@
 
     if (typeof asvContent === 'string') {
       await processSubmit(asvContent, groupingsFile);
-    } else {
+      await checkMethodFileStatus();
+     } else {
       const asvReader = new FileReader();
       asvReader.onload = async () => {
         const asvContentText = asvReader.result;
@@ -133,6 +140,11 @@
       asvReader.readAsText(asvContent);
     }
   };
+
+  // a reactive statement to check method file status when entering the Stability Metric step
+  $: if (currentStep === 'Stability Metric')  {
+    checkMethodFileStatus();
+  }
 
   const handleFilter = async () => {
     const file = asvFiles[0];
@@ -326,6 +338,48 @@
     }
   }
 
+  const checkMethodFileStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/check_method_files');
+      if (response.ok) {
+        methodFileStatus = await response.json();
+        console.log("Updated method file status:", methodFileStatus);  // Debug log
+      } else {
+        console.error('Failed to check method file status');
+      }
+    } catch (error) {
+      console.error('Error checking method file status:', error);
+    }
+  };
+
+  const downloadMethodFile = async (method) => {
+    if (!methodFileStatus[method]) {
+      console.error(`File for ${method} is not ready for download`);
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8000/download_method_file?method=${method}`, {
+        method: 'GET'
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${method}_results.tsv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error(`Failed to download ${method} file`);
+      }
+    } catch (error) {
+      console.error(`Error downloading ${method} file:`, error);
+    }
+  };
+
   onMount(() => {
     autoLoadFiles();
   });
@@ -377,6 +431,41 @@
 
   .navigation .next-button {
     margin-left: auto;
+  }
+
+  .method-file-status {
+    margin-top: 20px;
+  }
+
+  .method-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .method-status span {
+    margin-right: 10px;
+  }
+
+  .method-status button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .method-status button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+
+  .method-status button:hover {
+    background-color: #45a049;
+  }
+
+  .method-status button:disabled:hover {
+    background-color: #919191;
   }
 </style>
 
@@ -508,6 +597,23 @@
         <button on:click={() => handleMethodChange('edger')} class:selected={selectedMethod === 'edger'}>Method 3 (edgeR)</button>
         <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
         <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
+      </div>
+    </div>
+
+    <div class="stability-vis" hidden={currentStep !== 'Stability Metric'}>
+      <h2>Stability Metric</h2>
+      <div class="method-file-status">
+        <h3>Method File Status:</h3>
+        {#each Object.entries(methodFileStatus) as [method, status]}
+          <div class="method-status">
+            <span>{method}: {status[0] ? '✅ Ready' : '❌ Not ready'}</span>
+            {#if status[0]}
+              <button on:click={() => downloadMethodFile(method)}>Download {method} file</button>
+            {:else}
+              <button disabled>Download {method} file</button>
+            {/if}
+          </div>
+        {/each}
       </div>
     </div>
 

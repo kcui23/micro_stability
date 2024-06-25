@@ -165,3 +165,48 @@ function(req, res, method) {
   return(res)
 }
 
+#* @apiTitle ASV Data Processing API
+
+# Add a simple test endpoint
+#* @get /test
+function() {
+  return(list(status = "API is running"))
+}
+
+#* Check the status of method files
+#* @get /check_method_files
+function() {
+  cat("Checking method files...\n")  # Debug print
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  status <- sapply(methods, function(method) {
+    file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
+    exists <- file.exists(file_path)
+    cat(sprintf("%s file exists: %s\n", method, exists))  # Debug print
+    exists
+  })
+  cat("Returning status:", jsonlite::toJSON(as.list(status)), "\n")  # Debug print
+  return(as.list(status))
+}
+
+#* Download a specific method file
+#* @get /download_method_file
+#* @param method The method to download the file for
+#* @serializer contentType list(type = "text/tab-separated-values")
+function(req, res, method) {
+  valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  if (!(method %in% valid_methods)) {
+    res$status <- 400
+    return(list(error = "Invalid method specified"))
+  }
+
+  file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
+  if (!file.exists(file_path)) {
+    res$status <- 404
+    return(list(error = "File not found"))
+  }
+
+  file_content <- readLines(file_path)
+  res$body <- paste(file_content, collapse = "\n")
+  res$headers$`Content-Disposition` <- paste0("attachment; filename=", method, "_results.tsv")
+  return(res)
+}

@@ -1,3 +1,2 @@
 library(plumber)
-pr <- plumber::plumb("api.R")
-pr$run(port = 8000)
+plumber::plumb(file='api.R')$run(host='0.0.0.0', port=8000)
