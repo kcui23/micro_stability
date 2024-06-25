@@ -301,6 +301,34 @@
       console.error('Fetch error:', error);
     }
   };
+
+  async function autoLoadFiles() {
+    const asvPath = '../../Blueberry/Blueberry_ASVs_table.tsv';
+    const groupingPath = '../../Blueberry/Blueberry_metadata.tsv';
+
+    try {
+      const asvResponse = await fetch(asvPath);
+      const groupingResponse = await fetch(groupingPath);
+
+      if (asvResponse.ok && groupingResponse.ok) {
+        const asvFile = new File([await asvResponse.blob()], 'Blueberry_ASVs_table.tsv');
+        const groupingFile = new File([await groupingResponse.blob()], 'Blueberry_metadata.tsv');
+
+        handleFileChange({ target: { files: [asvFile] } });
+        handleGroupingsChange({ target: { files: [groupingFile] } });
+
+        console.log('Debug: Files auto-loaded successfully');
+      } else {
+        console.log('Debug: One or both files not found');
+      }
+    } catch (error) {
+      console.error('Debug: Error auto-loading files:', error);
+    }
+  }
+
+  onMount(() => {
+    autoLoadFiles();
+  });
 </script>
 
 <style>
@@ -540,6 +568,11 @@
         {/if}
       {/if}
     </div>
+    
+    {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
+      <button on:click={handleSubmit}>Submit</button>
+      <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
+    {/if}
 
     <div class="navigation">
       {#if currentStep != 'Raw data'}
@@ -555,9 +588,5 @@
       {/if}
     </div>
 
-    {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
-      <button on:click={handleSubmit}>Submit</button>
-      <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
-    {/if}
   </div>
 </div>
