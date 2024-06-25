@@ -332,7 +332,7 @@
 </script>
 
 <style>
-  .steps {
+  /* .steps {
     display: flex;
     justify-content: space-around;
     margin-bottom: 20px;
@@ -346,7 +346,7 @@
   .step.active {
     background-color: #007bff;
     color: white;
-  }
+  } */
   .preview {
     margin: 20px 0;
   }
@@ -511,7 +511,7 @@
       </div>
     </div>
 
-    <div class="visualizations-section" hidden={!showAllPlots && !selectedMethod}>
+    <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
       <h2>Visualizations</h2>
       {#if isCalculating}
         <div class="loader">
