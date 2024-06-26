@@ -34,6 +34,8 @@
   let showDetailedPlots = false;
   let isCalculating = false;
   let isCalculatingMissing = false;
+  let isCombiningResults = false;
+  let combinedResultsReady = false;
   let randomSeed = 1234;
   let edgeThicknesses = [1,2,3,4];
   let isSubmitted = false;
@@ -433,6 +435,50 @@
     }
   };
 
+  const generateCombinedResults = async () => {
+  isCombiningResults = true;
+  try {
+    const response = await fetch('http://localhost:8000/generate_combined_results', {
+      method: 'POST'
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(result.message);
+      combinedResultsReady = true;
+    } else {
+      console.error('Failed to generate combined results');
+    }
+  } catch (error) {
+    console.error('Error generating combined results:', error);
+  }
+  isCombiningResults = false;
+};
+
+const downloadCombinedResults = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/download_combined_results', {
+      method: 'GET'
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'combined_results.tsv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      console.error('Failed to download combined results');
+    }
+  } catch (error) {
+    console.error('Error downloading combined results:', error);
+  }
+};
+
   onMount(() => {
     autoLoadFiles();
   });
@@ -513,14 +559,6 @@
     cursor: not-allowed;
   }
 
-  .method-status button:hover {
-    background-color: #45a049;
-  }
-
-  .method-status button:disabled:hover {
-    background-color: #919191;
-  }
-
   .stability-vis button {
     margin-top: 10px;
     padding: 5px 10px;
@@ -534,6 +572,14 @@
     background-color: #cccccc;
     cursor: not-allowed;
   }
+
+  .stability-vis button:hover {
+  background-color: #45a049;
+}
+
+.stability-vis button:disabled:hover {
+  background-color: #919191;
+}
 </style>
 
 <div id="app" class="container">
@@ -697,6 +743,15 @@
           All Methods Calculated
         {/if}
       </button>
+
+      <div class="combined-results-actions">
+        <button on:click={generateCombinedResults} disabled={isCombiningResults || !Object.values(methodFileStatus).every(status => status[0])}>
+          {isCombiningResults ? 'Generating...' : 'Generate Combined Results'}
+        </button>
+        <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
+          Download Combined Results
+        </button>
+      </div>
     </div>    
 
     <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>

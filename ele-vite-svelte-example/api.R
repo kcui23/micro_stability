@@ -210,3 +210,61 @@ function(req, res, method) {
   res$headers$`Content-Disposition` <- paste0("attachment; filename=", method, "_results.tsv")
   return(res)
 }
+
+#* Generate combined results file
+#* @post /generate_combined_results
+function(req, res) {
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  combined_results <- data.frame(feature = character())
+
+  for (method in methods) {
+    file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
+    if (file.exists(file_path)) {
+      results <- read_tsv(file_path)
+      
+      # Determine the significance column based on the method
+      sig_col <- switch(method,
+                        "deseq2" = "padj",
+                        "aldex2" = "we.eBH",
+                        "edger" = "FDR",
+                        "maaslin2" = "qval")
+      
+      # Create a new column for this method's significance
+      new_col <- paste0(method, "_significant")
+      results[[new_col]] <- results[[sig_col]] < 0.05
+      
+      # If it's the first method, use all features, otherwise join with existing results
+      if (nrow(combined_results) == 0) {
+        combined_results <- results[, c("asv_name", new_col)]
+      } else {
+        combined_results <- full_join(combined_results, results[, c("asv_name", new_col)], by = "asv_name")
+      }
+    }
+  }
+
+  # Replace NA with FALSE for missing values
+  combined_results[is.na(combined_results)] <- FALSE
+
+  # Write the combined results to a file
+  output_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  write_tsv(combined_results, output_file)
+
+  # Return success message
+  list(message = "Combined results file generated successfully")
+}
+
+#* Download combined results file
+#* @get /download_combined_results
+#* @serializer contentType list(type = "text/tab-separated-values")
+function(req, res) {
+  output_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  
+  if (!file.exists(output_file)) {
+    res$status <- 404
+    return(list(error = "Combined results file not found"))
+  }
+  
+  res$body <- paste(readLines(output_file), collapse = "\n")
+  res$headers$`Content-Disposition` <- "attachment; filename=combined_results.tsv"
+  res
+}
