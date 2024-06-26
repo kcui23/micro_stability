@@ -82,14 +82,20 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
 
   message("Maaslin2 analysis completed and results saved to ", output_dir)
 
-  # print all files under output_dir
-  print("-------------")
-  print("Files under output_dir:")
-  print(list.files(output_dir))
-
   # copy the 'all_results.tsv' to output_file
   file.copy(file.path(output_dir, "all_results.tsv"), output_file, overwrite = TRUE)
-  print(head(read_tsv(output_file)))
+  
+  # Read the all_results.tsv file
+  all_results <- read_tsv(file.path(output_dir, "all_results.tsv"))
+  
+  # Rename the 'feature' column to 'asv_name'
+  colnames(all_results)[colnames(all_results) == "feature"] <- "asv_name"
+
+  # Ensure 'asv_name' is the first column
+  all_results <- all_results[, c("asv_name", setdiff(colnames(all_results), "asv_name"))]
+
+  # Write the updated results to the output file
+  write_tsv(all_results, output_file)
 
   list(
     plot1 = "./plot1.png",

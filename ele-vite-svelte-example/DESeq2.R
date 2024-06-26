@@ -53,8 +53,11 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
   res <- DESeq2::results(dds_res, tidy = TRUE, format = "DataFrame")
 
-  rownames(res) <- res$row
-  res <- res[,-1]
+  # Rename 'row' column to 'asv_name'
+  colnames(res)[colnames(res) == "row"] <- "asv_name"
+  
+  # Ensure 'asv_name' is the first column
+  res <- res[, c("asv_name", setdiff(colnames(res), "asv_name"))]
 
   # Save results to output file
   write_tsv(as.data.frame(res), output_file)

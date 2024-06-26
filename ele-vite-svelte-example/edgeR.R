@@ -96,6 +96,10 @@ run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   et <- exactTest(test)
   tt <- topTags(et, n=nrow(test$table), adjust.method="fdr", sort.by="PValue")
   res <- tt@.Data[[1]]
+
+  # Add ASV names to the results
+  res$asv_name <- rownames(ASV_table)
+  res <- res[, c("asv_name", setdiff(colnames(res), "asv_name"))]
   
   write_tsv(as.data.frame(res), output_file)
   

@@ -54,6 +54,10 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
                    verbose = TRUE, 
                    denom = "all")
 
+  # Add ASV names to the results
+  results$asv_name <- rownames(ASV_table)
+  results <- results[, c("asv_name", setdiff(colnames(results), "asv_name"))]
+
   # Save results to output file
   write_tsv(as.data.frame(results), output_file)
 
