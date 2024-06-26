@@ -197,3 +197,8 @@ img.large {
 .notification-icon {
   margin-right: 8px;
 }
+
+.warning {
+  color: orange;
+  margin-left: 10px;
+}

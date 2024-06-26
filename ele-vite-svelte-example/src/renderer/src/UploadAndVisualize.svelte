@@ -17,6 +17,8 @@
     edger: false,
     maaslin2: false
   };
+  let previousMethodFileStatus = { ...methodFileStatus };
+  let dataChanged = false;
   let selectedMethod = '';
   let currentStep = 'Raw data';
   let lastStep = 'Raw data';
@@ -31,6 +33,7 @@
   let showAllPlots = false;
   let showDetailedPlots = false;
   let isCalculating = false;
+  let isCalculatingMissing = false;
   let randomSeed = 1234;
   let edgeThicknesses = [1,2,3,4];
   let isSubmitted = false;
@@ -79,6 +82,7 @@
     } else {
       fileNameDisplay.textContent = '';
     }
+    resetMethodStatus();
   };
 
   const handleGroupingsChange = (event) => {
@@ -97,6 +101,7 @@
     } else {
       fileNameDisplay.textContent = '';
     }
+    resetMethodStatus();
   };
 
   const handleMethodChange = (method) => {
@@ -183,6 +188,18 @@
     };
 
     asvReader.readAsText(file);
+    resetMethodStatus();
+  };
+
+  const resetMethodStatus = () => {
+    previousMethodFileStatus = { ...methodFileStatus };
+    methodFileStatus = {
+      deseq2: [false],
+      aldex2: [false],
+      edger: [false],
+      maaslin2: [false]
+    };
+    dataChanged = true;
   };
 
   const goToStep = (step) => {
@@ -197,6 +214,42 @@
     if (contentContainer) {
       contentContainer.scrollTo(0, 0);
     }
+  };
+
+  const calculateMissingMethods = async () => {
+    isCalculatingMissing = true;
+    const methodsToCalculate = dataChanged ? 
+      Object.keys(methodFileStatus) : 
+      Object.entries(methodFileStatus).filter(([_, status]) => !status[0]).map(([method, _]) => method);
+
+    for (const method of methodsToCalculate) {
+      try {
+        const response = await fetch(`http://localhost:8000/process?method=${method}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: filteredAsvContent,
+            groupings: await (new Response(groupingsFile)).text(),
+            threshold: threshold,
+            seed: randomSeed
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to process ${method}`);
+        }
+
+        methodFileStatus[method] = [true];
+      } catch (error) {
+        console.error(`Error processing ${method}:`, error);
+      }
+    }
+
+    isCalculatingMissing = false;
+    dataChanged = false;
+    await checkMethodFileStatus();
   };
 
   // API calls
@@ -467,6 +520,20 @@
   .method-status button:disabled:hover {
     background-color: #919191;
   }
+
+  .stability-vis button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .stability-vis button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
 </style>
 
 <div id="app" class="container">
@@ -612,10 +679,25 @@
             {:else}
               <button disabled>Download {method} file</button>
             {/if}
+            {#if dataChanged && previousMethodFileStatus[method][0]}
+              <span class="warning">⚠️ Data changed, recalculation needed</span>
+            {/if}
           </div>
         {/each}
       </div>
-    </div>
+      
+      <button on:click={calculateMissingMethods} disabled={isCalculatingMissing}>
+        {#if isCalculatingMissing}
+          Calculating...
+        {:else if dataChanged}
+          Recalculate All Methods
+        {:else if Object.values(methodFileStatus).some(status => !status[0])}
+          Calculate Missing Methods
+        {:else}
+          All Methods Calculated
+        {/if}
+      </button>
+    </div>    
 
     <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
       <h2>Visualizations</h2>
