@@ -268,3 +268,30 @@ function(req, res) {
   res$headers$`Content-Disposition` <- "attachment; filename=combined_results.tsv"
   res
 }
+
+#* Get list of ASV names
+#* @get /get_asv_list
+function() {
+  combined_results_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  if (!file.exists(combined_results_file)) {
+    return(list(error = "Combined results file not found"))
+  }
+  
+  combined_results <- read_tsv(combined_results_file)
+  asv_list <- combined_results$asv_name
+  
+  return(asv_list)
+}
+
+#* Get combined results
+#* @get /get_combined_results
+function() {
+  combined_results_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  if (!file.exists(combined_results_file)) {
+    return(list(error = "Combined results file not found"))
+  }
+  
+  combined_results <- read_tsv(combined_results_file)
+  
+  return(combined_results)
+}

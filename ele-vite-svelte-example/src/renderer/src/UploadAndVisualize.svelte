@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import ADGPlot from './ADGPlot.svelte';
+  import ASVSelector from './ASVSelector.svelte';
 
   let asvFiles = [];
   let groupingsFile = null;
@@ -39,6 +40,7 @@
   let randomSeed = 1234;
   let edgeThicknesses = [1,2,3,4];
   let isSubmitted = false;
+  let showASVSelector = false;
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
@@ -580,6 +582,10 @@ const downloadCombinedResults = async () => {
 .stability-vis button:disabled:hover {
   background-color: #919191;
 }
+
+#asv-selector-main {
+  margin-top: 10px;
+}
 </style>
 
 <div id="app" class="container">
@@ -752,6 +758,18 @@ const downloadCombinedResults = async () => {
           Download Combined Results
         </button>
       </div>
+
+      <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
+        {showASVSelector ? 'Hide' : 'Show'} ASV Selector
+      </button>
+
+      <div id="asv-selector-main">
+        {#if showASVSelector}
+          <ASVSelector />
+        {/if}
+      </div>
+      
+
     </div>    
 
     <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
