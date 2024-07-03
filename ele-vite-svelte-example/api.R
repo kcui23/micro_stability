@@ -5,6 +5,8 @@ library(base64enc)
 library(jsonlite)
 library(dplyr)
 library(tools)
+library(tidyverse)
+library(scales)
 
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- tempdir()
@@ -294,4 +296,71 @@ function() {
   combined_results <- read_tsv(combined_results_file)
   
   return(combined_results)
+}
+
+#* Generate stability plot
+#* @get /generate_stability_plot
+#* @serializer contentType list(type="image/png")
+function(res) {
+  # Read the data
+  data <- read_tsv(file.path(persistent_temp_dir, "combined_results.tsv"))
+  
+  # Data processing
+  tools <- names(data)[str_detect(names(data), "_significant$")]
+  processed_data <- data %>%
+    mutate(total_significant = rowSums(dplyr::select(., all_of(tools)))) %>%
+    pivot_longer(cols = all_of(tools), names_to = "tool", values_to = "is_significant") %>%
+    group_by(total_significant, tool) %>%
+    summarise(tool_significant = sum(is_significant), total = n(), .groups = "drop") %>%
+    mutate(
+      proportion = tool_significant / total,
+      tool = str_remove(tool, "_significant") %>% str_to_title()
+    )
+  
+  # Calculate tool totals
+  tool_totals <- processed_data %>%
+    group_by(tool) %>%
+    summarise(total_significant = sum(tool_significant, na.rm = TRUE)) %>%
+    arrange(desc(total_significant))
+  
+  # Create custom color scale
+  max_significant <- max(tool_totals$total_significant)
+  color_breaks <- seq(0, max_significant, length.out = 6)[-1]
+  color_labels <- scales::comma(color_breaks)
+  custom_color_scale <- scale_fill_gradientn(
+    colors = colorRampPalette(c("#bac6df", "#1b4197"))(5),
+    breaks = color_breaks,
+    labels = color_labels,
+    limits = c(0, max_significant),
+    name = "Significant ASVs"
+  )
+  
+  # Create the plot
+  p <- ggplot(processed_data, aes(x = factor(total_significant), y = proportion, fill = tool_significant)) +
+    geom_col(position = "dodge") +
+    facet_wrap(~ factor(tool, levels = tool_totals$tool), ncol = 1, strip.position = "left") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = c(0, 0.5), limits = c(0, 1)) +
+    custom_color_scale +
+    labs(
+      x = "Number of tools finding ASV significant",
+      y = "Proportion of ASVs found significant",
+      fill = "Significant ASVs"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.line.x = element_line(color = "black"),
+      axis.line.y = element_line(color = "black"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      strip.text.y = element_text(angle = 0, hjust = 1, face = "bold"),
+      strip.placement = "outside",
+      legend.position = "right"
+    )
+  
+  # Save the plot to a file
+  output_file <- tempfile(fileext = ".png")
+  ggsave(output_file, p, width = 10, height = 8)
+  
+  # Return the plot as an image
+  readBin(output_file, "raw", n = file.info(output_file)$size)
 }

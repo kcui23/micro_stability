@@ -41,6 +41,8 @@
   let edgeThicknesses = [1,2,3,4];
   let isSubmitted = false;
   let showASVSelector = false;
+  let stabilityPlot = '';
+
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
@@ -448,6 +450,7 @@
       const result = await response.json();
       console.log(result.message);
       combinedResultsReady = true;
+      await fetchStabilityPlot();  // Fetch the stability plot after generating combined results
     } else {
       console.error('Failed to generate combined results');
     }
@@ -478,6 +481,20 @@ const downloadCombinedResults = async () => {
     }
   } catch (error) {
     console.error('Error downloading combined results:', error);
+  }
+};
+
+const fetchStabilityPlot = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/generate_stability_plot');
+    if (response.ok) {
+      const blob = await response.blob();
+      stabilityPlot = URL.createObjectURL(blob);
+    } else {
+      console.error('Failed to fetch stability plot');
+    }
+  } catch (error) {
+    console.error('Error fetching stability plot:', error);
   }
 };
 
@@ -758,6 +775,13 @@ const downloadCombinedResults = async () => {
           Download Combined Results
         </button>
       </div>
+
+      {#if stabilityPlot}
+        <div class="stability-plot">
+          <h3>Stability Plot</h3>
+          <img src={stabilityPlot} alt="Stability Plot" style="width: 100%; max-width: 800px; height: auto;" />
+        </div>
+      {/if}
 
       <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
         {showASVSelector ? 'Hide' : 'Show'} ASV Selector
