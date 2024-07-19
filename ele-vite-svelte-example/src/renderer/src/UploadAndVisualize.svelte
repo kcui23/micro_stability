@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import ADGPlot from './ADGPlot.svelte';
   import ASVSelector from './ASVSelector.svelte';
 
@@ -42,6 +42,12 @@
   let isSubmitted = false;
   let showASVSelector = false;
   let stabilityPlot = '';
+  let shuffledAnalysisProgress = 0;
+  let shuffledAnalysisTotal = 10;
+  let shuffledAnalysisPlot = '';
+  let isShuffledAnalysisRunning = false;
+  let ws;
+  let ws_id;
 
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
@@ -498,8 +504,62 @@ const fetchStabilityPlot = async () => {
   }
 };
 
+const runShuffledAnalysis = async () => {
+    if (!ws_id) {
+      console.error('WebSocket not connected');
+      return;
+    }
+
+    isShuffledAnalysisRunning = true;
+    shuffledAnalysisProgress = 0;
+
+    try {
+      const response = await fetch('http://localhost:8000/shuffled_analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          asv: filteredAsvContent,
+          groupings: await (new Response(groupingsFile)).text(),
+          seed: randomSeed,
+          iterations: shuffledAnalysisTotal,
+          ws_id: ws_id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to run shuffled analysis');
+      }
+
+      const result = await response.json();
+      shuffledAnalysisPlot = `data:image/png;base64,${result.plot}`;
+    } catch (error) {
+      console.error('Error running shuffled analysis:', error);
+    } finally {
+      isShuffledAnalysisRunning = false;
+    }
+  };
+
   onMount(() => {
     autoLoadFiles();
+
+    ws = new WebSocket('ws://localhost:8000/ws');
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      ws_id = ws.url.split('/').pop();
+    };
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.progress && data.total) {
+        shuffledAnalysisProgress = data.progress;
+        shuffledAnalysisTotal = data.total;
+      }
+    };
+  });
+
+  onDestroy(() => {
+    if (ws) ws.close();
   });
 </script>
 
@@ -603,6 +663,30 @@ const fetchStabilityPlot = async () => {
 #asv-selector-main {
   margin-top: 10px;
 }
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.5s ease-in-out;
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .input-group label {
+    margin-right: 10px;
+  }
+  .input-group input {
+    width: 60px;
+  }
 </style>
 
 <div id="app" class="container">
@@ -786,6 +870,40 @@ const fetchStabilityPlot = async () => {
       <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
         {showASVSelector ? 'Hide' : 'Show'} ASV Selector
       </button>
+
+      <div class="shuffled-analysis">
+        <h3>Shuffled Analysis</h3>
+
+        <div class="input-group">
+          <label for="iterations">Number of Iterations:</label>
+          <input 
+            type="number" 
+            id="iterations" 
+            bind:value={shuffledAnalysisTotal} 
+            min="1" 
+            max="1000"
+            disabled={isShuffledAnalysisRunning}
+          >
+        </div>
+
+        <button on:click={runShuffledAnalysis} disabled={isShuffledAnalysisRunning}>
+          {isShuffledAnalysisRunning ? 'Running...' : 'Run Shuffled Analysis'}
+        </button>
+    
+        {#if isShuffledAnalysisRunning}
+          <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: {(shuffledAnalysisProgress / shuffledAnalysisTotal) * 100}%"></div>
+          </div>
+          <p>Progress: {shuffledAnalysisProgress} / {shuffledAnalysisTotal}</p>
+        {/if}
+    
+        {#if shuffledAnalysisPlot}
+          <div class="shuffled-analysis-plot">
+            <h4>Stability of Significant ASVs Across Shuffled Analyses</h4>
+            <img src={shuffledAnalysisPlot} alt="Shuffled Analysis Plot" style="width: 100%; max-width: 800px; height: auto;" />
+          </div>
+        {/if}
+      </div>
 
       <div id="asv-selector-main">
         {#if showASVSelector}

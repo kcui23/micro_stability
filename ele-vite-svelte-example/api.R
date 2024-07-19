@@ -11,6 +11,9 @@ library(scales)
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
 
+# Global variable to store active WebSocket connections
+active_ws_connections <- new.env()
+
 # Helper function to ensure consistent file path handling
 safe_file_path <- function(...) {
   normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
@@ -327,7 +330,7 @@ function(res) {
   color_breaks <- seq(0, max_significant, length.out = 6)[-1]
   color_labels <- scales::comma(color_breaks)
   custom_color_scale <- scale_fill_gradientn(
-    colors = colorRampPalette(c("#bac6df", "#1b4197"))(5),
+    colors = colorRampPalette(c("#bac6df", "#1b4197"))(100),
     breaks = color_breaks,
     labels = color_labels,
     limits = c(0, max_significant),
@@ -362,4 +365,180 @@ function(res) {
   
   # Return the plot as an image
   readBin(output_file, "raw", n = file.info(output_file)$size)
+}
+
+#* @websocket /ws
+function(ws) {
+  # Generate a unique ID for this connection
+  ws_id <- uuid::UUIDgenerate()
+  
+  # Store the WebSocket connection
+  active_ws_connections[[ws_id]] <- ws
+  
+  # Clean up the connection when it's closed
+  ws$onClose(function() {
+    rm(list = ws_id, envir = active_ws_connections)
+  })
+}
+
+# Function to send a message to a specific WebSocket
+send_ws_message <- function(ws_id, message) {
+  if (exists(ws_id, envir = active_ws_connections)) {
+    ws <- active_ws_connections[[ws_id]]
+    ws$send(jsonlite::toJSON(message))
+  }
+}
+
+#* Perform shuffled analysis
+#* @post /shuffled_analysis
+#* @param iterations The number of iterations to perform
+#* @parser json
+function(req, iterations = 10, ws_id) {
+  body <- fromJSON(req$postBody)
+  seed <- if (!is.null(body$seed)) as.integer(body$seed) else 1234
+  set.seed(seed)
+
+  temp_asv_file <- tempfile(fileext = ".tsv")
+  temp_groupings_file <- tempfile(fileext = ".tsv")
+  writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
+  writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
+
+  asv_data <- read_tsv(temp_asv_file)
+  groupings_data <- read_tsv(temp_groupings_file)
+
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  results <- list()
+
+  for (i in 1:iterations) {
+    # Send progress update to the client
+    send_ws_message(ws_id, list(progress = i, total = iterations))
+
+    # Shuffle the groupings using the second column
+    shuffled_groupings <- groupings_data %>%
+      mutate(!!names(groupings_data)[2] := sample(!!sym(names(groupings_data)[2])))
+    
+    # Write shuffled groupings to a temporary file
+    temp_shuffled_groupings <- tempfile(fileext = ".tsv")
+    write_tsv(shuffled_groupings, temp_shuffled_groupings)
+
+    for (method in methods) {
+      output_file <- tempfile(fileext = ".tsv")
+      
+      if (method == "deseq2") {
+        source("DESeq2.R")
+        run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed)
+      } else if (method == "aldex2") {
+        source("Aldex2.R")
+        run_aldex2(temp_asv_file, temp_shuffled_groupings, output_file, seed)
+      } else if (method == "edger") {
+        source("edgeR.R")
+        run_edgeR(temp_asv_file, temp_shuffled_groupings, output_file, seed)
+      } else if (method == "maaslin2") {
+        source("Maaslin2.R")
+        run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, tempdir(), seed)
+      }
+
+      # Read results and store significant ASVs
+      result <- read_tsv(output_file)
+      significant_asvs <- get_significant_asvs(result, method)
+      
+      if (is.null(results[[method]])) {
+        results[[method]] <- list()
+      }
+      results[[method]][[i]] <- significant_asvs
+    }
+  }
+
+  # Process results
+  processed_results <- process_shuffled_results(results, iterations)
+
+  # Generate plot
+  plot <- generate_stability_plot(processed_results)
+
+  list(
+    results = processed_results,
+    plot = base64enc::base64encode(plot)
+  )
+}
+
+# Helper function to get significant ASVs based on method
+get_significant_asvs <- function(result, method) {
+  if (method == "deseq2") {
+    return(result$asv_name[result$padj < 0.05])
+  } else if (method == "aldex2") {
+    return(result$asv_name[result$we.eBH < 0.05])
+  } else if (method == "edger") {
+    return(result$asv_name[result$FDR < 0.05])
+  } else if (method == "maaslin2") {
+    return(result$asv_name[result$qval < 0.05])
+  }
+}
+
+# Helper function to process shuffled results
+process_shuffled_results <- function(results, iterations) {
+  processed <- list()
+  for (method in names(results)) {
+    all_asvs <- unique(unlist(results[[method]]))
+    if (length(all_asvs) > 0) {
+      asv_counts <- sapply(all_asvs, function(asv) {
+        sum(sapply(results[[method]], function(iter) asv %in% iter))
+      })
+      processed[[method]] <- data.frame(
+        asv = names(asv_counts),
+        count = as.numeric(asv_counts),
+        percentage = as.numeric(asv_counts) / iterations * 100
+      )
+    } else {
+      # If no ASVs found, create an empty data frame with the correct structure
+      processed[[method]] <- data.frame(
+        asv = character(0),
+        count = numeric(0),
+        percentage = numeric(0)
+      )
+    }
+  }
+  return(processed)
+}
+
+# Helper function to generate stability plot
+generate_stability_plot <- function(processed_results) {
+  plot_data <- bind_rows(lapply(names(processed_results), function(method) {
+    if (nrow(processed_results[[method]]) > 0) {
+      data.frame(
+        method = method,
+        percentage = processed_results[[method]]$percentage,
+        count = processed_results[[method]]$count
+      )
+    } else {
+      # If no data for this method, create a single row with count 0
+      data.frame(
+        method = method,
+        percentage = 0,
+        count = 0
+      )
+    }
+  }))
+
+  # Check if we have any data to plot
+  if (nrow(plot_data) == 0) {
+    # If no data at all, create a blank plot with a message
+    p <- ggplot() +
+      annotate("text", x = 0.5, y = 0.5, label = "No significant ASVs found in any method") +
+      theme_void()
+  } else {
+    # Create the plot as before
+    p <- ggplot(plot_data, aes(x = percentage, y = count)) +
+      geom_bar(stat = "identity") +
+      facet_wrap(~ method, scales = "free_y") +
+      labs(x = "Percentage of iterations with significant ASV", 
+           y = "Number of ASVs", 
+           title = "Stability of significant ASVs across shuffled analyses") +
+      theme_minimal()
+  }
+
+  # Save plot to a temporary file
+  temp_plot <- tempfile(fileext = ".png")
+  ggsave(temp_plot, p, width = 10, height = 8)
+  
+  return(temp_plot)
 }
