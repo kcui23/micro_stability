@@ -410,12 +410,17 @@ function(req, iterations = 10, ws_id) {
   results <- list()
 
   for (i in 1:iterations) {
+    set.seed(seed + i)
     # Send progress update to the client
     send_ws_message(ws_id, list(progress = i, total = iterations))
 
     # Shuffle the groupings using the second column
     shuffled_groupings <- groupings_data %>%
       mutate(!!names(groupings_data)[2] := sample(!!sym(names(groupings_data)[2])))
+
+    print("=====================Shuffled groupings:=====================")
+    print(shuffled_groupings)
+
     
     # Write shuffled groupings to a temporary file
     temp_shuffled_groupings <- tempfile(fileext = ".tsv")
