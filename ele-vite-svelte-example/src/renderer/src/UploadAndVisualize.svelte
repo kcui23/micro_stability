@@ -374,8 +374,8 @@
   };
 
   async function autoLoadFiles() {
-    const asvPath = '../../Blueberry/Blueberry_ASVs_table.tsv';
-    const groupingPath = '../../Blueberry/Blueberry_metadata.tsv';
+    const asvPath = '../../datasets/Blueberry/Blueberry_ASVs_table.tsv';
+    const groupingPath = '../../datasets/Blueberry/Blueberry_metadata.tsv';
 
     try {
       const asvResponse = await fetch(asvPath);
