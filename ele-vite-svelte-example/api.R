@@ -9,7 +9,12 @@ library(tidyverse)
 library(scales)
 
 # Create a persistent temp directory to save the output files
-persistent_temp_dir <- tempdir()
+persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
+
+# Helper function to ensure consistent file path handling
+safe_file_path <- function(...) {
+  normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
+}
 
 #* @apiTitle ASV Data Processing API
 
@@ -28,23 +33,23 @@ function(req, method) {
 
   dir.create(output_dir)
   
-  writeLines(as.character(body$asv), temp_asv_file)
-  writeLines(as.character(body$groupings), temp_groupings_file)
+  writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
+  writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
   
-  if (method == "deseq2") {
-    source("DESeq2.R")
+  if (tolower(method) == "deseq2") {
+    source(safe_file_path("DESeq2.R"))
     result <- run_deseq2(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_deseq2(output_file, output_dir)
-  } else if (method == "aldex2") {
-    source("Aldex2.R")
+  } else if (tolower(method) == "aldex2") {
+    source(safe_file_path("Aldex2.R"))
     result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_aldex2(output_file, output_dir)
-  } else if (method == "edger") {
-    source("edgeR.R")
+  } else if (tolower(method) == "edger") {
+    source(safe_file_path("edgeR.R"))
     result <- run_edgeR(temp_asv_file, temp_groupings_file, output_file, seed)
     plots <- visualize_edgeR(output_file, output_dir)
-  } else if (method == "maaslin2") {
-    source("Maaslin2.R")
+  } else if (tolower(method) == "maaslin2") {
+    source(safe_file_path("Maaslin2.R"))
     # This method is different, it requires a directory to store the output files
     result <- run_maaslin2(temp_asv_file, temp_groupings_file, output_file, output_dir, seed)
     plots <- visualize_maaslin2(output_file, output_dir)
@@ -53,8 +58,8 @@ function(req, method) {
   }
 
   # Save the output file to the persistent temp directory
-  output_file_name <- paste0(method, "_results.tsv")
-  permanent_output_file <- file.path(persistent_temp_dir, output_file_name)
+  output_file_name <- paste0(tolower(method), "_results.tsv")
+  permanent_output_file <- safe_file_path(persistent_temp_dir, output_file_name)
   file.copy(output_file, permanent_output_file, overwrite = TRUE)
   
   list(
@@ -101,31 +106,31 @@ function(req) {
 
   dir.create(output_dir)
   
-  writeLines(as.character(body$asv), temp_asv_file)
-  writeLines(as.character(body$groupings), temp_groupings_file)
+  writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
+  writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
   
   asv_data <- read_tsv(temp_asv_file, col_types = cols(.default = "c"))
   set.seed(seed)
   subset_asv_data <- asv_data %>% sample_frac(0.05)
   write_tsv(subset_asv_data, temp_asv_file)
 
-  source("DESeq2.R")
+  source(safe_file_path("DESeq2.R"))
   deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file, seed)
   deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
   
-  source("Aldex2.R")
+  source(safe_file_path("Aldex2.R"))
   aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
   aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
 
-  source("edgeR.R")
+  source(safe_file_path("edgeR.R"))
   edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
   edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
 
-  source("Maaslin2.R")
+  source(safe_file_path("Maaslin2.R"))
   maaslin2_result <- run_maaslin2(temp_asv_file, temp_groupings_file, maaslin2_output_file, output_dir, seed)
   maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
   
-  source("overlap_plots.R")
+  source(safe_file_path("overlap_plots.R"))
   overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, output_dir)
 
   list(
@@ -151,11 +156,9 @@ function(req) {
 #* @param method The processing method to use (deseq2, aldex2, edger, maaslin2)
 #* @serializer contentType list(type = "text/tab-separated-values")
 function(req, res, method) {
-  output_file_name <- paste0(method, "_results.tsv")
-  permanent_output_file <- file.path(persistent_temp_dir, output_file_name)
+  output_file_name <- paste0(tolower(method), "_results.tsv")
+  permanent_output_file <- safe_file_path(persistent_temp_dir, output_file_name)
 
-  print(head(read_tsv(permanent_output_file)))
-  
   if (!file.exists(permanent_output_file)) {
     res$status <- 404
     return(list(error = "File not found"))
@@ -178,15 +181,11 @@ function() {
 #* Check the status of method files
 #* @get /check_method_files
 function() {
-  cat("Checking method files...\n")  # Debug print
   methods <- c("deseq2", "aldex2", "edger", "maaslin2")
   status <- sapply(methods, function(method) {
-    file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
-    exists <- file.exists(file_path)
-    cat(sprintf("%s file exists: %s\n", method, exists))  # Debug print
-    exists
+    file_path <- safe_file_path(persistent_temp_dir, paste0(method, "_results.tsv"))
+    file.exists(file_path)
   })
-  cat("Returning status:", jsonlite::toJSON(as.list(status)), "\n")  # Debug print
   return(as.list(status))
 }
 
@@ -196,12 +195,12 @@ function() {
 #* @serializer contentType list(type = "text/tab-separated-values")
 function(req, res, method) {
   valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2")
-  if (!(method %in% valid_methods)) {
+  if (!(tolower(method) %in% valid_methods)) {
     res$status <- 400
     return(list(error = "Invalid method specified"))
   }
 
-  file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
+  file_path <- safe_file_path(persistent_temp_dir, paste0(tolower(method), "_results.tsv"))
   if (!file.exists(file_path)) {
     res$status <- 404
     return(list(error = "File not found"))
@@ -220,7 +219,7 @@ function(req, res) {
   combined_results <- data.frame(feature = character())
 
   for (method in methods) {
-    file_path <- file.path(persistent_temp_dir, paste0(method, "_results.tsv"))
+    file_path <- safe_file_path(persistent_temp_dir, paste0(method, "_results.tsv"))
     if (file.exists(file_path)) {
       results <- read_tsv(file_path)
       
@@ -248,7 +247,7 @@ function(req, res) {
   combined_results[is.na(combined_results)] <- FALSE
 
   # Write the combined results to a file
-  output_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  output_file <- safe_file_path(persistent_temp_dir, "combined_results.tsv")
   write_tsv(combined_results, output_file)
 
   # Return success message
@@ -259,7 +258,7 @@ function(req, res) {
 #* @get /download_combined_results
 #* @serializer contentType list(type = "text/tab-separated-values")
 function(req, res) {
-  output_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  output_file <- safe_file_path(persistent_temp_dir, "combined_results.tsv")
   
   if (!file.exists(output_file)) {
     res$status <- 404
@@ -274,7 +273,7 @@ function(req, res) {
 #* Get list of ASV names
 #* @get /get_asv_list
 function() {
-  combined_results_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  combined_results_file <- safe_file_path(persistent_temp_dir, "combined_results.tsv")
   if (!file.exists(combined_results_file)) {
     return(list(error = "Combined results file not found"))
   }
@@ -288,7 +287,7 @@ function() {
 #* Get combined results
 #* @get /get_combined_results
 function() {
-  combined_results_file <- file.path(persistent_temp_dir, "combined_results.tsv")
+  combined_results_file <- safe_file_path(persistent_temp_dir, "combined_results.tsv")
   if (!file.exists(combined_results_file)) {
     return(list(error = "Combined results file not found"))
   }
@@ -303,10 +302,10 @@ function() {
 #* @serializer contentType list(type="image/png")
 function(res) {
   # Read the data
-  data <- read_tsv(file.path(persistent_temp_dir, "combined_results.tsv"))
+  data <- read_tsv(safe_file_path(persistent_temp_dir, "combined_results.tsv"))
   
   # Data processing
-  tools <- names(data)[str_detect(names(data), "_significant$")]
+  tools <- names(data)[stringr::str_detect(names(data), "_significant$")]
   processed_data <- data %>%
     mutate(total_significant = rowSums(dplyr::select(., all_of(tools)))) %>%
     pivot_longer(cols = all_of(tools), names_to = "tool", values_to = "is_significant") %>%
@@ -314,7 +313,7 @@ function(res) {
     summarise(tool_significant = sum(is_significant), total = n(), .groups = "drop") %>%
     mutate(
       proportion = tool_significant / total,
-      tool = str_remove(tool, "_significant") %>% str_to_title()
+      tool = stringr::str_remove(tool, "_significant") %>% stringr::str_to_title()
     )
   
   # Calculate tool totals
