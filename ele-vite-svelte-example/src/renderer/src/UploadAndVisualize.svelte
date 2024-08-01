@@ -771,43 +771,46 @@ const runShuffledAnalysis = async () => {
             <div id="fileName2" class="file-name"></div>
           </div>
         </div>
-        <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
-          {#if asvFiles.length > 0}
-            <div class="preview">
-              <h2>Preview of ASV File</h2>
-              <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-              <div class="table-container">
-                <table>
-                  {#each filteredContent as row}
-                    <tr>
-                      {#each row as cell}
-                        <td>{cell}</td>
-                      {/each}
-                    </tr>
-                  {/each}
-                </table>
+        
+        {#if selectedOperations['Raw data']?.includes('Preview')}
+          <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
+            {#if asvFiles.length > 0}
+              <div class="preview">
+                <h2>Preview of ASV File</h2>
+                <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+                <div class="table-container">
+                  <table>
+                    {#each filteredContent as row}
+                      <tr>
+                        {#each row as cell}
+                          <td>{cell}</td>
+                        {/each}
+                      </tr>
+                    {/each}
+                  </table>
+                </div>
               </div>
-            </div>
-          {/if}
-    
-          {#if groupingsFile}
-            <div class="preview">
-              <h2>Preview of Groupings File</h2>
-              <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-              <div class="table-container">
-                <table>
-                  {#each groupingsContentPreview as row}
-                    <tr>
-                      {#each row as cell}
-                        <td>{cell}</td>
-                      {/each}
-                    </tr>
-                  {/each}
-                </table>
+            {/if}
+      
+            {#if groupingsFile}
+              <div class="preview">
+                <h2>Preview of Groupings File</h2>
+                <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
+                <div class="table-container">
+                  <table>
+                    {#each groupingsContentPreview as row}
+                      <tr>
+                        {#each row as cell}
+                          <td>{cell}</td>
+                        {/each}
+                      </tr>
+                    {/each}
+                  </table>
+                </div>
               </div>
-            </div>
-          {/if}
-        </div>
+            {/if}
+          </div>
+        {/if}
 
         {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
           <!-- Random Seed Input UI -->
@@ -827,6 +830,7 @@ const runShuffledAnalysis = async () => {
       </div>
     {:else if currentStep === 'Data Perturbation'}
       <div>
+        <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
         {#if selectedOperations['Data Perturbation']?.includes('Apply Threshold')}
           <!-- Threshold Application UI -->
             <div class="filters">
@@ -955,14 +959,17 @@ const runShuffledAnalysis = async () => {
           {/if}
         {/if}
 
-        <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
-          {showASVSelector ? 'Hide' : 'Show'} ASV Selector
-        </button>
-        <div id="asv-selector-main">
-          {#if showASVSelector}
-            <ASVSelector />
-          {/if}
-        </div>
+        {#if selectedOperations['Stability Metric']?.includes('ASV Selector')}
+          <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
+            {showASVSelector ? 'Hide' : 'Show'} ASV Selector
+          </button>
+          <div id="asv-selector-main">
+            {#if showASVSelector}
+              <ASVSelector />
+            {/if}
+          </div>
+        {/if}
+        
       </div>
     {/if}
 
