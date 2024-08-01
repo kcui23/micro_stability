@@ -48,6 +48,10 @@
 			if (newStatus === 'Enabled') {
 				openMenus.update(menus => {
 					menus[step] = true;
+					// set all the other menus[step] to false
+					Object.keys(menus).forEach(key => {
+						if (key !== step) menus[key] = false;
+					});
 					return menus;
 				});
 				setCurrentStep(step);
