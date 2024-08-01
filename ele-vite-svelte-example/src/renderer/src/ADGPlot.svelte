@@ -93,6 +93,10 @@
 	}
 
 	onMount(() => {
+		openMenus.update((menus) => {
+			menus[currentStep] = true;
+			return menus;
+		});
 	});
 </script>
 
@@ -110,7 +114,8 @@
 					on:click={() => selectStep(step)}
 					disabled={$stepStatus[step] === 'Disabled'}
 				>
-					<span class="step-number">{index + 1}</span>
+					<!-- <span class="step-number">{index + 1}</span> -->
+					<span class="step-number" class:disabled={$stepStatus[step] === 'Disabled'}>{index + 1}</span>
 					<span class="step-text">{step}</span>
 					<span class="dropdown-indicator">{$openMenus[step] ? '▲' : '▼'}</span>
 				</button>
@@ -219,6 +224,11 @@
 		border-radius: 50%;
 		font-size: 0.8em;
 		font-weight: bold;
+		transition: background-color 0.3s ease;
+	}
+
+	.step-number.disabled {
+		background-color: #999999;
 	}
 
 	.step-text {

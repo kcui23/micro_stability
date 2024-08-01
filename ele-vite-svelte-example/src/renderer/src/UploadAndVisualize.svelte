@@ -771,13 +771,6 @@ const runShuffledAnalysis = async () => {
             <div id="fileName2" class="file-name"></div>
           </div>
         </div>
-        {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
-          <!-- Random Seed Input UI -->
-          <div>
-            <label for="randomSeed">Set Random Seed:</label>
-            <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
-          </div>
-        {/if}
         <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
           {#if asvFiles.length > 0}
             <div class="preview">
@@ -815,6 +808,14 @@ const runShuffledAnalysis = async () => {
             </div>
           {/if}
         </div>
+
+        {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
+          <!-- Random Seed Input UI -->
+          <div>
+            <label for="randomSeed">Set Random Seed:</label>
+            <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
+          </div>
+        {/if}
 
         <div class="quick-explore-section" hidden={currentStep !== 'Raw data'}>
           <div class="tooltip">
