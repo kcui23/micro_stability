@@ -43,6 +43,16 @@
 					setCurrentStep(null);
 				}
 			}
+
+			// If the new status is 'Enabled', open the menu and update currentStep
+			if (newStatus === 'Enabled') {
+				openMenus.update(menus => {
+					menus[step] = true;
+					return menus;
+				});
+				setCurrentStep(step);
+			}
+			
 			
 			return status;
 		});
