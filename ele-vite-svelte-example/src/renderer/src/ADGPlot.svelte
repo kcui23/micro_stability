@@ -138,7 +138,7 @@
     }
 
     .step-button {
-        padding: 10px;
+        padding: 5px 10px;
         background-color: #fff;
         border: 1px solid #ddd;
         border-radius: 4px;
@@ -148,6 +148,9 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+        height: auto;
+        white-space: normal;
+        font-size: 1em; 
     }
 
     .step-button:hover:not(:disabled) {
@@ -170,12 +173,12 @@
         border: none;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-size: 0.85em; 
+        font-size: 0.8em; 
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        height: auto; 
     }
-
 
     .status-toggle.disabled {
         background-color: #ffcccc;
