@@ -117,41 +117,46 @@ function(req) {
   subset_asv_data <- asv_data %>% sample_frac(0.05)
   write_tsv(subset_asv_data, temp_asv_file)
 
-  source(safe_file_path("DESeq2.R"))
-  deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file, seed)
-  deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
-  
-  source(safe_file_path("Aldex2.R"))
-  aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
-  aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
+  tryCatch({
+    source(safe_file_path("DESeq2.R"))
+    deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file, seed)
+    deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
+    
+    source(safe_file_path("Aldex2.R"))
+    aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
+    aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
 
-  source(safe_file_path("edgeR.R"))
-  edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
-  edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
+    source(safe_file_path("edgeR.R"))
+    edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
+    edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
 
-  source(safe_file_path("Maaslin2.R"))
-  maaslin2_result <- run_maaslin2(temp_asv_file, temp_groupings_file, maaslin2_output_file, output_dir, seed)
-  maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
-  
-  source(safe_file_path("overlap_plots.R"))
-  overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, output_dir)
+    source(safe_file_path("Maaslin2.R"))
+    maaslin2_result <- run_maaslin2(temp_asv_file, temp_groupings_file, maaslin2_output_file, output_dir, seed)
+    maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
+    
+    source(safe_file_path("overlap_plots.R"))
+    overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, output_dir)
 
-  list(
-    deseq2_plot1 = base64enc::base64encode(deseq2_plots$plot1),
-    deseq2_plot2 = base64enc::base64encode(deseq2_plots$plot2),
-    deseq2_plot3 = base64enc::base64encode(deseq2_plots$plot3),
-    aldex2_plot1 = base64enc::base64encode(aldex2_plots$plot1),
-    aldex2_plot2 = base64enc::base64encode(aldex2_plots$plot2),
-    aldex2_plot3 = base64enc::base64encode(aldex2_plots$plot3),
-    edgeR_plot1 = base64enc::base64encode(edgeR_plots$plot1),
-    edgeR_plot2 = base64enc::base64encode(edgeR_plots$plot2),
-    edgeR_plot3 = base64enc::base64encode(edgeR_plots$plot3),
-    maaslin2_plot1 = base64enc::base64encode(maaslin2_plots$plot1),
-    maaslin2_plot2 = base64enc::base64encode(maaslin2_plots$plot2),
-    maaslin2_plot3 = base64enc::base64encode(maaslin2_plots$plot3),
-    overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
-    overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
-  )
+    list(
+      deseq2_plot1 = base64enc::base64encode(deseq2_plots$plot1),
+      deseq2_plot2 = base64enc::base64encode(deseq2_plots$plot2),
+      deseq2_plot3 = base64enc::base64encode(deseq2_plots$plot3),
+      aldex2_plot1 = base64enc::base64encode(aldex2_plots$plot1),
+      aldex2_plot2 = base64enc::base64encode(aldex2_plots$plot2),
+      aldex2_plot3 = base64enc::base64encode(aldex2_plots$plot3),
+      edgeR_plot1 = base64enc::base64encode(edgeR_plots$plot1),
+      edgeR_plot2 = base64enc::base64encode(edgeR_plots$plot2),
+      edgeR_plot3 = base64enc::base64encode(edgeR_plots$plot3),
+      maaslin2_plot1 = base64enc::base64encode(maaslin2_plots$plot1),
+      maaslin2_plot2 = base64enc::base64encode(maaslin2_plots$plot2),
+      maaslin2_plot3 = base64enc::base64encode(maaslin2_plots$plot3),
+      overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
+      overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
+    )
+  }, error = function(e) {
+    message("Error in quick_explore: ", e$message)
+    list(error = paste("Error in quick_explore:", e$message))
+  })
 }
 
 #* Download the result file for the selected method
