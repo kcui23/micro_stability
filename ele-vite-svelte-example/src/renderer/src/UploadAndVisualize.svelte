@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import ADGPlot from './ADGPlot.svelte';
+  import SidebarComponent from './SidebarComponent.svelte';
   import ASVSelector from './ASVSelector.svelte';
 
   let asvFiles = [];
@@ -723,7 +723,7 @@ const runShuffledAnalysis = async () => {
 
   <!-- ADG Sidebar -->
   <div class="sidebar">
-    <ADGPlot 
+    <SidebarComponent 
       steps={steps} 
       currentStep={currentStep} 
       setCurrentStep={goToStep}
@@ -817,12 +817,13 @@ const runShuffledAnalysis = async () => {
           </div>
         {/if}
 
-        <div class="quick-explore-section" hidden={currentStep !== 'Raw data'}>
+        {#if selectedOperations['Raw data']?.includes('Quick Explore')}
           <div class="tooltip">
             <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
             <span class="tooltiptext">Upload files to continue</span>
           </div>
-        </div>
+        {/if}
+
       </div>
     {:else if currentStep === 'Data Perturbation'}
       <div>
