@@ -1,118 +1,220 @@
 <script>
-    import { onMount } from 'svelte';
-    import { select } from 'd3-selection';
-    import { graphlib, layout } from 'dagre';
-    import 'd3-transition';
-  
+    import { onMount, createEventDispatcher } from 'svelte';
+    import { writable } from 'svelte/store';
+    
     export let steps;
     export let currentStep;
     export let setCurrentStep;
-    export let edgeThicknesses = [];
-    export let lastStep;
-    const basicThickness = 2;
-  
-    const drawADG = () => {
-        const g = new graphlib.Graph().setGraph({}).setDefaultEdgeLabel(() => ({}));
-  
-        // Nodes
-        steps.forEach((step, index) => {
-            g.setNode(index, { label: step, x: 0, y: index * 50 }); // Initial guess for positions
-        });
-  
-        // Edges
-        for (let i = 0; i < steps.length - 1; i++) {
-            g.setEdge(i, i + 1, { thickness: edgeThicknesses[i] * basicThickness || 2 });
-        }
-  
-        layout(g);
-  
-        const svg = select('#adg-container');
-        svg.selectAll('*').remove(); // Clear any previous content
-        const inner = svg.append('g');
-  
-        g.nodes().forEach((v) => {
-            const node = g.node(v);
-            if (node && !isNaN(node.x) && !isNaN(node.y)) {
-                const circle = inner.append('circle')
-                .attr('r', 10)
-                .attr('cx', node.x)
-                .attr('cy', node.y)
-                .style('fill', '#ccc')
-                .style('fill', lastStep === steps[v] ? '#007bff' : '#ccc')
-                .style('cursor', 'pointer')
-                .on('click', () => {
-                    setCurrentStep(steps[v]);
-                });
-
-                circle.transition().duration(250)
-                    .style('fill', currentStep === steps[v] ? '#007bff' : '#ccc');
-  
-                inner.append('text')
-                    .attr('x', node.x + 15) // Position text to the right of the node
-                    .attr('y', node.y)
-                    .attr('dy', '0.35em')
-                    .attr('text-anchor', 'start') // Anchor text to the start (left side)
-                    .text(node.label)
-                    .style('cursor', 'pointer')
-                    .on('click', () => {
-                        setCurrentStep(steps[v]);
-                    });
-            } else {
-                console.error('Invalid node coordinates:', node);
-            }
-        });
-  
-        g.edges().forEach((e) => {
-            const edge = g.edge(e);
-            const points = edge.points;
-            if (points && points.length > 1) {
-                points.forEach(point => {
-                    if (isNaN(point.y)) {
-                        point.y = g.node(e.w).y;
-                    }
-                });
-  
-                inner.append('path')
-                    .attr('d', `M${points[0].x},${points[0].y-40} ${points.slice(1).map(p => `L${p.x},${p.y-10}`).join(' ')}`)
-                    .attr('stroke-width', edge.thickness)
-                    .attr('stroke', 'darkgray')
-            } else {
-                console.error('Invalid edge points:', points);
-            }
-        });
-    };
-  
-    onMount(() => {
-        drawADG();
+    
+    const dispatch = createEventDispatcher();
+    
+    let stepStatus = writable(steps.reduce((acc, step) => {
+        acc[step] = step === 'Raw data' ? 'Enabled' : 'Disabled';
+        return acc;
+    }, {}));
+    
+    let subOperations = writable({
+        'Raw data': ['Set Random Seed'],
+        'Data Perturbation': ['Apply Threshold', 'Additional Option 1', 'Additional Option 2'],
+        'Model Perturbation': ['Select Method'],
+        'Prediction Evaluation Metric': ['View Results'],
+        'Stability Metric': ['View Stability Plot', 'Run Shuffled Analysis']
     });
-  
-    $: if (steps.length > 0) {
-        drawADG();
+    
+    let selectedOperations = writable(Object.fromEntries(steps.map(step => [step, []])));
+    
+
+    function toggleStepStatus(step) {
+        if (step === 'Raw data') return; // Raw data is always enabled
+        stepStatus.update(status => {
+            status[step] = status[step] === 'Enabled' ? 'Disabled' : 'Enabled';
+            return status;
+        });
     }
-  
-    $: if (currentStep) {
-        drawADG();
+
+    function selectStep(step) {
+        if ($stepStatus[step] === 'Enabled') {
+            setCurrentStep(step);
+            dispatch('stepSelected', { step });
+        }
     }
-  </script>
-  
-  <svg id="adg-container" width="200" height="600"></svg>
-  
-  <style>
-    svg {
-        overflow: visible;
+
+    function toggleOperation(step, operation) {
+        selectedOperations.update(selections => {
+            if (selections[step].includes(operation)) {
+                selections[step] = selections[step].filter(op => op !== operation);
+            } else {
+                selections[step] = [...selections[step], operation];
+            }
+            return selections;
+        });
+        dispatch('operationsChanged', { step, operations: $selectedOperations[step] });
     }
-    circle {
+
+    onMount(() => {
+        // Any initialization logic if needed
+    });
+</script>
+
+<div class="adg-container">
+    <h2>Steps</h2>
+    <div class="steps-list">
+        {#each steps as step}
+            <div class="step-item" class:disabled={$stepStatus[step] === 'Disabled'}>
+                <button 
+                    class="step-button" 
+                    on:click={() => selectStep(step)}
+                    disabled={$stepStatus[step] === 'Disabled'}
+                >
+                    {step}
+                </button>
+                {#if step !== 'Raw data'}
+                    <div class="status-toggles">
+                        <button 
+                            class="status-toggle disabled" 
+                            class:inactive={$stepStatus[step] === 'Enabled'}
+                            on:click={() => $stepStatus[step] === 'Enabled' ? toggleStepStatus(step) : null}
+                        >
+                            Disabled
+                        </button>
+                        <button 
+                            class="status-toggle enabled" 
+                            class:inactive={$stepStatus[step] === 'Disabled'}
+                            on:click={() => $stepStatus[step] === 'Disabled' ? toggleStepStatus(step) : null}
+                        >
+                            Enabled
+                        </button>
+                    </div>
+                {/if}
+            </div>
+            {#if step === currentStep}
+                <div class="sub-operations">
+                    {#each $subOperations[step] as operation}
+                        <label class="operation-checkbox">
+                            <input 
+                                type="checkbox" 
+                                checked={$selectedOperations[step].includes(operation)}
+                                on:change={() => toggleOperation(step, operation)}
+                            />
+                            {operation}
+                        </label>
+                    {/each}
+                </div>
+            {/if}
+        {/each}
+    </div>
+</div>
+
+<style>
+    .adg-container {
+        width: 100%;
+        max-width: 300px;
+        padding: 20px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+    }
+
+    h2 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.5em;
+    }
+
+    .steps-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+    }
+
+    .step-item.disabled {
+        opacity: 0.6;
+        transform: scale(0.95);
+    }
+
+    .step-button {
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
         cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
-    circle.active {
 
+    .step-button:hover:not(:disabled) {
+        background-color: #e9e9e9;
     }
-    circle.last{
 
+    .step-button:disabled {
+        cursor: not-allowed;
     }
-    text {
-        font-size: 12px;
-        fill: #333;
+
+    .status-toggles {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
     }
-  </style>
-  
+
+    .status-toggle {
+        flex: 1;
+        padding: 5px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85em; 
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    .status-toggle.disabled {
+        background-color: #ffcccc;
+        color: #cc0000;
+    }
+
+    .status-toggle.enabled {
+        background-color: #ccffcc;
+        color: #006600;
+    }
+
+    .status-toggle.inactive {
+        background-color: #e0e0e0;
+        color: #7d7d7d;
+    }
+
+    .status-toggle.active {
+        font-weight: bold;
+    }
+
+    .status-toggle.disabled:hover {
+        background-color: #ff9999;
+    }
+
+    .status-toggle.enabled:hover {
+        background-color: #99ff99;
+    }
+
+    .sub-operations {
+        margin-top: 10px;
+        padding-left: 20px;
+    }
+
+    .operation-checkbox {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .operation-checkbox input {
+        margin-right: 5px;
+}
+</style>

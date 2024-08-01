@@ -5,6 +5,7 @@
 
   let asvFiles = [];
   let groupingsFile = null;
+  let selectedOperations = {};
   let visualizations = {
     deseq2_plot1: '', deseq2_plot2: '', deseq2_plot3: '',
     aldex2_plot1: '', aldex2_plot2: '', aldex2_plot3: '',
@@ -541,6 +542,21 @@ const runShuffledAnalysis = async () => {
     }
   };
 
+  function handleStepSelected(event) {
+    const { step } = event.detail;
+    currentStep = step;
+  }
+
+  function handleOperationsChanged(event) {
+    const { step, operations } = event.detail;
+    selectedOperations[step] = operations;
+  }
+
+  $: {
+    console.log('Current step:', currentStep);
+    console.log('Selected operations:', selectedOperations);
+  }
+
   onMount(() => {
     autoLoadFiles();
 
@@ -698,7 +714,13 @@ const runShuffledAnalysis = async () => {
 
   <!-- ADG Sidebar -->
   <div class="sidebar">
-    <ADGPlot steps={steps} currentStep={currentStep} setCurrentStep={goToStep} edgeThicknesses={edgeThicknesses} lastStep={lastStep} />
+    <ADGPlot 
+      steps={steps} 
+      currentStep={currentStep} 
+      setCurrentStep={goToStep}
+      on:stepSelected={handleStepSelected}
+      on:operationsChanged={handleOperationsChanged}
+    />
   </div>
 
   <!-- Main Content Area -->
@@ -715,203 +737,229 @@ const runShuffledAnalysis = async () => {
       {/each}
     </div> -->
 
-    <div hidden={currentStep !== 'Raw data'}>
-      <h1>Raw Data</h1>
-      <div class="upload-container">
-        <div class="upload-section">
-          <span class="file-label">Upload ASV File:</span>
-          <div class="custom-file-input">
-            <label for="fileInput1">Choose File</label>
-            <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
-          </div>
-          <div class="note">Note: Please upload a .tsv file</div>
-          <div id="fileName1" class="file-name"></div>
-        </div>
-  
-        <div class="upload-section">
-          <span class="file-label">Upload Groupings File:</span>
-          <div class="custom-file-input">
-            <label for="fileInput2">Choose File</label>
-            <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
-          </div>
-          <div class="note">Note: Please upload a .tsv file</div>
-          <div id="fileName2" class="file-name"></div>
-        </div>
-      </div>
-
-      
+    {#if currentStep === 'Raw data'}
       <div>
-        <label for="randomSeed">Set Random Seed:</label>
-        <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
-      </div>
-    </div>
-
-    <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
-      {#if asvFiles.length > 0}
-        <div class="preview">
-          <h2>Preview of ASV File</h2>
-          <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-          <div class="table-container">
-            <table>
-              {#each filteredContent as row}
-                <tr>
-                  {#each row as cell}
-                    <td>{cell}</td>
-                  {/each}
-                </tr>
-              {/each}
-            </table>
+        <h1>Raw Data</h1>
+        <!-- ASV File Upload UI -->
+        <div class="upload-container">
+          <div class="upload-section">
+            <span class="file-label">Upload ASV File:</span>
+            <div class="custom-file-input">
+              <label for="fileInput1">Choose File</label>
+              <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
+            </div>
+            <div class="note">Note: Please upload a .tsv file</div>
+            <div id="fileName1" class="file-name"></div>
+          </div>
+    
+          <div class="upload-section">
+            <span class="file-label">Upload Groupings File:</span>
+            <div class="custom-file-input">
+              <label for="fileInput2">Choose File</label>
+              <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
+            </div>
+            <div class="note">Note: Please upload a .tsv file</div>
+            <div id="fileName2" class="file-name"></div>
           </div>
         </div>
-      {/if}
-
-      {#if groupingsFile}
-        <div class="preview">
-          <h2>Preview of Groupings File</h2>
-          <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-          <div class="table-container">
-            <table>
-              {#each groupingsContentPreview as row}
-                <tr>
-                  {#each row as cell}
-                    <td>{cell}</td>
+        {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
+          <!-- Random Seed Input UI -->
+          <div>
+            <label for="randomSeed">Set Random Seed:</label>
+            <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
+          </div>
+        {/if}
+        <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
+          {#if asvFiles.length > 0}
+            <div class="preview">
+              <h2>Preview of ASV File</h2>
+              <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+              <div class="table-container">
+                <table>
+                  {#each filteredContent as row}
+                    <tr>
+                      {#each row as cell}
+                        <td>{cell}</td>
+                      {/each}
+                    </tr>
                   {/each}
-                </tr>
-              {/each}
-            </table>
+                </table>
+              </div>
+            </div>
+          {/if}
+    
+          {#if groupingsFile}
+            <div class="preview">
+              <h2>Preview of Groupings File</h2>
+              <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
+              <div class="table-container">
+                <table>
+                  {#each groupingsContentPreview as row}
+                    <tr>
+                      {#each row as cell}
+                        <td>{cell}</td>
+                      {/each}
+                    </tr>
+                  {/each}
+                </table>
+              </div>
+            </div>
+          {/if}
+        </div>
+
+        <div class="quick-explore-section" hidden={currentStep !== 'Raw data'}>
+          <div class="tooltip">
+            <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
+            <span class="tooltiptext">Upload files to continue</span>
           </div>
         </div>
-      {/if}
-    </div>
-
-    <div class="quick-explore-section" hidden={currentStep !== 'Raw data'}>
-      <div class="tooltip">
-        <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
-        <span class="tooltiptext">Upload files to continue</span>
       </div>
-    </div>
-
-    <div class="filter-section" hidden={currentStep !== 'Data Perturbation'}>
-      <div class="filters">
-        <label for="threshold">Threshold for Rare Genes:</label>
-        <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
-        <span>{threshold}</span>
-        <button on:click={handleFilter}>Apply Threshold</button>
+    {:else if currentStep === 'Data Perturbation'}
+      <div>
+        {#if selectedOperations['Data Perturbation']?.includes('Apply Threshold')}
+          <!-- Threshold Application UI -->
+            <div class="filters">
+              <label for="threshold">Threshold for Rare Genes:</label>
+              <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
+              <span>{threshold}</span>
+              <button on:click={handleFilter}>Apply Threshold</button>
+            </div>
+        {/if}
+        {#if selectedOperations['Data Perturbation']?.includes('Additional Option 1')}
+          <!-- Additional Option 1 UI -->
+          <div class="filters">
+            <label for="option1">Additional Option 1:</label>
+            <input type="text" id="option1" />
+          </div>
+        {/if}
+        {#if selectedOperations['Data Perturbation']?.includes('Additional Option 2')}
+          <!-- Additional Option 2 UI -->
+          <div class="filters">
+            <label for="option2">Additional Option 2:</label>
+            <input type="text" id="option2" />
+          </div>
+        {/if}
       </div>
-
-      <div class="filters">
-        <label for="option1">Additional Option 1:</label>
-        <input type="text" id="option1" />
+    {:else if currentStep === 'Model Perturbation'}
+      <div>
+        {#if selectedOperations['Model Perturbation']?.includes('Select Method')}
+          <!-- Method Selection UI -->
+          <div class="methods">
+            <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
+            <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
+            <button on:click={() => handleMethodChange('edger')} class:selected={selectedMethod === 'edger'}>Method 3 (edgeR)</button>
+            <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
+            <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
+          </div>
+        {/if}
       </div>
-
-      <div class="filters">
-        <label for="option2">Additional Option 2:</label>
-        <input type="text" id="option2" />
+    {:else if currentStep === 'Prediction Evaluation Metric'}
+      <div>
+        {#if selectedOperations['Prediction Evaluation Metric']?.includes('View Results')}
+          <!-- Results Viewing UI -->
+        {/if}
       </div>
-    </div>
+    {:else if currentStep === 'Stability Metric'}
+      <div>
+        <h2>Stability Metric</h2>
+        <div class="method-file-status">
+          <h3>Method File Status:</h3>
+          {#each Object.entries(methodFileStatus) as [method, status]}
+            <div class="method-status">
+              <span>{method}: {status[0] ? '✅ Ready' : '❌ Not ready'}</span>
+              {#if status[0]}
+                <button on:click={() => downloadMethodFile(method)}>Download {method} file</button>
+              {:else}
+                <button disabled>Download {method} file</button>
+              {/if}
+              {#if dataChanged && previousMethodFileStatus[method][0]}
+                <span class="warning">⚠️ Data changed, recalculation needed</span>
+              {/if}
+            </div>
+          {/each}
+        </div>
+        
+        <button on:click={calculateMissingMethods} disabled={isCalculatingMissing}>
+          {#if isCalculatingMissing}
+            Calculating...
+          {:else if dataChanged}
+            Recalculate All Methods
+          {:else if Object.values(methodFileStatus).some(status => !status[0])}
+            Calculate Missing Methods
+          {:else}
+            All Methods Calculated
+          {/if}
+        </button>
+  
+        <div class="combined-results-actions">
+          <button on:click={generateCombinedResults} disabled={isCombiningResults || !Object.values(methodFileStatus).every(status => status[0])}>
+            {isCombiningResults ? 'Generating...' : 'Generate Combined Results'}
+          </button>
+          <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
+            Download Combined Results
+          </button>
+        </div>
 
-    <div class="methods-section" hidden={currentStep !== 'Model Perturbation'}>
-      <div class="methods">
-        <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
-        <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
-        <button on:click={() => handleMethodChange('edger')} class:selected={selectedMethod === 'edger'}>Method 3 (edgeR)</button>
-        <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
-        <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
+        {#if selectedOperations['Stability Metric']?.includes('View Stability Plot')}
+          <!-- Stability Plot Viewing UI -->
+          {#if stabilityPlot}
+            <div class="stability-plot">
+              <h3>Stability Plot</h3>
+              <img src={stabilityPlot} alt="Stability Plot" style="width: 100%; max-width: 800px; height: auto;" />
+            </div>
+          {/if}
+        {/if}
+        {#if selectedOperations['Stability Metric']?.includes('Run Shuffled Analysis')}
+          <!-- Shuffled Analysis UI -->
+          <h3>Shuffled Analysis</h3>
+
+          <div class="input-group">
+            <label for="iterations">Number of Iterations:</label>
+            <input 
+              type="number" 
+              id="iterations" 
+              bind:value={shuffledAnalysisTotal} 
+              min="1" 
+              max="1000"
+              disabled={isShuffledAnalysisRunning}
+            >
+          </div>
+  
+          <button on:click={runShuffledAnalysis} disabled={isShuffledAnalysisRunning}>
+            {isShuffledAnalysisRunning ? 'Running...' : 'Run Shuffled Analysis'}
+          </button>
+      
+          {#if isShuffledAnalysisRunning}
+            <div class="progress-bar">
+              <div class="progress-bar-fill" style="width: {(shuffledAnalysisProgress / shuffledAnalysisTotal) * 100}%"></div>
+            </div>
+            <p>Progress: {shuffledAnalysisProgress} / {shuffledAnalysisTotal}</p>
+          {/if}
+      
+          {#if shuffledAnalysisPlot}
+            <div class="shuffled-analysis-plot">
+              <h4>Stability of Significant ASVs Across Shuffled Analyses</h4>
+              <img src={shuffledAnalysisPlot} alt="Shuffled Analysis Plot" style="width: 100%; max-width: 800px; height: auto;" />
+            </div>
+          {/if}
+        {/if}
+
+        <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
+          {showASVSelector ? 'Hide' : 'Show'} ASV Selector
+        </button>
+        <div id="asv-selector-main">
+          {#if showASVSelector}
+            <ASVSelector />
+          {/if}
+        </div>
       </div>
-    </div>
+    {/if}
 
     <div class="stability-vis" hidden={currentStep !== 'Stability Metric'}>
-      <h2>Stability Metric</h2>
-      <div class="method-file-status">
-        <h3>Method File Status:</h3>
-        {#each Object.entries(methodFileStatus) as [method, status]}
-          <div class="method-status">
-            <span>{method}: {status[0] ? '✅ Ready' : '❌ Not ready'}</span>
-            {#if status[0]}
-              <button on:click={() => downloadMethodFile(method)}>Download {method} file</button>
-            {:else}
-              <button disabled>Download {method} file</button>
-            {/if}
-            {#if dataChanged && previousMethodFileStatus[method][0]}
-              <span class="warning">⚠️ Data changed, recalculation needed</span>
-            {/if}
-          </div>
-        {/each}
-      </div>
-      
-      <button on:click={calculateMissingMethods} disabled={isCalculatingMissing}>
-        {#if isCalculatingMissing}
-          Calculating...
-        {:else if dataChanged}
-          Recalculate All Methods
-        {:else if Object.values(methodFileStatus).some(status => !status[0])}
-          Calculate Missing Methods
-        {:else}
-          All Methods Calculated
-        {/if}
-      </button>
-
-      <div class="combined-results-actions">
-        <button on:click={generateCombinedResults} disabled={isCombiningResults || !Object.values(methodFileStatus).every(status => status[0])}>
-          {isCombiningResults ? 'Generating...' : 'Generate Combined Results'}
-        </button>
-        <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
-          Download Combined Results
-        </button>
-      </div>
-
-      {#if stabilityPlot}
-        <div class="stability-plot">
-          <h3>Stability Plot</h3>
-          <img src={stabilityPlot} alt="Stability Plot" style="width: 100%; max-width: 800px; height: auto;" />
-        </div>
-      {/if}
-
-      <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
-        {showASVSelector ? 'Hide' : 'Show'} ASV Selector
-      </button>
 
       <div class="shuffled-analysis">
-        <h3>Shuffled Analysis</h3>
-
-        <div class="input-group">
-          <label for="iterations">Number of Iterations:</label>
-          <input 
-            type="number" 
-            id="iterations" 
-            bind:value={shuffledAnalysisTotal} 
-            min="1" 
-            max="1000"
-            disabled={isShuffledAnalysisRunning}
-          >
-        </div>
-
-        <button on:click={runShuffledAnalysis} disabled={isShuffledAnalysisRunning}>
-          {isShuffledAnalysisRunning ? 'Running...' : 'Run Shuffled Analysis'}
-        </button>
-    
-        {#if isShuffledAnalysisRunning}
-          <div class="progress-bar">
-            <div class="progress-bar-fill" style="width: {(shuffledAnalysisProgress / shuffledAnalysisTotal) * 100}%"></div>
-          </div>
-          <p>Progress: {shuffledAnalysisProgress} / {shuffledAnalysisTotal}</p>
-        {/if}
-    
-        {#if shuffledAnalysisPlot}
-          <div class="shuffled-analysis-plot">
-            <h4>Stability of Significant ASVs Across Shuffled Analyses</h4>
-            <img src={shuffledAnalysisPlot} alt="Shuffled Analysis Plot" style="width: 100%; max-width: 800px; height: auto;" />
-          </div>
-        {/if}
+        
       </div>
-
-      <div id="asv-selector-main">
-        {#if showASVSelector}
-          <ASVSelector />
-        {/if}
-      </div>
-      
-
     </div>    
 
     <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
