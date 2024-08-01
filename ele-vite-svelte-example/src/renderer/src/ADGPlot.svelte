@@ -195,16 +195,14 @@
         color: #7d7d7d;
     }
 
-    .status-toggle.active {
-        font-weight: bold;
-    }
-
-    .status-toggle.disabled:hover {
+    .step-item:not(.disabled) .status-toggle.disabled:hover {
         background-color: #ff9999;
+        color: #cc0000;
     }
 
-    .status-toggle.enabled:hover {
+    .step-item.disabled .status-toggle.enabled:hover {
         background-color: #99ff99;
+        color: #006600;
     }
 
     .sub-operations {
