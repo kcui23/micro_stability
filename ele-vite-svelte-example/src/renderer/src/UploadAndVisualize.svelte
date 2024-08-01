@@ -595,6 +595,15 @@ const runShuffledAnalysis = async () => {
     background-color: #007bff;
     color: white;
   } */
+
+  .sidebar {
+    width: 300px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
   .preview {
     margin: 20px 0;
   }
@@ -1025,7 +1034,7 @@ const runShuffledAnalysis = async () => {
       <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
     {/if}
 
-    <div class="navigation">
+    <!-- <div class="navigation">
       {#if currentStep != 'Raw data'}
         <div class="previous-button">
           <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
@@ -1037,7 +1046,7 @@ const runShuffledAnalysis = async () => {
           <span class="tooltiptext">Upload files to continue</span>
         </div>
       {/if}
-    </div>
+    </div> -->
 
   </div>
 </div>
