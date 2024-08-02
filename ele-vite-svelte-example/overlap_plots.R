@@ -3,8 +3,11 @@ library(dplyr)
 library(readr)
 library(ggridges)
 
-create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_file, output_dir) {
+create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_file, output_dir, persistent_temp_dir) {
   # Helper function to safely read and process data
+  safe_file_path <- function(...) {
+    normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
+  }
   safe_read_and_process <- function(file, method_name, fc_col, p_col) {
     tryCatch({
       message(paste("Reading", method_name, "file:", file))
@@ -61,6 +64,8 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
   combined_results <- combined_results %>%
     mutate(neg_log10_pvalue = -log10(pvalue),
            significant = ifelse(pvalue < 0.05, "Significant", "Not Significant"))
+
+  write_tsv(combined_results, safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv"))
 
   # Overlap volcano plot
   p1 <- ggplot(combined_results, aes(x = log2FoldChange, y = neg_log10_pvalue, color = significant, shape = method)) +

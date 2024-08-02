@@ -135,7 +135,7 @@ function(req) {
     maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
     
     source(safe_file_path("overlap_plots.R"))
-    overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, output_dir)
+    overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, output_dir, persistent_temp_dir)
 
     list(
       deseq2_plot1 = base64enc::base64encode(deseq2_plots$plot1),
@@ -592,4 +592,24 @@ function(req, res, method, plot) {
     res$status <- 500
     list(error = paste("Server error:", e$message))
   })
+}
+
+#* Provide the combined results TSV file
+#* @get /overlap_combined_results_tsv
+#* @serializer contentType list(type="text/tab-separated-values")
+function(req, res) {
+  file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
+  
+  if (!file.exists(file_path)) {
+    res$status <- 404
+    return(list(error = "Overlap combined results file not found"))
+  }
+
+  file_content <- readLines(file_path)
+  print("overlap_combined_results_tsv")
+  print(file_content)
+  
+  res$body <- file_content
+  res$headers$`Content-Disposition` <- "attachment; filename=overlap_combined_results.tsv"
+  res
 }

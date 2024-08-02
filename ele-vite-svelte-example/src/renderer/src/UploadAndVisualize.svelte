@@ -3,6 +3,7 @@
   import { onMount, onDestroy } from 'svelte';
   import SidebarComponent from './SidebarComponent.svelte';
   import ASVSelector from './ASVSelector.svelte';
+  import InteractiveValcano from './InteractiveValcano.svelte';
 
   let asvFiles = [];
   let groupingsFile = null;
@@ -1216,9 +1217,7 @@ const runShuffledAnalysis = async () => {
                   <img src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" on:click={() => zoomImage('overlap_volcano')} />
                   <img src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" on:click={() => zoomImage('overlap_pvalue_distribution')} />
                 {:else}
-                  <div class="interactive-placeholder">
-                    Interactive Overlap Visualizations coming soon...
-                  </div>
+                  <InteractiveValcano />
                 {/if}
               </div>
             </div>
