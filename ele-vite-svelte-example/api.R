@@ -552,3 +552,44 @@ generate_stability_plot <- function(processed_results) {
   
   return(temp_plot)
 }
+
+#* Download a specific plot image
+#* @get /download_image
+#* @param method The method of the plot (e.g., deseq2, aldex2, edger, maaslin2, overlap)
+#* @param plot The specific plot to download (e.g., plot1, plot2, plot3, volcano, pvalue_distribution)
+#* @serializer contentType list(type="image/png")
+function(req, res, method, plot) {
+  tryCatch({
+    valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2", "overlap")
+    if (!(tolower(method) %in% valid_methods)) {
+      res$status <- 400
+      return(list(error = "Invalid method specified"))
+    }
+
+    # Construct the file path
+    if (method == "overlap") {
+      file_name <- paste0("overlap_", plot, ".png")
+    } else {
+      file_name <- paste0(method, "_", plot, ".png")
+    }
+    file_path <- safe_file_path(persistent_temp_dir, file_name)
+
+    if (!file.exists(file_path)) {
+      res$status <- 404
+      return(list(error = paste("Image not found:", file_path)))
+    }
+
+    # Read the image file
+    image_data <- readBin(file_path, "raw", n = file.info(file_path)$size)
+
+    # Set the appropriate headers
+    res$setHeader("Content-Type", "image/png")
+    res$setHeader("Content-Disposition", paste0('attachment; filename="', file_name, '"'))
+
+    # Return the image data
+    image_data
+  }, error = function(e) {
+    res$status <- 500
+    list(error = paste("Server error:", e$message))
+  })
+}

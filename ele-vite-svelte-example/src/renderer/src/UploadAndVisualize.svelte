@@ -1,4 +1,5 @@
 <script>
+  import { fade, scale } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
   import SidebarComponent from './SidebarComponent.svelte';
   import ASVSelector from './ASVSelector.svelte';
@@ -6,6 +7,9 @@
   let asvFiles = [];
   let groupingsFile = null;
   let selectedOperations = {};
+  let isInteractive = false; // Whether the user is interacting with the visualization
+  let isStatic = true;
+  let zoomedImage = null;
   let visualizations = {
     deseq2_plot1: '', deseq2_plot2: '', deseq2_plot3: '',
     aldex2_plot1: '', aldex2_plot2: '', aldex2_plot3: '',
@@ -552,6 +556,42 @@ const runShuffledAnalysis = async () => {
     selectedOperations[step] = operations;
   }
 
+  function toggleView(view) {
+    isStatic = view === 'static';
+  }
+
+  function zoomImage(image) {
+    zoomedImage = zoomedImage === image ? null : image;
+  }
+
+  async function downloadImage(image, method) {
+    try {
+      const response = await fetch(`http://localhost:8000/download_image?method=${method}&plot=${image}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${method}_${image}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to download image:', errorText);
+      }
+    } catch (error) {
+      console.error('Error downloading image:', error);
+    }
+  }
+
+  function handleKeydown(event) {
+    if (event.key === 'Escape' && zoomedImage) {
+      zoomImage(null);
+    }
+  }
+
   $: {
     console.log('Current step:', currentStep);
     console.log('Selected operations:', selectedOperations);
@@ -559,6 +599,7 @@ const runShuffledAnalysis = async () => {
 
   onMount(() => {
     autoLoadFiles();
+    window.addEventListener('keydown', handleKeydown);
 
     ws = new WebSocket('ws://localhost:8000/ws');
     ws.onopen = () => {
@@ -576,6 +617,7 @@ const runShuffledAnalysis = async () => {
 
   onDestroy(() => {
     if (ws) ws.close();
+    window.removeEventListener('keydown', handleKeydown);
   });
 </script>
 
@@ -712,6 +754,175 @@ const runShuffledAnalysis = async () => {
   .input-group input {
     width: 60px;
   }
+
+  .view-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .view-toggle button {
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .view-toggle button.active {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .visualizations-section {
+    margin-top: 2rem;
+  }
+
+  .visualization-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .visualization-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .card-header {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .interactive-placeholder {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    font-style: italic;
+    color: #666;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+  }
+
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .card-content {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .card-content img {
+    flex: 0 0 auto;
+    width: 300px;
+    margin-right: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+
+  .card-content img:hover {
+    transform: scale(1.05);
+  }
+
+  .zoomed-image-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .zoomed-image-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .zoomed-image-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .download-button {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .download-button:hover {
+    background-color: #0056b3;
+  }
+
+  .expand-collapse-button {
+    position: sticky;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .expand-collapse-button:hover {
+    background-color: #0056b3;
+  }
+
 </style>
 
 <div id="app" class="container">
@@ -981,62 +1192,102 @@ const runShuffledAnalysis = async () => {
     </div>    
 
     <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
-      <h2>Visualizations</h2>
+      <div class="visualization-header">
+        <h2>Visualizations</h2>
+        <div class="view-toggle">
+          <button class:active={isStatic} on:click={() => toggleView('static')}>Static</button>
+          <button class:active={!isStatic} on:click={() => toggleView('interactive')}>Interactive</button>
+        </div>
+      </div>
+    
       {#if isCalculating}
         <div class="loader">
           <p>Loading...</p>
         </div>
       {:else}
         {#if showAllPlots}
-          <h3>Overlap Visualizations</h3>
-          <img class="large" src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" />
-          <img class="large" src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" />
-          {#if !showDetailedPlots}
-            <button on:click={() => showDetailedPlots = true}>Show More Details</button>
-          {:else}
-            <button on:click={() => showDetailedPlots = false}>Collapse</button>
-          {/if}
-          {#if showDetailedPlots}
-            <h3>DESeq2 Plots</h3>
-            <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-            <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-            <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-            <h3>ALDEx2 Plots</h3>
-            <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-            <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-            <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
-            <h3>edgeR Plots</h3>
-            <img src={visualizations.edger_plot1} alt="edgeR Plot 1" style="width: 300px; height: auto;" />
-            <img src={visualizations.edger_plot2} alt="edgeR Plot 2" style="width: 300px; height: auto;" />
-            <img src={visualizations.edger_plot3} alt="edgeR Plot 3" style="width: 300px; height: auto;" />
-            <h3>Maaslin2 Plots</h3>
-            <img src={visualizations.maaslin2_plot1} alt="Maaslin2 Plot 1" style="width: 300px; height: auto;" />
-            <img src={visualizations.maaslin2_plot2} alt="Maaslin2 Plot 2" style="width: 300px; height: auto;" />
-            <img src={visualizations.maaslin2_plot3} alt="Maaslin2 Plot 3" style="width: 300px; height: auto;" />
-          {/if}
-        {:else if selectedMethod === 'deseq2'}
-          <h3>DESeq2 Plots</h3>
-          <img src={visualizations.deseq2_plot1} alt="DESeq2 Plot 1" style="width: 300px; height: auto;" />
-          <img src={visualizations.deseq2_plot2} alt="DESeq2 Plot 2" style="width: 300px; height: auto;" />
-          <img src={visualizations.deseq2_plot3} alt="DESeq2 Plot 3" style="width: 300px; height: auto;" />
-        {:else if selectedMethod === 'aldex2'}
-          <h3>ALDEx2 Plots</h3>
-          <img src={visualizations.aldex2_plot1} alt="ALDEx2 Plot 1" style="width: 300px; height: auto;" />
-          <img src={visualizations.aldex2_plot2} alt="ALDEx2 Plot 2" style="width: 300px; height: auto;" />
-          <img src={visualizations.aldex2_plot3} alt="ALDEx2 Plot 3" style="width: 300px; height: auto;" />
-        {:else if selectedMethod === 'edger'}
-          <h3>edgeR Plots</h3>
-          <img src={visualizations.edger_plot1} alt="edgeR Plot 1" style="width: 300px; height: auto;" />
-          <img src={visualizations.edger_plot2} alt="edgeR Plot 2" style="width: 300px; height: auto;" />
-          <img src={visualizations.edger_plot3} alt="edgeR Plot 3" style="width: 300px; height: auto;" />
-        {:else if selectedMethod === 'maaslin2'}
-          <h3>Maaslin2 Plots</h3>
-          <img src={visualizations.maaslin2_plot1} alt="Maaslin2 Plot 1" style="width: 300px; height: auto;" />
-          <img src={visualizations.maaslin2_plot2} alt="Maaslin2 Plot 2" style="width: 300px; height: auto;" />
-          <img src={visualizations.maaslin2_plot3} alt="Maaslin2 Plot 3" style="width: 300px; height: auto;" />
+          <div class="card-container">
+            <div class="card">
+              <div class="card-header">
+                <h3>Overlap Visualizations</h3>
+              </div>
+              <div class="card-content">
+                {#if isStatic}
+                  <img src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" on:click={() => zoomImage('overlap_volcano')} />
+                  <img src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" on:click={() => zoomImage('overlap_pvalue_distribution')} />
+                {:else}
+                  <div class="interactive-placeholder">
+                    Interactive Overlap Visualizations coming soon...
+                  </div>
+                {/if}
+              </div>
+            </div>
+    
+            {#if showDetailedPlots}
+              {#each ['deseq2', 'aldex2', 'edger', 'maaslin2'] as method}
+                <div class="card">
+                  <div class="card-header">
+                    <h3>{method.toUpperCase()} Plots</h3>
+                  </div>
+                  <div class="card-content">
+                    {#if isStatic}
+                      {#each [1, 2, 3] as plotNumber}
+                        <img 
+                          src={visualizations[`${method}_plot${plotNumber}`]} 
+                          alt={`${method.toUpperCase()} Plot ${plotNumber}`} 
+                          on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
+                        />
+                      {/each}
+                    {:else}
+                      <div class="interactive-placeholder">
+                        Interactive {method.toUpperCase()} Plots coming soon...
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            {/if}
+          </div>
+    
+          <button class="expand-collapse-button" on:click={() => showDetailedPlots = !showDetailedPlots}>
+            {showDetailedPlots ? 'Collapse Details' : 'Show More Details'}
+          </button>
+        {:else if selectedMethod}
+          <div class="card">
+            <div class="card-header">
+              <h3>{selectedMethod.toUpperCase()} Plots</h3>
+            </div>
+            <div class="card-content">
+              {#if isStatic}
+                {#each [1, 2, 3] as plotNumber}
+                  <img 
+                    src={visualizations[`${selectedMethod}_plot${plotNumber}`]} 
+                    alt={`${selectedMethod.toUpperCase()} Plot ${plotNumber}`} 
+                    on:click={() => zoomImage(`${selectedMethod}_plot${plotNumber}`)}
+                  />
+                {/each}
+              {:else}
+                <div class="interactive-placeholder">
+                  Interactive {selectedMethod.toUpperCase()} Plots coming soon...
+                </div>
+              {/if}
+            </div>
+          </div>
         {/if}
       {/if}
     </div>
+    
+    {#if zoomedImage}
+      <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>
+        <div class="zoomed-image-content" on:click|stopPropagation transition:scale>
+          <img src={visualizations[zoomedImage]} alt="Zoomed Image" />
+          <button class="download-button" on:click|stopPropagation={() => downloadImage(zoomedImage, zoomedImage.split('_')[0])}>
+            Download
+          </button>
+        </div>
+      </div>
+    {/if}
+    
     
     {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
       <button on:click={handleSubmit}>Submit</button>
