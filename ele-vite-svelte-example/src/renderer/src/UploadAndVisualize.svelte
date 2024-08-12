@@ -4,7 +4,49 @@
   import SidebarComponent from './SidebarComponent.svelte';
   import ASVSelector from './ASVSelector.svelte';
   import InteractiveValcano from './InteractiveValcano.svelte';
+  import {selectedPoints} from './store.js';
 
+
+  let selectedPointsList = [];
+  $: selectedPoints.subscribe(value => {
+    selectedPointsList = value;
+    console.log("selectedPointsList updated:", selectedPointsList);
+  });
+  let isCardExpanded = true;
+
+  const toggleCard = () => {
+    isCardExpanded = !isCardExpanded;
+  };
+
+  const downloadSelectedPoints = async () => {
+    const data = selectedPointsList.map(point => ({
+      name: point.name,
+      x: point.x,
+      y: point.y
+    }));
+
+    const response = await fetch('http://localhost:8000/download_selected_points', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ points: data })
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'selected_points.tsv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      console.error('Error downloading selected points:', response.statusText);
+    }
+  };
   let asvFiles = [];
   let groupingsFile = null;
   let selectedOperations = {};
@@ -58,6 +100,10 @@
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
 
+  const removePoint = (pointToRemove) => {
+    selectedPoints.update(points => points.filter(point => point !== pointToRemove));
+  };
+  
   const showNotification = () => {
     const notification = document.getElementById('notification');
     notification.classList.add('show');
@@ -835,31 +881,87 @@ const runShuffledAnalysis = async () => {
 
   .card-container {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    justify-content: space-between;
   }
 
   .card {
-    width: 100%;
-    margin-bottom: 1rem;
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-right: 20px;
+  }
+
+  .card-header {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
   }
 
   .card-content {
+    padding: 1rem;
+  }
+
+  .floating-card {
+    flex: 0.3;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .floating-card .card-header {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .floating-card .card-content {
+    padding: 1rem;
+    max-height: calc(100% - 4rem);
+    overflow-y: auto;
+  }
+
+  .floating-card ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .floating-card li {
     display: flex;
-    overflow-x: auto;
-    padding-bottom: 1rem;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
   }
 
-  .card-content img {
-    flex: 0 0 auto;
-    width: 300px;
-    margin-right: 1rem;
+  .floating-card li button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
     cursor: pointer;
-    transition: transform 0.3s;
+    padding: 0.2rem 0.5rem;
   }
 
-  .card-content img:hover {
-    transform: scale(1.05);
+  .download-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .download-button:hover {
+    background-color: #0056b3;
   }
 
   .zoomed-image-container {
@@ -1221,6 +1323,26 @@ const runShuffledAnalysis = async () => {
                 {/if}
               </div>
             </div>
+
+            <!-- floating card -->
+            {#if selectedPointsList.length > 0}
+              <div class="floating-card">
+                <div class="card-header">
+                  <h3>Selected Points</h3>
+                </div>
+                <div class="card-content">
+                  <ul>
+                    {#each selectedPointsList as point (point.name)}
+                      <li>
+                        <span>{point.name} (x: {point.x}, y: {point.y})</span>
+                        <button on:click={() => removePoint(point)}>Remove</button>
+                      </li>
+                    {/each}
+                  </ul>
+                  <button class="download-button" on:click={downloadSelectedPoints}>Download Points</button>
+                </div>
+              </div>
+            {/if}
     
             {#if showDetailedPlots}
               {#each ['deseq2', 'aldex2', 'edger', 'maaslin2'] as method}
@@ -1275,6 +1397,7 @@ const runShuffledAnalysis = async () => {
         {/if}
       {/if}
     </div>
+
     
     {#if zoomedImage}
       <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>

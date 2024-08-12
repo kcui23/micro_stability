@@ -613,3 +613,17 @@ function(req, res) {
   res$headers$`Content-Disposition` <- "attachment; filename=overlap_combined_results.tsv"
   res
 }
+
+#* Download selected points as a .tsv file
+#* @post /download_selected_points
+#* @serializer contentType list(type = "text/tab-separated-values")
+function(req, res) {
+  body <- fromJSON(req$postBody)
+  
+  temp_file <- tempfile(fileext = ".tsv")
+  write_tsv(as.data.frame(body$points), temp_file)
+  
+  res$body <- paste(readLines(temp_file), collapse = "\n")
+  res$headers$`Content-Disposition` <- "attachment; filename=selected_points.tsv"
+  res
+}

@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import Plotly from 'plotly.js-dist-min';
+  import { selectedPoints } from './store.js';
+
 
   let plotDiv;
 
@@ -11,7 +13,7 @@
         throw new Error('Failed to fetch data');
       }
       const tsvData = await response.text();
-      
+
       // Parse TSV data
       const rows = tsvData.trim().split('\n').map(row => row.split('\t'));
       const headers = rows[0];
@@ -53,11 +55,30 @@
         hovermode: 'closest'
       };
 
+      // draw the plot
       Plotly.newPlot(plotDiv, [trace], layout, { responsive: true });
+
+      // add click event listener
+      plotDiv.on('plotly_click', function(data) {
+        // get the point that was clicked
+        const point = data.points[0];
+        console.log('Clicked point:', point);
+        console.log('x:', point.x);
+        console.log('y:', point.y);
+        console.log('ASV Name:', point.text);
+      });
     } catch (error) {
       console.error('Error fetching or plotting data:', error);
-      // You might want to display an error message to the user here
     }
+    
+    plotDiv.on('plotly_click', function(data) {
+      const point = data.points[0];
+      selectedPoints.update(points => {
+        const newPoints = [...points, { x: point.x, y: point.y, name: point.text }];
+        console.log("Updated selectedPoints:", newPoints)
+        return newPoints;
+      });
+    });
   });
 </script>
 
