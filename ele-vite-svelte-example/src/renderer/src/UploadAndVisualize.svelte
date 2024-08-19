@@ -1278,7 +1278,7 @@ const runShuffledAnalysis = async () => {
       <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
       <!-- Scatter Plot -->
       <div class="scatter-plot-container">
-        <ScatterPlot data={treeData} on:pointClick={handleScatterPointClick} />
+        <ScatterPlot on:pointClick={handleScatterPointClick} />
       </div> 
     </div>
 
