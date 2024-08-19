@@ -74,7 +74,7 @@
     plotDiv.on('plotly_click', function(data) {
       const point = data.points[0];
       selectedPoints.update(points => {
-        const newPoints = [...points, { x: point.x, y: point.y, name: point.text }];
+        const newPoints = [...points, { name: point.text }];
         console.log("Updated selectedPoints:", newPoints)
         return newPoints;
       });

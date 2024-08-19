@@ -98,7 +98,7 @@
   let ws_id;
 
 
-  const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Prediction Evaluation Metric', 'Stability Metric'];
+  const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Stability Metric'];
 
   const removePoint = (pointToRemove) => {
     selectedPoints.update(points => points.filter(point => point !== pointToRemove));
@@ -1145,7 +1145,7 @@ const runShuffledAnalysis = async () => {
     {:else if currentStep === 'Data Perturbation'}
       <div>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-        {#if selectedOperations['Data Perturbation']?.includes('Apply Threshold')}
+        {#if selectedOperations['Data Perturbation']?.includes('Threshold')}
           <!-- Threshold Application UI -->
             <div class="filters">
               <label for="threshold">Threshold for Rare Genes:</label>
@@ -1180,12 +1180,6 @@ const runShuffledAnalysis = async () => {
             <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
             <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
           </div>
-        {/if}
-      </div>
-    {:else if currentStep === 'Prediction Evaluation Metric'}
-      <div>
-        {#if selectedOperations['Prediction Evaluation Metric']?.includes('View Results')}
-          <!-- Results Viewing UI -->
         {/if}
       </div>
     {:else if currentStep === 'Stability Metric'}
@@ -1334,7 +1328,7 @@ const runShuffledAnalysis = async () => {
                   <ul>
                     {#each selectedPointsList as point (point.name)}
                       <li>
-                        <span>{point.name} (x: {point.x}, y: {point.y})</span>
+                        <span>{point.name}</span>
                         <button on:click={() => removePoint(point)}>Remove</button>
                       </li>
                     {/each}
