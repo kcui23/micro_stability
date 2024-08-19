@@ -5,8 +5,10 @@
   import ASVSelector from './ASVSelector.svelte';
   import InteractiveValcano from './InteractiveValcano.svelte';
   import {selectedPoints} from './store.js';
+  import * as d3 from 'd3';
 
 
+  let d3TreeContainer;
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
@@ -593,6 +595,129 @@ const runShuffledAnalysis = async () => {
     }
   };
 
+  function renderD3Tree(container, data) {
+    const width = container.offsetWidth || 300;
+    const marginTop = 10;
+    const marginRight = 10;
+    const marginBottom = 10;
+    const marginLeft = 40;
+
+    const root = d3.hierarchy(data);
+    const dx = 15;
+    const dy = (width - marginRight - marginLeft) / (1 + root.height);
+
+    const tree = d3.tree().nodeSize([dx, dy]);
+    const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+
+    const svg = d3.select(container).append("svg")
+      .attr("width", width)
+      .attr("height", dx)
+      .attr("viewBox", [-marginLeft, -marginTop, width, dx])
+      .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif; user-select: none;");
+
+    const gLink = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke", "#555")
+      .attr("stroke-opacity", 0.4)
+      .attr("stroke-width", 1.5);
+
+    const gNode = svg.append("g")
+      .attr("cursor", "pointer")
+      .attr("pointer-events", "all");
+
+    function update(event, source) {
+      const duration = event?.altKey ? 2500 : 250;
+      const nodes = root.descendants().reverse();
+      const links = root.links();
+
+      tree(root);
+
+      let left = root;
+      let right = root;
+      root.eachBefore(node => {
+        if (node.x < left.x) left = node;
+        if (node.x > right.x) right = node;
+      });
+
+      const height = right.x - left.x + marginTop + marginBottom;
+
+      const transition = svg.transition()
+        .duration(duration)
+        .attr("height", height)
+        .attr("viewBox", [-marginLeft, left.x - marginTop, width, height]);
+
+      const node = gNode.selectAll("g")
+        .data(nodes, d => d.id);
+
+      const nodeEnter = node.enter().append("g")
+        .attr("transform", d => `translate(${source.y0},${source.x0})`)
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0)
+        .on("click", (event, d) => {
+          d.children = d.children ? null : d._children;
+          update(event, d);
+        });
+
+      nodeEnter.append("circle")
+        .attr("r", 2.5)
+        .attr("fill", d => d._children ? "#555" : "#999")
+        .attr("stroke-width", 10);
+
+      nodeEnter.append("text")
+        .attr("dy", "0.31em")
+        .attr("x", d => d._children ? -6 : 6)
+        .attr("text-anchor", d => d._children ? "end" : "start")
+        .text(d => d.data.name)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 3)
+        .attr("stroke", "white")
+        .attr("paint-order", "stroke");
+
+      const nodeUpdate = node.merge(nodeEnter).transition(transition)
+        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .attr("fill-opacity", 1)
+        .attr("stroke-opacity", 1);
+
+      const nodeExit = node.exit().transition(transition).remove()
+        .attr("transform", d => `translate(${source.y},${source.x})`)
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0);
+
+      const link = gLink.selectAll("path")
+        .data(links, d => d.target.id);
+
+      const linkEnter = link.enter().append("path")
+        .attr("d", d => {
+          const o = { x: source.x0, y: source.y0 };
+          return diagonal({ source: o, target: o });
+        });
+
+      link.merge(linkEnter).transition(transition)
+        .attr("d", diagonal);
+
+      link.exit().transition(transition).remove()
+        .attr("d", d => {
+          const o = { x: source.x, y: source.y };
+          return diagonal({ source: o, target: o });
+        });
+
+      root.eachBefore(d => {
+        d.x0 = d.x;
+        d.y0 = d.y;
+      });
+    }
+
+    root.x0 = dy / 2;
+    root.y0 = 0;
+    root.descendants().forEach((d, i) => {
+      d.id = i;
+      d._children = d.children;
+      if (d.depth && d.data.name.length !== 7) d.children = null;
+    });
+
+    update(null, root);
+  }
+
   function handleStepSelected(event) {
     const { step } = event.detail;
     currentStep = step;
@@ -660,11 +785,21 @@ const runShuffledAnalysis = async () => {
         shuffledAnalysisTotal = data.total;
       }
     };
+
+    fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
+      .then(response => response.json())
+      .then(data => {
+        renderD3Tree(d3TreeContainer, data);
+      })
+      .catch(error => console.error('Error loading or parsing data.json:', error));
+
   });
 
   onDestroy(() => {
     if (ws) ws.close();
     window.removeEventListener('keydown', handleKeydown);
+
+    d3.select(d3TreeContainer).select("svg").remove(); // Clean up on component destruction
   });
 </script>
 
@@ -1026,6 +1161,20 @@ const runShuffledAnalysis = async () => {
     background-color: #0056b3;
   }
 
+  .d3-tree-container {
+    position: relative; /* Position relative to allow it to push content down */
+    width: 100%; /* Span the entire width of the screen */
+    height: 200px; /* Adjust the height as needed */
+    border: 1px solid #ddd;
+    background-color: #fff;
+    overflow: auto; /* Allow scrolling if the tree content overflows */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visual hierarchy */
+    z-index: 10; /* Ensure it stays above other elements that should be below */
+    padding: 10px; /* Padding inside the div */
+    margin-bottom: 20px; /* Space below the tree to separate it from the following content */
+    border-radius: 8px; /* Rounded corners for a polished look */
+  }
+
 </style>
 
 <div id="app" class="container">
@@ -1048,6 +1197,8 @@ const runShuffledAnalysis = async () => {
 
   <!-- Main Content Area -->
   <div class="content">
+    <!-- D3 Tree Container -->
+    <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
     <div class="logo">
       <h1>Logo</h1>
     </div>
