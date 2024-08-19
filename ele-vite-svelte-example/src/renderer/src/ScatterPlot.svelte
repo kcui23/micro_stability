@@ -41,7 +41,7 @@
             .attr('r', 5)
             .attr('fill', 'steelblue')
             .on('click', (event, d) => {
-              dispatch('pointClick', { path: d.path });
+              handlePointClick(d);
             });
   
           svgElement.append('g')
@@ -62,6 +62,10 @@
         console.error('Error fetching or processing data:', error);
       }
     });
+
+    function handlePointClick(d) {
+      dispatch('pointClick', { path: d.path });
+    }
   
     function extractDataPoints(node, path = []) {
       let points = [];

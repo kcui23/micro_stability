@@ -11,6 +11,7 @@
 
   let treeData;
   let treeRoot;
+  let updateTree;
   let d3TreeContainer;
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
@@ -656,6 +657,7 @@ const runShuffledAnalysis = async () => {
         .attr("transform", d => `translate(${source.y0},${source.x0})`)
         .attr("fill-opacity", 0)
         .attr("stroke-opacity", 0)
+        .attr("data-name", d => d.data.name)
         .on("click", (event, d) => {
           d.children = d.children ? null : d._children;
           update(event, d);
@@ -693,7 +695,8 @@ const runShuffledAnalysis = async () => {
         .attr("d", d => {
           const o = { x: source.x0, y: source.y0 };
           return diagonal({ source: o, target: o });
-        });
+        })
+        .attr("data-target", d => d.target.data.name);
 
       link.merge(linkEnter).transition(transition)
         .attr("d", diagonal);
@@ -719,46 +722,73 @@ const runShuffledAnalysis = async () => {
     });
 
     treeRoot = root;
+    updateTree = update;
     update(null, root);
   }
 
+  function handleScatterPointClick(event) {
+    const { path } = event.detail;
+    console.log("Clicked path:", path);
+    highlightPath(path);
+  }
+
   function highlightPath(path) {
-    // Remove previous highlights
+    console.log("Highlighting path:", path);
+
+    if (!treeRoot || !updateTree) {
+      console.error("Tree root or update function not available");
+      return;
+    }
+
     d3.select(d3TreeContainer).selectAll('.node').classed('highlighted', false);
     d3.select(d3TreeContainer).selectAll('.link').classed('highlighted', false);
 
-    // Highlight the path
     let currentNode = treeRoot;
-    path.forEach(nodeName => {
-      const node = currentNode.children.find(child => child.data.name === nodeName);
+    path.forEach((nodeName, index) => {
+      const node = findNodeByName(currentNode, nodeName);
       if (node) {
-        d3.select(d3TreeContainer).select(`[data-name="${node.data.name}"]`).classed('highlighted', true);
-        d3.select(d3TreeContainer).select(`[data-target="${node.data.name}"]`).classed('highlighted', true);
+        d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', true);
+        if (index > 0) {
+          d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', true);
+        }
         currentNode = node;
       }
     });
 
-    // Expand the path if necessary
     expandPath(treeRoot, path);
+    updateTree(null, treeRoot);
   }
 
   function expandPath(node, path) {
     if (path.length === 0) return;
     
     const childName = path[0];
-    const child = node.children?.find(c => c.data.name === childName);
+    const child = findNodeByName(node, childName);
     
     if (child) {
-      child.children = child._children;
-      child._children = null;
-      update(null, child);
+      if (child._children) {
+        child.children = child._children;
+        child._children = null;
+      }
       expandPath(child, path.slice(1));
     }
   }
 
-  function handleScatterPointClick(event) {
-    const { path } = event.detail;
-    highlightPath(path);
+  function findNodeByName(node, name) {
+    if (node.data.name === name) return node;
+    if (node.children) {
+      for (let child of node.children) {
+        const found = findNodeByName(child, name);
+        if (found) return found;
+      }
+    }
+    if (node._children) {
+      for (let child of node._children) {
+        const found = findNodeByName(child, name);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   function handleStepSelected(event) {
@@ -854,22 +884,6 @@ const runShuffledAnalysis = async () => {
 </script>
 
 <style>
-  /* .steps {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-  }
-  .step {
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  .step.active {
-    background-color: #007bff;
-    color: white;
-  } */
-
   .sidebar {
     width: 300px;
     padding: 20px;
@@ -1286,13 +1300,6 @@ const runShuffledAnalysis = async () => {
       <h1>Logo</h1>
     </div>
 
-    <!-- <div class="steps">
-      {#each steps as step}
-        <button class:active={step === currentStep} class="step" on:click={() => goToStep(step)}>
-          {step}
-        </button>
-      {/each}
-    </div> -->
 
     {#if currentStep === 'Raw data'}
       <div>
@@ -1643,20 +1650,6 @@ const runShuffledAnalysis = async () => {
       <button on:click={handleSubmit}>Submit</button>
       <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
     {/if}
-
-    <!-- <div class="navigation">
-      {#if currentStep != 'Raw data'}
-        <div class="previous-button">
-          <button on:click={() => goToStep(steps[Math.max(0, steps.indexOf(currentStep) - 1)])}>Previous</button>
-        </div>
-      {/if}
-      {#if currentStep != 'Stability Metric'}
-        <div class="tooltip next-button">
-          <button on:click={() => goToStep(steps[Math.min(steps.length - 1, steps.indexOf(currentStep) + 1)])} disabled={asvFiles.length === 0 || !groupingsFile}>Next</button>
-          <span class="tooltiptext">Upload files to continue</span>
-        </div>
-      {/if}
-    </div> -->
 
   </div>
 </div>
