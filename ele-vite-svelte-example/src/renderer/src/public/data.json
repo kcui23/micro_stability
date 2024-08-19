@@ -1,116 +1,386 @@
 {
-    "name": "data_analysis",
-    "children": [
-      {
-        "name": "Raw Data",
-        "children": [
-          {
-            "name": "Data Type",
-            "children": [
-              {
-                "name": "Count Matrix with Metadata"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Data Perturbation",
-        "children": [
-          {
-            "name": "Filter",
-            "children": [
-              {
-                "name": "Filter Out Rare Data",
-                "description": "Independent of the test statistic evaluated, e.g. hard cut-offs for the prevalence and abundance of taxa across samples.",
-                "tools": ["genefilter", "koverAfilter"]
-              }
-            ]
-          },
-          {
-            "name": "Transformation",
-            "children": [
-              {
-                "name": "R Package",
-                "children": [
-                  {
-                    "name": "tidybult"
-                  }
-                ]
-              },
-              {
-                "name": "Log"
-              },
-              {
-                "name": "Normalization",
-                "children": [
-                  {
-                    "name": "Negative Binomial Distribution",
-                    "tools": ["edgeR", "DESeq2"]
-                  },
-                  {
-                    "name": "Zero-Inflated Gaussian Distribution",
-                    "tools": ["metagenomeSeq"]
-                  },
-                  {
-                    "name": "CLR"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "Relative and Absolute Abundance",
-            "children": [
-              {
-                "name": "Compositional Data Analysis (CoDa)",
-                "description": "Centered log-ratio (CLR) using the geometric mean of the read counts of all taxa within a sample as the reference/denominator.",
-                "tools": ["ALDEx2"]
-              },
-              {
-                "name": "Additive Log-Ratio Transformation",
-                "description": "The reference is the count abundance of a single taxon, which should be present with low variance in read counts across samples.",
-                "tools": ["ANCOM"]
-              }
-            ]
-          },
-          {
-            "name": "Data Split (with the Stat Metric)",
-            "description": "Split data like k-fold"
-          },
-          {
-            "name": "Batch Effect Removal",
-            "tools": ["Combat", "RUV", "CQN"],
-            "reference": "Wang + Le Cao, tutorial R code"
-          }
-        ]
-      },
-      {
-        "name": "Model Perturbation",
-        "children": [
-          {
-            "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-            "description": "Different methods for differential abundance analysis",
-            "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"]
-          }
-        ]
-      },
-      {
-        "name": "Stability Metric",
-        "children": [
-          {
-            "name": "Differences in ASVs/OTUs/Species/Clades"
-          },
-          {
-            "name": "AUROC"
-          },
-          {
-            "name": "False Discovery Rate (FDR)",
-            "description": "Calculate local FDR by subsampling.",
-            "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
-          }
-        ]
-      }
-    ]
-  }
-  
+  "name": "Raw Data",
+  "children": [
+    {
+      "name": "Data Type",
+      "children": [
+        {
+          "name": "Count Matrix with Metadata",
+          "children": [
+            {
+              "name": "Data Perturbation",
+              "children": [
+                {
+                  "name": "Filter",
+                  "children": [
+                    {
+                      "name": "Filter Out Rare Data",
+                      "description": "This filtering must be independent of the test statistic evaluated, e.g. hard cut-offs for the prevalence and abundance of taxa across samples, and not within one group compared with another, are commonly used to exclude rare taxa.",
+                      "tools": ["genefilter", "koverAfilter"],
+                      "children": [
+                        {
+                          "name": "Model Perturbation",
+                          "children": [
+                            {
+                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                              "description": "Different methods for differential abundance analysis",
+                              "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                              "children": [
+                                {
+                                  "name": "Stability Metric",
+                                  "children": [
+                                    {
+                                      "name": "Differences in ASVs/OTUs/Species/Clades"
+                                    },
+                                    {
+                                      "name": "AUROC"
+                                    },
+                                    {
+                                      "name": "False Discovery Rate (FDR)",
+                                      "description": "Calculate local FDR by subsampling.",
+                                      "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Transformation",
+                  "children": [
+                    {
+                      "name": "R Package",
+                      "children": [
+                        {
+                          "name": "tidybult",
+                          "children": [
+                            {
+                              "name": "Model Perturbation",
+                              "children": [
+                                {
+                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                                  "description": "Different methods for differential abundance analysis",
+                                  "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                                  "children": [
+                                    {
+                                      "name": "Stability Metric",
+                                      "children": [
+                                        {
+                                          "name": "Differences in ASVs/OTUs/Species/Clades"
+                                        },
+                                        {
+                                          "name": "AUROC"
+                                        },
+                                        {
+                                          "name": "False Discovery Rate (FDR)",
+                                          "description": "Calculate local FDR by subsampling.",
+                                          "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Log",
+                      "children": [
+                        {
+                          "name": "Model Perturbation",
+                          "children": [
+                            {
+                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                              "description": "Different methods for differential abundance analysis",
+                              "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                              "children": [
+                                {
+                                  "name": "Stability Metric",
+                                  "children": [
+                                    {
+                                      "name": "Differences in ASVs/OTUs/Species/Clades"
+                                    },
+                                    {
+                                      "name": "AUROC"
+                                    },
+                                    {
+                                      "name": "False Discovery Rate (FDR)",
+                                      "description": "Calculate local FDR by subsampling.",
+                                      "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Normalization",
+                      "children": [
+                        {
+                          "name": "Negative Binomial Distribution",
+                          "tools": ["edgeR", "DESeq2"],
+                          "children": [
+                            {
+                              "name": "Model Perturbation",
+                              "children": [
+                                {
+                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                                  "description": "Different methods for differential abundance analysis",
+                                  "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                                  "children": [
+                                    {
+                                      "name": "Stability Metric",
+                                      "children": [
+                                        {
+                                          "name": "Differences in ASVs/OTUs/Species/Clades"
+                                        },
+                                        {
+                                          "name": "AUROC"
+                                        },
+                                        {
+                                          "name": "False Discovery Rate (FDR)",
+                                          "description": "Calculate local FDR by subsampling.",
+                                          "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Zero-Inflated Gaussian Distribution",
+                          "tools": ["metagenomeSeq"],
+                          "children": [
+                            {
+                              "name": "Model Perturbation",
+                              "children": [
+                                {
+                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                                  "description": "Different methods for differential abundance analysis",
+                                  "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                                  "children": [
+                                    {
+                                      "name": "Stability Metric",
+                                      "children": [
+                                        {
+                                          "name": "Differences in ASVs/OTUs/Species/Clades"
+                                        },
+                                        {
+                                          "name": "AUROC"
+                                        },
+                                        {
+                                          "name": "False Discovery Rate (FDR)",
+                                          "description": "Calculate local FDR by subsampling.",
+                                          "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "CLR",
+                          "children": [
+                            {
+                              "name": "Model Perturbation",
+                              "children": [
+                                {
+                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                                  "description": "Different methods for differential abundance analysis",
+                                  "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                                  "children": [
+                                    {
+                                      "name": "Stability Metric",
+                                      "children": [
+                                        {
+                                          "name": "Differences in ASVs/OTUs/Species/Clades"
+                                        },
+                                        {
+                                          "name": "AUROC"
+                                        },
+                                        {
+                                          "name": "False Discovery Rate (FDR)",
+                                          "description": "Calculate local FDR by subsampling.",
+                                          "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Relative and Absolute Abundance",
+                  "children": [
+                    {
+                      "name": "Compositional Data Analysis (CoDa)",
+                      "description": "Centered log-ratio (CLR) that uses the geometric mean of the read counts of all taxa within a sample as the reference/denominator for that sample.",
+                      "tools": ["ALDEx2"],
+                      "children": [
+                        {
+                          "name": "Model Perturbation",
+                          "children": [
+                            {
+                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                              "description": "Different methods for differential abundance analysis",
+                              "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                              "children": [
+                                {
+                                  "name": "Stability Metric",
+                                  "children": [
+                                    {
+                                      "name": "Differences in ASVs/OTUs/Species/Clades"
+                                    },
+                                    {
+                                      "name": "AUROC"
+                                    },
+                                    {
+                                      "name": "False Discovery Rate (FDR)",
+                                      "description": "Calculate local FDR by subsampling.",
+                                      "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Additive Log-Ratio Transformation",
+                      "description": "The reference is the count abundance of a single taxon, which should be present with low variance in read counts across samples.",
+                      "tools": ["ANCOM"],
+                      "children": [
+                        {
+                          "name": "Model Perturbation",
+                          "children": [
+                            {
+                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                              "description": "Different methods for differential abundance analysis",
+                              "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                              "children": [
+                                {
+                                  "name": "Stability Metric",
+                                  "children": [
+                                    {
+                                      "name": "Differences in ASVs/OTUs/Species/Clades"
+                                    },
+                                    {
+                                      "name": "AUROC"
+                                    },
+                                    {
+                                      "name": "False Discovery Rate (FDR)",
+                                      "description": "Calculate local FDR by subsampling.",
+                                      "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Data Split (with the Stat Metric)",
+                  "description": "Split data like k-fold",
+                  "children": [
+                    {
+                      "name": "Model Perturbation",
+                      "children": [
+                        {
+                          "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                          "description": "Different methods for differential abundance analysis",
+                          "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                          "children": [
+                            {
+                              "name": "Stability Metric",
+                              "children": [
+                                {
+                                  "name": "Differences in ASVs/OTUs/Species/Clades"
+                                },
+                                {
+                                  "name": "AUROC"
+                                },
+                                {
+                                  "name": "False Discovery Rate (FDR)",
+                                  "description": "Calculate local FDR by subsampling.",
+                                  "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Batch Effect Removal",
+                  "tools": ["Combat", "RUV", "CQN"],
+                  "reference": "Wang + Le Cao, tutorial R code",
+                  "children": [
+                    {
+                      "name": "Model Perturbation",
+                      "children": [
+                        {
+                          "name": "Diff Algorithm (for Type I&II Error and P-Value)",
+                          "description": "Different methods for differential abundance analysis",
+                          "tools": ["MicrobiotaProcess", "ALDEx2", "ANCOM-II", "corncob", "DESeq2", "edgeR", "LEfSe", "limma voom (TMM)", "limma voom (TMMwsp)", "MaAsLin2", "metagenomeSeq", "t-test (rare)", "Wilcoxon (CLR)", "Wilcoxon (rare)", "LinDA", "ZicoSeq"],
+                          "children": [
+                            {
+                              "name": "Stability Metric",
+                              "children": [
+                                {
+                                  "name": "Differences in ASVs/OTUs/Species/Clades"
+                                },
+                                {
+                                  "name": "AUROC"
+                                },
+                                {
+                                  "name": "False Discovery Rate (FDR)",
+                                  "description": "Calculate local FDR by subsampling.",
+                                  "reference": "A broken promise: microbiome differential abundance methods do not control the false discovery rate"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
