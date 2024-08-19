@@ -4,10 +4,13 @@
   import SidebarComponent from './SidebarComponent.svelte';
   import ASVSelector from './ASVSelector.svelte';
   import InteractiveValcano from './InteractiveValcano.svelte';
+  import ScatterPlot from './ScatterPlot.svelte';
   import {selectedPoints} from './store.js';
   import * as d3 from 'd3';
 
 
+  let treeData;
+  let treeRoot;
   let d3TreeContainer;
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
@@ -715,7 +718,47 @@ const runShuffledAnalysis = async () => {
       if (d.depth && d.data.name.length !== 7) d.children = null;
     });
 
+    treeRoot = root;
     update(null, root);
+  }
+
+  function highlightPath(path) {
+    // Remove previous highlights
+    d3.select(d3TreeContainer).selectAll('.node').classed('highlighted', false);
+    d3.select(d3TreeContainer).selectAll('.link').classed('highlighted', false);
+
+    // Highlight the path
+    let currentNode = treeRoot;
+    path.forEach(nodeName => {
+      const node = currentNode.children.find(child => child.data.name === nodeName);
+      if (node) {
+        d3.select(d3TreeContainer).select(`[data-name="${node.data.name}"]`).classed('highlighted', true);
+        d3.select(d3TreeContainer).select(`[data-target="${node.data.name}"]`).classed('highlighted', true);
+        currentNode = node;
+      }
+    });
+
+    // Expand the path if necessary
+    expandPath(treeRoot, path);
+  }
+
+  function expandPath(node, path) {
+    if (path.length === 0) return;
+    
+    const childName = path[0];
+    const child = node.children?.find(c => c.data.name === childName);
+    
+    if (child) {
+      child.children = child._children;
+      child._children = null;
+      update(null, child);
+      expandPath(child, path.slice(1));
+    }
+  }
+
+  function handleScatterPointClick(event) {
+    const { path } = event.detail;
+    highlightPath(path);
   }
 
   function handleStepSelected(event) {
@@ -767,6 +810,7 @@ const runShuffledAnalysis = async () => {
   $: {
     console.log('Current step:', currentStep);
     console.log('Selected operations:', selectedOperations);
+    console.log("Tree data in main:", treeData);
   }
 
   onMount(() => {
@@ -789,9 +833,15 @@ const runShuffledAnalysis = async () => {
     fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
       .then(response => response.json())
       .then(data => {
-        renderD3Tree(d3TreeContainer, data);
+        console.log("Data loaded successfully:", data);
+        treeData = data
+        console.log("treeData after assignment:", treeData);
+        if (d3TreeContainer) {
+          renderD3Tree(d3TreeContainer, data);
+        }
       })
       .catch(error => console.error('Error loading or parsing data.json:', error));
+
 
   });
 
@@ -1161,20 +1211,46 @@ const runShuffledAnalysis = async () => {
     background-color: #0056b3;
   }
 
+
+  .tree-container-wrapper {
+    display: flex;
+    width: 100%;
+    height: 200px;
+    margin-bottom: 20px;
+  }
+
   .d3-tree-container {
-    position: relative; /* Position relative to allow it to push content down */
-    width: 100%; /* Span the entire width of the screen */
-    height: 200px; /* Adjust the height as needed */
+    flex: 0 0 80%; /* Take up 80% of the available space */
+    height: 100%; /* Full height of the parent */
     border: 1px solid #ddd;
     background-color: #fff;
     overflow: auto; /* Allow scrolling if the tree content overflows */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visual hierarchy */
-    z-index: 10; /* Ensure it stays above other elements that should be below */
-    padding: 10px; /* Padding inside the div */
-    margin-bottom: 20px; /* Space below the tree to separate it from the following content */
-    border-radius: 8px; /* Rounded corners for a polished look */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
   }
 
+  .scatter-plot-container {
+    flex: 0 0 20%; /* Take up 20% of the available space */
+    height: 100%; /* Full height of the parent */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    border-radius: 8px;
+    margin-left: 10px; /* Add some space between the containers */
+  }
+
+  .node.highlighted circle {
+    fill: #ff0000;
+  }
+
+  .link.highlighted {
+    stroke: #ff0000;
+    stroke-width: 2px;
+  }
 </style>
 
 <div id="app" class="container">
@@ -1197,8 +1273,15 @@ const runShuffledAnalysis = async () => {
 
   <!-- Main Content Area -->
   <div class="content">
-    <!-- D3 Tree Container -->
-    <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
+    <div class="tree-container-wrapper">
+      <!-- D3 Tree Container -->
+      <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
+      <!-- Scatter Plot -->
+      <div class="scatter-plot-container">
+        <ScatterPlot data={treeData} on:pointClick={handleScatterPointClick} />
+      </div> 
+    </div>
+
     <div class="logo">
       <h1>Logo</h1>
     </div>
