@@ -596,23 +596,23 @@ const runShuffledAnalysis = async () => {
   };
 
   function renderD3Tree(container, data) {
-    const width = container.offsetWidth || 300;
+    const width = container.offsetWidth || 400;
     const marginTop = 10;
     const marginRight = 10;
     const marginBottom = 10;
     const marginLeft = 40;
 
     const root = d3.hierarchy(data);
-    const dx = 15;
-    const dy = (width - marginRight - marginLeft) / (1 + root.height);
+    const dx = 25;
+    const dy = (width - marginRight - marginLeft) / (1.5 + root.height);
 
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 
     const svg = d3.select(container).append("svg")
       .attr("width", width)
-      .attr("height", dx)
-      .attr("viewBox", [-marginLeft, -marginTop, width, dx])
+      .attr("height", 300)
+      .attr("viewBox", [-marginLeft, -marginTop, width, 300])
       .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif; user-select: none;");
 
     const gLink = svg.append("g")
@@ -639,7 +639,7 @@ const runShuffledAnalysis = async () => {
         if (node.x > right.x) right = node;
       });
 
-      const height = right.x - left.x + marginTop + marginBottom;
+      const height = right.x - left.x + marginTop + marginBottom + 20;
 
       const transition = svg.transition()
         .duration(duration)
@@ -664,14 +664,14 @@ const runShuffledAnalysis = async () => {
         .attr("stroke-width", 10);
 
       nodeEnter.append("text")
-        .attr("dy", "0.31em")
+        .attr("dy", "1em")
         .attr("x", d => d._children ? -6 : 6)
         .attr("text-anchor", d => d._children ? "end" : "start")
         .text(d => d.data.name)
+        .clone(true).lower()
         .attr("stroke-linejoin", "round")
         .attr("stroke-width", 3)
-        .attr("stroke", "white")
-        .attr("paint-order", "stroke");
+        .attr("stroke", "white");
 
       const nodeUpdate = node.merge(nodeEnter).transition(transition)
         .attr("transform", d => `translate(${d.y},${d.x})`)
