@@ -1,8 +1,8 @@
 <script>
-    import UploadAndVisualize from './UploadAndVisualize.svelte';
+    import MainPage from './MainPage.svelte';
   </script>
   
   <div>
-    <UploadAndVisualize />
+    <MainPage />
   </div>
   

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import Plotly from 'plotly.js-dist-min';
-  import { selectedPoints } from './store.js';
+  import { selectedPoints } from '../store.js';
 
 
   let plotDiv;

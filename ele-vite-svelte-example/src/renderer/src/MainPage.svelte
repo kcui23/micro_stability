@@ -1,10 +1,10 @@
 <script>
   import { fade, scale } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
-  import SidebarComponent from './SidebarComponent.svelte';
-  import ASVSelector from './ASVSelector.svelte';
-  import InteractiveValcano from './InteractiveValcano.svelte';
-  import ScatterPlot from './ScatterPlot.svelte';
+  import SidebarComponent from './components/SidebarComponent.svelte';
+  import ASVSelector from './components/ASVSelector.svelte';
+  import InteractiveValcano from './components/InteractiveValcano.svelte';
+  import ScatterPlot from './components/ScatterPlot.svelte';
   import {selectedPoints} from './store.js';
   import * as d3 from 'd3';
 
