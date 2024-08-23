@@ -1,5 +1,4 @@
 <script>
-  import { fade, scale } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
   import {selectedPoints} from './store.js';
   import * as d3 from 'd3';
@@ -9,7 +8,6 @@
   import VisualizationSection from './components/VisualizationSection.svelte';
   import SidebarComponent from './components/SidebarComponent.svelte';
   import ASVSelector from './components/ASVSelector.svelte';
-  import InteractiveValcano from './components/InteractiveValcano.svelte';
   import ScatterPlot from './components/ScatterPlot.svelte';
 
 
@@ -22,11 +20,6 @@
     selectedPointsList = value;
     console.log("selectedPointsList updated:", selectedPointsList);
   });
-  let isCardExpanded = true;
-
-  const toggleCard = () => {
-    isCardExpanded = !isCardExpanded;
-  };
 
   const downloadSelectedPoints = async () => {
     const data = selectedPointsList.map(point => ({
@@ -60,7 +53,6 @@
   let asvFiles = [];
   let groupingsFile = null;
   let selectedOperations = {};
-  let isInteractive = false; // Whether the user is interacting with the visualization
   let isStatic = true;
   let zoomedImage = null;
   let visualizations = {
@@ -80,7 +72,6 @@
   let dataChanged = false;
   let selectedMethod = '';
   let currentStep = 'Raw data';
-  let lastStep = 'Raw data';
   let previewContent = [];
   let groupingsContentPreview = [];
   let fileDimensions = { rows: 0, columns: 0 };
@@ -96,7 +87,6 @@
   let isCombiningResults = false;
   let combinedResultsReady = false;
   let randomSeed = 1234;
-  let edgeThicknesses = [1,2,3,4];
   let isSubmitted = false;
   let showASVSelector = false;
   let stabilityPlot = '';

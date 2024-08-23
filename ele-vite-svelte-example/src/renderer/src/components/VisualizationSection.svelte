@@ -182,17 +182,17 @@
 
   .card-container {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .card {
-    flex: 1;
+    flex: 1 1 calc(50% - 0.5rem);
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-right: 20px;
   }
 
   .card-header {
@@ -208,10 +208,32 @@
 
   .card-content {
     padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .card-content img {
+    max-width: calc(50% - 0.5rem);
+    height: auto;
     cursor: pointer;
+  }
+
+  .floating-card {
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    width: 250px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 100;
+  }
+
+  .floating-card .card-content {
+    max-height: 300px;
+    overflow-y: auto;
   }
 
   .floating-card ul {
@@ -223,7 +245,8 @@
   .floating-card li {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0;
   }
 
   .floating-card li button {
@@ -234,23 +257,15 @@
     padding: 0.2rem 0.5rem;
   }
 
-  .floating-card {
-    flex: 0.3;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    padding: 1rem;
-  }
-
   .expand-collapse-button {
+    display: block;
+    margin: 1rem auto;
     padding: 0.5rem 1rem;
     background-color: #007bff;
     color: white;
     border: none;
     cursor: pointer;
-    margin-top: 1rem;
+    transition: background-color 0.3s;
   }
 
   .expand-collapse-button:hover {
@@ -258,6 +273,7 @@
   }
 
   .interactive-placeholder {
+    width: 100%;
     height: 300px;
     display: flex;
     align-items: center;
@@ -310,5 +326,12 @@
 
   .download-button:hover {
     background-color: #0056b3;
+  }
+
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
   }
 </style>

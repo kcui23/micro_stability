@@ -32,45 +32,65 @@
 </div>
 
 <style>
-    .upload-container {
-      display: flex;
-      flex-direction: column;
-    }
-  
-    .upload-section {
-      margin-bottom: 20px;
-    }
-  
-    .custom-file-input {
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-    }
-  
-    .custom-file-input input[type="file"] {
-      position: absolute;
-      width: 0;
-      height: 0;
-      opacity: 0;
-      right: 0;
-      top: 0;
-    }
-  
-    .custom-file-input label {
-      background-color: rgb(235, 235, 235);
-      color: black;
-      padding: 0 7px;
-      font-size: 14px;
-      text-align: center;
-      height: 25px;
-      line-height: 25px;
-      border-radius: 2px;
-      cursor: pointer;
-      display: inline-block;
-      border: 1px solid black;
-    }
-  
-    .custom-file-input label:hover {
-      background-color: rgb(223, 223, 223);
-    }
-  </style>
+  .upload-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .upload-section {
+    flex: 1;
+    margin-right: 20px;
+  }
+
+  .custom-file-input {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .custom-file-input input[type="file"] {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    right: 0;
+    top: 0;
+  }
+
+  .custom-file-input label {
+    background-color: rgb(235, 235, 235);
+    color: black;
+    padding: 0 7px;
+    font-size: 14px;
+    text-align: center;
+    height: 25px;
+    line-height: 25px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid black;
+  }
+
+  .custom-file-input label:hover {
+    background-color: rgb(223, 223, 223);
+  }
+
+  .file-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .note {
+    font-size: 0.9em;
+    color: gray;
+    margin-top: 5px;
+  }
+
+  .file-name {
+    font-size: 0.9em;
+    color: green;
+    margin-top: 5px;
+  }
+</style>
