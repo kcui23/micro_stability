@@ -1,12 +1,16 @@
 <script>
   import { fade, scale } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
+  import {selectedPoints} from './store.js';
+  import * as d3 from 'd3';
+
+  import FileUploader from './components/FileUploader.svelte';
+  import PreviewSection from './components/PreviewSection.svelte';
+  import VisualizationSection from './components/VisualizationSection.svelte';
   import SidebarComponent from './components/SidebarComponent.svelte';
   import ASVSelector from './components/ASVSelector.svelte';
   import InteractiveValcano from './components/InteractiveValcano.svelte';
   import ScatterPlot from './components/ScatterPlot.svelte';
-  import {selectedPoints} from './store.js';
-  import * as d3 from 'd3';
 
 
   let treeData;
@@ -1305,66 +1309,22 @@ const runShuffledAnalysis = async () => {
       <div>
         <h1>Raw Data</h1>
         <!-- ASV File Upload UI -->
-        <div class="upload-container">
-          <div class="upload-section">
-            <span class="file-label">Upload ASV File:</span>
-            <div class="custom-file-input">
-              <label for="fileInput1">Choose File</label>
-              <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
-            </div>
-            <div class="note">Note: Please upload a .tsv file</div>
-            <div id="fileName1" class="file-name"></div>
-          </div>
-    
-          <div class="upload-section">
-            <span class="file-label">Upload Groupings File:</span>
-            <div class="custom-file-input">
-              <label for="fileInput2">Choose File</label>
-              <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
-            </div>
-            <div class="note">Note: Please upload a .tsv file</div>
-            <div id="fileName2" class="file-name"></div>
-          </div>
-        </div>
+        <FileUploader 
+          {handleFileChange} 
+          {handleGroupingsChange} 
+          asvFiles={asvFiles || []}
+          {groupingsFile} 
+        />
         
         {#if selectedOperations['Raw data']?.includes('Preview')}
-          <div class="preview-section" hidden={currentStep !== 'Raw data' && currentStep !== 'Data Perturbation'}>
-            {#if asvFiles.length > 0}
-              <div class="preview">
-                <h2>Preview of ASV File</h2>
-                <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-                <div class="table-container">
-                  <table>
-                    {#each filteredContent as row}
-                      <tr>
-                        {#each row as cell}
-                          <td>{cell}</td>
-                        {/each}
-                      </tr>
-                    {/each}
-                  </table>
-                </div>
-              </div>
-            {/if}
-      
-            {#if groupingsFile}
-              <div class="preview">
-                <h2>Preview of Groupings File</h2>
-                <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-                <div class="table-container">
-                  <table>
-                    {#each groupingsContentPreview as row}
-                      <tr>
-                        {#each row as cell}
-                          <td>{cell}</td>
-                        {/each}
-                      </tr>
-                    {/each}
-                  </table>
-                </div>
-              </div>
-            {/if}
-          </div>
+          <PreviewSection
+            {filteredContent}
+            {groupingsContentPreview}
+            {filteredDimensions}
+            {groupingsDimensions}
+            {asvFiles}
+            {groupingsFile}
+          />
         {/if}
 
         {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
@@ -1529,121 +1489,22 @@ const runShuffledAnalysis = async () => {
       </div>
     </div>    
 
-    <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
-      <div class="visualization-header">
-        <h2>Visualizations</h2>
-        <div class="view-toggle">
-          <button class:active={isStatic} on:click={() => toggleView('static')}>Static</button>
-          <button class:active={!isStatic} on:click={() => toggleView('interactive')}>Interactive</button>
-        </div>
-      </div>
-    
-      {#if isCalculating}
-        <div class="loader">
-          <p>Loading...</p>
-        </div>
-      {:else}
-        {#if showAllPlots}
-          <div class="card-container">
-            <div class="card">
-              <div class="card-header">
-                <h3>Overlap Visualizations</h3>
-              </div>
-              <div class="card-content">
-                {#if isStatic}
-                  <img src={visualizations.overlap_volcano} alt="Overlap Volcano Plot" on:click={() => zoomImage('overlap_volcano')} />
-                  <img src={visualizations.overlap_pvalue_distribution} alt="Overlap P-value Distribution" on:click={() => zoomImage('overlap_pvalue_distribution')} />
-                {:else}
-                  <InteractiveValcano />
-                {/if}
-              </div>
-            </div>
-
-            <!-- floating card -->
-            {#if selectedPointsList.length > 0}
-              <div class="floating-card">
-                <div class="card-header">
-                  <h3>Selected Points</h3>
-                </div>
-                <div class="card-content">
-                  <ul>
-                    {#each selectedPointsList as point (point.name)}
-                      <li>
-                        <span>{point.name}</span>
-                        <button on:click={() => removePoint(point)}>Remove</button>
-                      </li>
-                    {/each}
-                  </ul>
-                  <button class="download-button" on:click={downloadSelectedPoints}>Download Points</button>
-                </div>
-              </div>
-            {/if}
-    
-            {#if showDetailedPlots}
-              {#each ['deseq2', 'aldex2', 'edger', 'maaslin2'] as method}
-                <div class="card">
-                  <div class="card-header">
-                    <h3>{method.toUpperCase()} Plots</h3>
-                  </div>
-                  <div class="card-content">
-                    {#if isStatic}
-                      {#each [1, 2, 3] as plotNumber}
-                        <img 
-                          src={visualizations[`${method}_plot${plotNumber}`]} 
-                          alt={`${method.toUpperCase()} Plot ${plotNumber}`} 
-                          on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
-                        />
-                      {/each}
-                    {:else}
-                      <div class="interactive-placeholder">
-                        Interactive {method.toUpperCase()} Plots coming soon...
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-              {/each}
-            {/if}
-          </div>
-    
-          <button class="expand-collapse-button" on:click={() => showDetailedPlots = !showDetailedPlots}>
-            {showDetailedPlots ? 'Collapse Details' : 'Show More Details'}
-          </button>
-        {:else if selectedMethod}
-          <div class="card">
-            <div class="card-header">
-              <h3>{selectedMethod.toUpperCase()} Plots</h3>
-            </div>
-            <div class="card-content">
-              {#if isStatic}
-                {#each [1, 2, 3] as plotNumber}
-                  <img 
-                    src={visualizations[`${selectedMethod}_plot${plotNumber}`]} 
-                    alt={`${selectedMethod.toUpperCase()} Plot ${plotNumber}`} 
-                    on:click={() => zoomImage(`${selectedMethod}_plot${plotNumber}`)}
-                  />
-                {/each}
-              {:else}
-                <div class="interactive-placeholder">
-                  Interactive {selectedMethod.toUpperCase()} Plots coming soon...
-                </div>
-              {/if}
-            </div>
-          </div>
-        {/if}
-      {/if}
-    </div>
-
-    
-    {#if zoomedImage}
-      <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>
-        <div class="zoomed-image-content" on:click|stopPropagation transition:scale>
-          <img src={visualizations[zoomedImage]} alt="Zoomed Image" />
-          <button class="download-button" on:click|stopPropagation={() => downloadImage(zoomedImage, zoomedImage.split('_')[0])}>
-            Download
-          </button>
-        </div>
-      </div>
-    {/if}
+    <VisualizationSection
+      {visualizations} 
+      {zoomImage}
+      {isCalculating}
+      {showAllPlots}
+      bind:showDetailedPlots
+      {isStatic}
+      {toggleView}
+      {selectedPointsList}
+      {removePoint}
+      {downloadSelectedPoints}
+      {selectedMethod}
+      {isSubmitted}
+      {handleDownload}
+      {zoomedImage}
+    />
     
     
     {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}

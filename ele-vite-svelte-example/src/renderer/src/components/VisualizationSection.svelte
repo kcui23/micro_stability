@@ -1,0 +1,314 @@
+<script>
+  import InteractiveValcano from './InteractiveValcano.svelte'
+  import { fade, scale } from 'svelte/transition'
+
+  export let visualizations
+  export let zoomImage
+  export let isCalculating
+  export let showAllPlots
+  export let showDetailedPlots
+  export let isStatic
+  export let toggleView
+  export let selectedPointsList
+  export let removePoint
+  export let downloadSelectedPoints
+  export let selectedMethod
+  export let isSubmitted
+  export let handleDownload
+  export let zoomedImage
+</script>
+
+<div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
+  <div class="visualization-header">
+    <h2>Visualizations</h2>
+    <div class="view-toggle">
+      <button class:active={isStatic} on:click={() => toggleView('static')}>Static</button>
+      <button class:active={!isStatic} on:click={() => toggleView('interactive')}
+        >Interactive</button
+      >
+    </div>
+  </div>
+
+  {#if isCalculating}
+    <div class="loader">
+      <p>Loading...</p>
+    </div>
+  {:else if showAllPlots}
+    <div class="card-container">
+      <div class="card">
+        <div class="card-header">
+          <h3>Overlap Visualizations</h3>
+        </div>
+        <div class="card-content">
+          {#if isStatic}
+            <img
+              src={visualizations.overlap_volcano}
+              alt="Overlap Volcano Plot"
+              on:click={() => zoomImage('overlap_volcano')}
+            />
+            <img
+              src={visualizations.overlap_pvalue_distribution}
+              alt="Overlap P-value Distribution"
+              on:click={() => zoomImage('overlap_pvalue_distribution')}
+            />
+          {:else}
+            <InteractiveValcano />
+          {/if}
+        </div>
+      </div>
+
+      {#if selectedPointsList.length > 0}
+        <div class="floating-card">
+          <div class="card-header">
+            <h3>Selected Points</h3>
+          </div>
+          <div class="card-content">
+            <ul>
+              {#each selectedPointsList as point (point.name)}
+                <li>
+                  <span>{point.name}</span>
+                  <button on:click={() => removePoint(point)}>Remove</button>
+                </li>
+              {/each}
+            </ul>
+            <button class="download-button" on:click={downloadSelectedPoints}
+              >Download Points</button
+            >
+          </div>
+        </div>
+      {/if}
+
+      {#if showDetailedPlots}
+        {#each ['deseq2', 'aldex2', 'edger', 'maaslin2'] as method}
+          <div class="card">
+            <div class="card-header">
+              <h3>{method.toUpperCase()} Plots</h3>
+            </div>
+            <div class="card-content">
+              {#if isStatic}
+                {#each [1, 2, 3] as plotNumber}
+                  <img
+                    src={visualizations[`${method}_plot${plotNumber}`]}
+                    alt={`${method.toUpperCase()} Plot ${plotNumber}`}
+                    on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
+                  />
+                {/each}
+              {:else}
+                <div class="interactive-placeholder">
+                  Interactive {method.toUpperCase()} Plots coming soon...
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/each}
+      {/if}
+    </div>
+
+    <button
+      class="expand-collapse-button"
+      on:click={() => showDetailedPlots = !showDetailedPlots}
+    >
+      {showDetailedPlots ? 'Collapse Details' : 'Show More Details'}
+    </button>
+  {:else if selectedMethod}
+    <div class="card">
+      <div class="card-header">
+        <h3>{selectedMethod.toUpperCase()} Plots</h3>
+      </div>
+      <div class="card-content">
+        {#if isStatic}
+          {#each [1, 2, 3] as plotNumber}
+            <img
+              src={visualizations[`${selectedMethod}_plot${plotNumber}`]}
+              alt={`${selectedMethod.toUpperCase()} Plot ${plotNumber}`}
+              on:click={() => zoomImage(`${selectedMethod}_plot${plotNumber}`)}
+            />
+          {/each}
+        {:else}
+          <div class="interactive-placeholder">
+            Interactive {selectedMethod.toUpperCase()} Plots coming soon...
+          </div>
+        {/if}
+      </div>
+    </div>
+  {/if}
+
+  {#if zoomedImage}
+    <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>
+      <div class="zoomed-image-content" on:click|stopPropagation transition:scale>
+        <img src={visualizations[zoomedImage]} alt="Zoomed Image" />
+        <button
+          class="download-button"
+          on:click|stopPropagation={() => handleDownload(selectedMethod)}
+        >
+          Download
+        </button>
+      </div>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .visualizations-section {
+    margin-top: 2rem;
+  }
+
+  .visualization-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .view-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .view-toggle button {
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .view-toggle button.active {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .card-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .card {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-right: 20px;
+  }
+
+  .card-header {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .card-content img {
+    cursor: pointer;
+  }
+
+  .floating-card ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .floating-card li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .floating-card li button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .floating-card {
+    flex: 0.3;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 1rem;
+  }
+
+  .expand-collapse-button {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+
+  .expand-collapse-button:hover {
+    background-color: #0056b3;
+  }
+
+  .interactive-placeholder {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    font-style: italic;
+    color: #666;
+  }
+
+  .zoomed-image-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .zoomed-image-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .zoomed-image-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .download-button {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .download-button:hover {
+    background-color: #0056b3;
+  }
+</style>

@@ -4,7 +4,7 @@ body {
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  overflow: hidden; /* prevent body from scrolling */
+  overflow: hidden; /* Prevent body from scrolling */
   user-select: none;
 }
 
@@ -26,7 +26,7 @@ body {
   padding: 30px;
   padding-top: 60px;
   background-color: #ebf8fb;
-  flex-shrink: 0; /* prevent sidebar from shrinking */
+  flex-shrink: 0;
 }
 
 .content {
@@ -36,169 +36,9 @@ body {
   overflow-y: scroll;
 }
 
-.table-container {
-  overflow-x: auto;
-}
-
-button {
-  height: 25px;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-}
-
-table {
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-img.large {
-  width: 500px;
-  height: auto;
-}
-
 .loader {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100px;
-}
-
-.upload-container {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.upload-section {
-  flex: 1;
-  margin-right: 20px;
-}
-
-.custom-file-input {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-}
-
-.custom-file-input input[type="file"] {
-  position: absolute;
-  width: 0;
-  height: 0;
-  opacity: 0;
-  right: 0;
-  top: 0;
-}
-
-.custom-file-input label {
-  background-color: rgb(235,235,235);
-  color: black;
-  padding: 0 7px;
-  font-size: 14px;
-  text-align: center;
-  height: 25px;
-  line-height: 25px;
-  border-radius: 2px;
-  cursor: pointer;
-  display: inline-block;
-  border: 1px solid black;
-}
-
-.custom-file-input label:hover {
-  background-color: rgb(223,223,223);
-}
-
-.file-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.note {
-  font-size: 0.9em;
-  color: gray;
-  margin-top: 5px;
-}
-
-.file-name {
-  font-size: 0.9em;
-  color: green;
-  margin-top: 5px;
-}
-
-/* tooltip */
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #fc9a37;
-  color: #fffefe;
-  text-align: center;
-  /* border: 1px solid #c17325; */
-  border-radius: 6px;
-  padding: 5px;
-  position: absolute;
-  z-index: 1;
-  bottom: 100%; /* Position the tooltip above the text */
-  left: 50%;
-  margin-left: -60px;
-  margin-bottom: 3px;
-  opacity: 0;
-  transition: opacity 0.3s, visibility 0.1s;
-}
-
-.tooltip button:disabled:hover + .tooltiptext {
-  visibility: visible;
-  opacity: 1;
-}
-/* end of tooltip */
-
-/* notification */
-.notification {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #fc9a37; 
-  color: white;
-  padding: 16px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: none; /* Hidden by default */
-  transition: opacity 0.5s ease, top 0.5s ease; /* Smooth transition */
-}
-
-.notification.show {
-  display: block;
-  opacity: 1;
-}
-
-.notification.hide {
-  opacity: 0;
-  top: 0;
-}
-
-.notification-icon {
-  margin-right: 8px;
-}
-
-.warning {
-  color: orange;
-  margin-left: 10px;
 }
