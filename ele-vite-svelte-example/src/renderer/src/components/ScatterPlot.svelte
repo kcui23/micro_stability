@@ -8,7 +8,7 @@
   
     onMount(async () => {
       try {
-        const response = await fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json');
+        const response = await fetch('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json');
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }

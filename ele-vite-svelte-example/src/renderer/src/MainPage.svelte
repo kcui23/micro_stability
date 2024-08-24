@@ -858,7 +858,7 @@ const runShuffledAnalysis = async () => {
       }
     };
 
-    fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
+    fetch('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json')
       .then(response => response.json())
       .then(data => {
         console.log("Data loaded successfully:", data);
