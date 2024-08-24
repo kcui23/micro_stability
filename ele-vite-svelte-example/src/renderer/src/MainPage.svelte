@@ -691,6 +691,7 @@ const runShuffledAnalysis = async () => {
           const o = { x: source.x0, y: source.y0 };
           return diagonal({ source: o, target: o });
         })
+        .attr("data-source", d => d.source.data.name)
         .attr("data-target", d => d.target.data.name);
 
       link.merge(linkEnter).transition(transition)
@@ -735,14 +736,16 @@ const runShuffledAnalysis = async () => {
       return;
     }
 
-    d3.select(d3TreeContainer).selectAll('.node').classed('highlighted', false);
-    d3.select(d3TreeContainer).selectAll('.link').classed('highlighted', false);
+    // Clear existing highlights
+    d3.select(d3TreeContainer).selectAll('.highlighted').classed('highlighted', false);
 
     let currentNode = treeRoot;
     path.forEach((nodeName, index) => {
       const node = findNodeByName(currentNode, nodeName);
       if (node) {
+        // Highlight the node
         d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', true);
+        // Highlight the path/edge that leads to this node
         if (index > 0) {
           d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', true);
         }
@@ -993,6 +996,21 @@ const runShuffledAnalysis = async () => {
     box-sizing: border-box;
     border-radius: 8px;
     margin-left: 10px; /* Add some space between the containers */
+  }
+
+  :global(.highlighted circle) {
+    stroke: #f00; /* Red color stroke for the highlighted circle */
+    stroke-width: 5px;
+  }
+
+  :global(.highlighted text) {
+    font-weight: bold;
+    fill: #f00; /* Red color text for highlighted node */
+  }
+
+  :global(.highlighted path) {
+    stroke: #f00; /* Red color stroke for the highlighted path */
+    stroke-width: 2px;
   }
 
 </style>
