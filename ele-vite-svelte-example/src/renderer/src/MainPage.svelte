@@ -887,9 +887,6 @@ const runShuffledAnalysis = async () => {
     overflow-y: auto;
   }
 
-  .preview {
-    margin: 20px 0;
-  }
   .filters {
     margin: 20px 0;
   }
@@ -904,19 +901,6 @@ const runShuffledAnalysis = async () => {
   .methods button.selected {
     background-color: #007bff;
     color: white;
-  }
-  .navigation {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px 40px 20px 0;
-  }
-
-  .navigation .previous-button {
-    margin-right: auto;
-  }
-
-  .navigation .next-button {
-    margin-left: auto;
   }
 
   .method-file-status {
@@ -946,28 +930,6 @@ const runShuffledAnalysis = async () => {
     cursor: not-allowed;
   }
 
-  .stability-vis button {
-    margin-top: 10px;
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  .stability-vis button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-
-  .stability-vis button:hover {
-  background-color: #45a049;
-}
-
-.stability-vis button:disabled:hover {
-  background-color: #919191;
-}
-
 #asv-selector-main {
   margin-top: 10px;
 }
@@ -996,230 +958,11 @@ const runShuffledAnalysis = async () => {
     width: 60px;
   }
 
-  .view-toggle {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
-
-  .view-toggle button {
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    border: none;
-    background-color: #f0f0f0;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .view-toggle button.active {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .visualizations-section {
-    margin-top: 2rem;
-  }
-
-  .visualization-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .visualization-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1rem;
-  }
-
-  .card {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .card-header {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .card-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-  }
-
-  .card-content {
-    padding: 1rem;
-  }
-
-  .interactive-placeholder {
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f0f0;
-    border-radius: 4px;
-    font-style: italic;
-    color: #666;
-  }
-
   img {
     max-width: 100%;
     height: auto;
     margin-bottom: 1rem;
   }
-
-  .card-container {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .card {
-    flex: 1;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-right: 20px;
-  }
-
-  .card-header {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .card-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-  }
-
-  .card-content {
-    padding: 1rem;
-  }
-
-  .floating-card {
-    flex: 0.3;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
-  }
-
-  .floating-card .card-header {
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .floating-card .card-content {
-    padding: 1rem;
-    max-height: calc(100% - 4rem);
-    overflow-y: auto;
-  }
-
-  .floating-card ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .floating-card li {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-
-  .floating-card li button {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    cursor: pointer;
-    padding: 0.2rem 0.5rem;
-  }
-
-  .download-button {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .download-button:hover {
-    background-color: #0056b3;
-  }
-
-  .zoomed-image-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-
-  .zoomed-image-content {
-    position: relative;
-    max-width: 90%;
-    max-height: 90%;
-    background-color: white;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .zoomed-image-content img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-
-  .download-button {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .download-button:hover {
-    background-color: #0056b3;
-  }
-
-  .expand-collapse-button {
-    position: sticky;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .expand-collapse-button:hover {
-    background-color: #0056b3;
-  }
-
 
   .tree-container-wrapper {
     display: flex;
@@ -1252,14 +995,6 @@ const runShuffledAnalysis = async () => {
     margin-left: 10px; /* Add some space between the containers */
   }
 
-  .node.highlighted circle {
-    fill: #ff0000;
-  }
-
-  .link.highlighted {
-    stroke: #ff0000;
-    stroke-width: 2px;
-  }
 </style>
 
 <div id="app" class="container">
