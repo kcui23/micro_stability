@@ -72,6 +72,7 @@
   let dataChanged = false;
   let selectedMethod = '';
   let currentStep = 'Raw data';
+  let lastStep = 'Raw data';
   let previewContent = [];
   let groupingsContentPreview = [];
   let fileDimensions = { rows: 0, columns: 0 };
