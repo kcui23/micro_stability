@@ -153,30 +153,26 @@
   
     export async function highlightPath(path) {
         console.log("Highlighting path in D3tree:", path);
-  
+
         if (!treeRoot || !updateTree) {
             console.error("Tree root or update function not available");
             return;
         }
 
-        // De-highlight the previous path before it's updated
         if (previousPath.length) {
             dehighlightPath(previousPath);
             collapsePath(treeRoot, previousPath);
         }
-  
-        // Store the new path as the current path
-        previousPath = path.slice();
-        
-        // Expand the new path
-        expandPath(treeRoot, path);
-        
-        // Ensure the DOM is updated before applying highlighting
-        updateTree(null, treeRoot);
-        await tick(); // Wait for DOM updates to complete
 
-        // Highlight the expanded new path
+        previousPath = path.slice();
+        expandPath(treeRoot, path);
+        updateTree(null, treeRoot);
+        await tick();
+
         highlightPathElements(path);
+        await tick(); 
+
+        d3.select(d3TreeContainer).selectAll('path.highlighted').attr('stroke-opacity', 1.0);
     }
   
     function expandPath(node, path) {
@@ -229,44 +225,44 @@
 
     function highlightPathElements(path) {
         path.forEach((nodeName, index) => {
-            // Highlight the node in the path
             d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', true);
-            // Highlight the edge leading to this node
+            
             if (index > 0) {
-                d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', true);
+                const previousNodeName = path[index - 1];
+                d3.select(d3TreeContainer).select(`path[data-source="${previousNodeName}"][data-target="${nodeName}"]`)
+                    .attr("stroke", "#f00")
+                    .style("stroke-opacity", 1.0)
+                    .style("stroke-width", "2px")
             }
         });
     }
 
     function dehighlightPath(path) {
         path.forEach((nodeName) => {
-            // Remove highlight from the node
             d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', false);
-            // Remove highlight from the edge leading to this node
-            d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', false);
+            // restore the original stroke opacity, width, stroke of path
+            d3.select(d3TreeContainer).select(`path[data-source="${nodeName}"]`)
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", "1.5px")
+                .attr("stroke", "#555");
         });
     }
 </script>
 
 <style>
   :global(.highlighted circle) {
-      stroke: #f00; /* Red color stroke for the highlighted circle */
+      stroke: #f00;
       stroke-width: 5px;
   }
 
   :global(.highlighted text) {
       font-weight: bold;
-      fill: #f00; /* Red color text for highlighted node */
-  }
-
-  :global(.highlighted path) {
-      stroke: #f00; /* Red color stroke for the highlighted path */
-      stroke-width: 2px;
+      fill: #f00;
   }
 
   .d3-tree-container {
-      flex: 0 0 80%; /* Take up 80% of the available space */
-      height: 100%; /* Full height of the parent */
+      flex: 0 0 80%;
+      height: 100%;
       border: 1px solid #ddd;
       background-color: #fff;
       overflow: auto; /* Allow scrolling if the tree content overflows */
