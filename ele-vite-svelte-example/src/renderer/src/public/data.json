@@ -30,15 +30,15 @@
                                       "children": [
                                         {
                                           "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "data_point": {"x": 2.5, "y": 7.8}
+                                          "id": "leaf-1"
                                         },
                                         {
                                           "name": "AUROC",
-                                          "data_point": {"x": 5.3, "y": 3.1}
+                                          "id": "leaf-2"
                                         },
                                         {
                                           "name": "False Discovery Rate (FDR)",
-                                          "data_point": {"x": 8.7, "y": 6.4}
+                                          "id": "leaf-3"
                                         }
                                       ]
                                     }
@@ -62,15 +62,15 @@
                                       "children": [
                                         {
                                           "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "data_point": {"x": 3.4, "y": 1.7}
+                                          "id": "leaf-4"
                                         },
                                         {
                                           "name": "AUROC",
-                                          "data_point": {"x": 7.2, "y": 9.6}
+                                          "id": "leaf-5"
                                         },
                                         {
                                           "name": "False Discovery Rate (FDR)",
-                                          "data_point": {"x": 4.9, "y": 2.3}
+                                          "id": "leaf-6"
                                         }
                                       ]
                                     }
@@ -104,15 +104,15 @@
                                       "children": [
                                         {
                                           "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "data_point": {"x": 9.3, "y": 4.2}
+                                          "id": "leaf-7"
                                         },
                                         {
                                           "name": "AUROC",
-                                          "data_point": {"x": 0.6, "y": 8.5}
+                                          "id": "leaf-8"
                                         },
                                         {
                                           "name": "False Discovery Rate (FDR)",
-                                          "data_point": {"x": 6.1, "y": 5.9}
+                                          "id": "leaf-9"
                                         }
                                       ]
                                     }
@@ -138,15 +138,15 @@
                                   "children": [
                                     {
                                       "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "data_point": {"x": 1.2, "y": 3.6}
+                                      "id": "leaf-10"
                                     },
                                     {
                                       "name": "AUROC",
-                                      "data_point": {"x": 7.8, "y": 0.4}
+                                      "id": "leaf-11"
                                     },
                                     {
                                       "name": "False Discovery Rate (FDR)",
-                                      "data_point": {"x": 8.3, "y": 4.7}
+                                      "id": "leaf-12"
                                     }
                                   ]
                                 }
@@ -176,15 +176,15 @@
                                           "children": [
                                             {
                                               "name": "Differences in ASVs/OTUs/Species/Clades",
-                                              "data_point": {"x": 5.6, "y": 7.9}
+                                              "id": "leaf-13"
                                             },
                                             {
                                               "name": "AUROC",
-                                              "data_point": {"x": 2.3, "y": 9.7}
+                                              "id": "leaf-14"
                                             },
                                             {
                                               "name": "False Discovery Rate (FDR)",
-                                              "data_point": {"x": 6.4, "y": 3.2}
+                                              "id": "leaf-15"
                                             }
                                           ]
                                         }
@@ -206,15 +206,15 @@
                                               "children": [
                                                 {
                                                   "name": "Differences in ASVs/OTUs/Species/Clades",
-                                                  "data_point": {"x": 9.4, "y": 8.3}
+                                                  "id": "leaf-16"
                                                 },
                                                 {
                                                   "name": "AUROC",
-                                                  "data_point": {"x": 3.2, "y": 6.7}
+                                                  "id": "leaf-17"
                                                 },
                                                 {
                                                   "name": "False Discovery Rate (FDR)",
-                                                  "data_point": {"x": 1.5, "y": 2.4}
+                                                  "id": "leaf-18"
                                                 }
                                               ]
                                             }
@@ -243,15 +243,15 @@
                                               "children": [
                                                 {
                                                   "name": "Differences in ASVs/OTUs/Species/Clades",
-                                                  "data_point": {"x": 4.6, "y": 1.9}
+                                                  "id": "leaf-19"
                                                 },
                                                 {
                                                   "name": "AUROC",
-                                                  "data_point": {"x": 7.4, "y": 9.1}
+                                                  "id": "leaf-20"
                                                 },
                                                 {
                                                   "name": "False Discovery Rate (FDR)",
-                                                  "data_point": {"x": 2.7, "y": 5.6}
+                                                  "id": "leaf-21"
                                                 }
                                               ]
                                             }
@@ -277,15 +277,15 @@
                                           "children": [
                                             {
                                               "name": "Differences in ASVs/OTUs/Species/Clades",
-                                              "data_point": {"x": 0.7, "y": 6.3}
+                                              "id": "leaf-22"
                                             },
                                             {
                                               "name": "AUROC",
-                                              "data_point": {"x": 8.1, "y": 1.9}
+                                              "id": "leaf-23"
                                             },
                                             {
                                               "name": "False Discovery Rate (FDR)",
-                                              "data_point": {"x": 3.6, "y": 9.2}
+                                              "id": "leaf-24"
                                             }
                                           ]
                                         }
@@ -321,15 +321,15 @@
                                       "children": [
                                         {
                                           "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "data_point": {"x": 5.8, "y": 8.1}
+                                          "id": "leaf-25"
                                         },
                                         {
                                           "name": "AUROC",
-                                          "data_point": {"x": 9.6, "y": 2.3}
+                                          "id": "leaf-26"
                                         },
                                         {
                                           "name": "False Discovery Rate (FDR)",
-                                          "data_point": {"x": 1.4, "y": 6.8}
+                                          "id": "leaf-27"
                                         }
                                       ]
                                     }
@@ -358,15 +358,15 @@
                                       "children": [
                                         {
                                           "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "data_point": {"x": 2.9, "y": 5.4}
+                                          "id": "leaf-28"
                                         },
                                         {
                                           "name": "AUROC",
-                                          "data_point": {"x": 8.2, "y": 7.1}
+                                          "id": "leaf-29"
                                         },
                                         {
                                           "name": "False Discovery Rate (FDR)",
-                                          "data_point": {"x": 5.3, "y": 2.5}
+                                          "id": "leaf-30"
                                         }
                                       ]
                                     }
@@ -394,15 +394,15 @@
                               "children": [
                                 {
                                   "name": "Differences in ASVs/OTUs/Species/Clades",
-                                  "data_point": {"x": 6.7, "y": 4.9}
+                                  "id": "leaf-31"
                                 },
                                 {
                                   "name": "AUROC",
-                                  "data_point": {"x": 3.8, "y": 8.0}
+                                  "id": "leaf-32"
                                 },
                                 {
                                   "name": "False Discovery Rate (FDR)",
-                                  "data_point": {"x": 1.9, "y": 7.5}
+                                  "id": "leaf-33"
                                 }
                               ]
                             }
@@ -429,15 +429,15 @@
                                   "children": [
                                     {
                                       "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "data_point": {"x": 7.5, "y": 2.8}
+                                      "id": "leaf-34"
                                     },
                                     {
                                       "name": "AUROC",
-                                      "data_point": {"x": 4.1, "y": 9.3}
+                                      "id": "leaf-35"
                                     },
                                     {
                                       "name": "False Discovery Rate (FDR)",
-                                      "data_point": {"x": 2.4, "y": 5.5}
+                                      "id": "leaf-36"
                                     }
                                   ]
                                 }
@@ -461,15 +461,15 @@
                                   "children": [
                                     {
                                       "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "data_point": {"x": 6.9, "y": 8.6}
+                                      "id": "leaf-37"
                                     },
                                     {
                                       "name": "AUROC",
-                                      "data_point": {"x": 1.2, "y": 3.3}
+                                      "id": "leaf-38"
                                     },
                                     {
                                       "name": "False Discovery Rate (FDR)",
-                                      "data_point": {"x": 4.7, "y": 9.8}
+                                      "id": "leaf-39"
                                     }
                                   ]
                                 }
@@ -493,15 +493,15 @@
                                   "children": [
                                     {
                                       "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "data_point": {"x": 3.9, "y": 6.7}
+                                      "id": "leaf-40"
                                     },
                                     {
                                       "name": "AUROC",
-                                      "data_point": {"x": 9.0, "y": 4.2}
+                                      "id": "leaf-41"
                                     },
                                     {
                                       "name": "False Discovery Rate (FDR)",
-                                      "data_point": {"x": 7.1, "y": 2.6}
+                                      "id": "leaf-42"
                                     }
                                   ]
                                 }

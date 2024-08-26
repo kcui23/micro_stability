@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import {selectedPoints} from './store.js';
+  import { selectedPoints, currentPath } from './store.js';
 
   import D3Tree from './components/D3Tree.svelte';
   import FileUploader from './components/FileUploader.svelte';
@@ -595,6 +595,8 @@ const runShuffledAnalysis = async () => {
 
   function handleScatterPointClick(event) {
     const { path } = event.detail;
+    currentPath.set(path);
+    console.log("currentPath (store, writable):", $currentPath);
     console.log("Clicked path:", path);
     if (d3TreeComponent) {
       d3TreeComponent.highlightPath(path);

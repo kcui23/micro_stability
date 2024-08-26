@@ -1,0 +1,254 @@
+{
+  "leaf-1": {
+    "data_point": [
+      8.51,
+      9.87
+    ]
+  },
+  "leaf-2": {
+    "data_point": [
+      9.61,
+      5.77
+    ]
+  },
+  "leaf-3": {
+    "data_point": [
+      8.12,
+      8.71
+    ]
+  },
+  "leaf-4": {
+    "data_point": [
+      7.49,
+      1.32
+    ]
+  },
+  "leaf-5": {
+    "data_point": [
+      8.93,
+      7.04
+    ]
+  },
+  "leaf-6": {
+    "data_point": [
+      2.16,
+      5.65
+    ]
+  },
+  "leaf-7": {
+    "data_point": [
+      0.52,
+      9.26
+    ]
+  },
+  "leaf-8": {
+    "data_point": [
+      2.55,
+      5.04
+    ]
+  },
+  "leaf-9": {
+    "data_point": [
+      5.32,
+      8.33
+    ]
+  },
+  "leaf-10": {
+    "data_point": [
+      3.75,
+      3.74
+    ]
+  },
+  "leaf-11": {
+    "data_point": [
+      5.64,
+      8.85
+    ]
+  },
+  "leaf-12": {
+    "data_point": [
+      4.93,
+      3.0
+    ]
+  },
+  "leaf-13": {
+    "data_point": [
+      9.18,
+      9.43
+    ]
+  },
+  "leaf-14": {
+    "data_point": [
+      4.47,
+      5.85
+    ]
+  },
+  "leaf-15": {
+    "data_point": [
+      9.92,
+      8.22
+    ]
+  },
+  "leaf-16": {
+    "data_point": [
+      7.59,
+      8.0
+    ]
+  },
+  "leaf-17": {
+    "data_point": [
+      2.76,
+      1.13
+    ]
+  },
+  "leaf-18": {
+    "data_point": [
+      9.48,
+      4.62
+    ]
+  },
+  "leaf-19": {
+    "data_point": [
+      0.93,
+      1.83
+    ]
+  },
+  "leaf-20": {
+    "data_point": [
+      3.66,
+      6.91
+    ]
+  },
+  "leaf-21": {
+    "data_point": [
+      6.26,
+      6.72
+    ]
+  },
+  "leaf-22": {
+    "data_point": [
+      3.96,
+      9.53
+    ]
+  },
+  "leaf-23": {
+    "data_point": [
+      2.11,
+      6.73
+    ]
+  },
+  "leaf-24": {
+    "data_point": [
+      5.29,
+      1.92
+    ]
+  },
+  "leaf-25": {
+    "data_point": [
+      4.32,
+      0.1
+    ]
+  },
+  "leaf-26": {
+    "data_point": [
+      7.24,
+      6.62
+    ]
+  },
+  "leaf-27": {
+    "data_point": [
+      4.98,
+      5.85
+    ]
+  },
+  "leaf-28": {
+    "data_point": [
+      4.44,
+      0.51
+    ]
+  },
+  "leaf-29": {
+    "data_point": [
+      2.35,
+      1.82
+    ]
+  },
+  "leaf-30": {
+    "data_point": [
+      7.75,
+      0.7
+    ]
+  },
+  "leaf-31": {
+    "data_point": [
+      2.3,
+      9.87
+    ]
+  },
+  "leaf-32": {
+    "data_point": [
+      2.64,
+      4.99
+    ]
+  },
+  "leaf-33": {
+    "data_point": [
+      7.6,
+      2.5
+    ]
+  },
+  "leaf-34": {
+    "data_point": [
+      7.5,
+      4.08
+    ]
+  },
+  "leaf-35": {
+    "data_point": [
+      7.56,
+      7.18
+    ]
+  },
+  "leaf-36": {
+    "data_point": [
+      2.72,
+      0.96
+    ]
+  },
+  "leaf-37": {
+    "data_point": [
+      6.65,
+      5.95
+    ]
+  },
+  "leaf-38": {
+    "data_point": [
+      2.82,
+      9.95
+    ]
+  },
+  "leaf-39": {
+    "data_point": [
+      8.66,
+      7.13
+    ]
+  },
+  "leaf-40": {
+    "data_point": [
+      3.53,
+      9.23
+    ]
+  },
+  "leaf-41": {
+    "data_point": [
+      4.13,
+      6.45
+    ]
+  },
+  "leaf-42": {
+    "data_point": [
+      4.02,
+      8.48
+    ]
+  }
+}
