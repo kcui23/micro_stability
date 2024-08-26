@@ -1,14 +1,15 @@
 <script>
     import { onDestroy } from 'svelte';
     import * as d3 from 'd3';
-  
+    import { tick } from 'svelte';
+
     export let treeData;
   
     let d3TreeContainer;
     let treeRoot;
     let updateTree;
-  
-    // Track the previously expanded path
+    
+    // Track the previously expanded and highlighted path
     let previousPath = [];
 
     $: if (treeData && d3TreeContainer) {
@@ -22,14 +23,12 @@
     });
   
     function renderD3Tree(container, data) {
-        // The height and width of the SVG
         const width = container.offsetWidth || 400;
         const marginTop = 10;
         const marginRight = 10;
         const marginBottom = 10;
         const marginLeft = 40;
   
-        // Create the tree hierarchy
         const root = d3.hierarchy(data);
         const dx = 25;
         const dy = (width - marginRight - marginLeft) / (1.5 + root.height);
@@ -139,7 +138,6 @@
             });
         }
   
-        // Initialize tree root and update function
         root.x0 = dy / 2;
         root.y0 = 0;
         root.descendants().forEach((d, i) => {
@@ -153,7 +151,7 @@
         update(null, root);
     }
   
-    export function highlightPath(path) {
+    export async function highlightPath(path) {
         console.log("Highlighting path in D3tree:", path);
   
         if (!treeRoot || !updateTree) {
@@ -161,16 +159,24 @@
             return;
         }
 
-        // Collapse the previously expanded path
+        // De-highlight the previous path before it's updated
         if (previousPath.length) {
+            dehighlightPath(previousPath);
             collapsePath(treeRoot, previousPath);
         }
-
+  
         // Store the new path as the current path
         previousPath = path.slice();
-
+        
+        // Expand the new path
         expandPath(treeRoot, path);
+        
+        // Ensure the DOM is updated before applying highlighting
         updateTree(null, treeRoot);
+        await tick(); // Wait for DOM updates to complete
+
+        // Highlight the expanded new path
+        highlightPathElements(path);
     }
   
     function expandPath(node, path) {
@@ -220,8 +226,28 @@
 
         return null;
     }
+
+    function highlightPathElements(path) {
+        path.forEach((nodeName, index) => {
+            // Highlight the node in the path
+            d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', true);
+            // Highlight the edge leading to this node
+            if (index > 0) {
+                d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', true);
+            }
+        });
+    }
+
+    function dehighlightPath(path) {
+        path.forEach((nodeName) => {
+            // Remove highlight from the node
+            d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', false);
+            // Remove highlight from the edge leading to this node
+            d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', false);
+        });
+    }
 </script>
-  
+
 <style>
   :global(.highlighted circle) {
       stroke: #f00; /* Red color stroke for the highlighted circle */
@@ -250,5 +276,5 @@
       box-sizing: border-box;
   }
 </style>
-  
+
 <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
