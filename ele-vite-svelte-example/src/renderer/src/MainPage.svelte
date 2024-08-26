@@ -1,8 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import {selectedPoints} from './store.js';
-  import * as d3 from 'd3';
 
+  import D3Tree from './components/D3Tree.svelte';
   import FileUploader from './components/FileUploader.svelte';
   import PreviewSection from './components/PreviewSection.svelte';
   import VisualizationSection from './components/VisualizationSection.svelte';
@@ -12,9 +12,8 @@
 
 
   let treeData;
-  let treeRoot;
-  let updateTree;
   let d3TreeContainer;
+  let d3TreeComponent;
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
@@ -594,199 +593,15 @@ const runShuffledAnalysis = async () => {
     }
   };
 
-  function renderD3Tree(container, data) {
-    const width = container.offsetWidth || 400;
-    const marginTop = 10;
-    const marginRight = 10;
-    const marginBottom = 10;
-    const marginLeft = 40;
-
-    const root = d3.hierarchy(data);
-    const dx = 25;
-    const dy = (width - marginRight - marginLeft) / (1.5 + root.height);
-
-    const tree = d3.tree().nodeSize([dx, dy]);
-    const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
-
-    const svg = d3.select(container).append("svg")
-      .attr("width", width)
-      .attr("height", 300)
-      .attr("viewBox", [-marginLeft, -marginTop, width, 300])
-      .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif; user-select: none;");
-
-    const gLink = svg.append("g")
-      .attr("fill", "none")
-      .attr("stroke", "#555")
-      .attr("stroke-opacity", 0.4)
-      .attr("stroke-width", 1.5);
-
-    const gNode = svg.append("g")
-      .attr("cursor", "pointer")
-      .attr("pointer-events", "all");
-
-    function update(event, source) {
-      const duration = event?.altKey ? 2500 : 250;
-      const nodes = root.descendants().reverse();
-      const links = root.links();
-
-      tree(root);
-
-      let left = root;
-      let right = root;
-      root.eachBefore(node => {
-        if (node.x < left.x) left = node;
-        if (node.x > right.x) right = node;
-      });
-
-      const height = right.x - left.x + marginTop + marginBottom + 20;
-
-      const transition = svg.transition()
-        .duration(duration)
-        .attr("height", height)
-        .attr("viewBox", [-marginLeft, left.x - marginTop, width, height]);
-
-      const node = gNode.selectAll("g")
-        .data(nodes, d => d.id);
-
-      const nodeEnter = node.enter().append("g")
-        .attr("transform", d => `translate(${source.y0},${source.x0})`)
-        .attr("fill-opacity", 0)
-        .attr("stroke-opacity", 0)
-        .attr("data-name", d => d.data.name)
-        .on("click", (event, d) => {
-          d.children = d.children ? null : d._children;
-          update(event, d);
-        });
-
-      nodeEnter.append("circle")
-        .attr("r", 2.5)
-        .attr("fill", d => d._children ? "#555" : "#999")
-        .attr("stroke-width", 10);
-
-      nodeEnter.append("text")
-        .attr("dy", "1em")
-        .attr("x", d => d._children ? -6 : 6)
-        .attr("text-anchor", d => d._children ? "end" : "start")
-        .text(d => d.data.name)
-        .clone(true).lower()
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 3)
-        .attr("stroke", "white");
-
-      const nodeUpdate = node.merge(nodeEnter).transition(transition)
-        .attr("transform", d => `translate(${d.y},${d.x})`)
-        .attr("fill-opacity", 1)
-        .attr("stroke-opacity", 1);
-
-      const nodeExit = node.exit().transition(transition).remove()
-        .attr("transform", d => `translate(${source.y},${source.x})`)
-        .attr("fill-opacity", 0)
-        .attr("stroke-opacity", 0);
-
-      const link = gLink.selectAll("path")
-        .data(links, d => d.target.id);
-
-      const linkEnter = link.enter().append("path")
-        .attr("d", d => {
-          const o = { x: source.x0, y: source.y0 };
-          return diagonal({ source: o, target: o });
-        })
-        .attr("data-source", d => d.source.data.name)
-        .attr("data-target", d => d.target.data.name);
-
-      link.merge(linkEnter).transition(transition)
-        .attr("d", diagonal);
-
-      link.exit().transition(transition).remove()
-        .attr("d", d => {
-          const o = { x: source.x, y: source.y };
-          return diagonal({ source: o, target: o });
-        });
-
-      root.eachBefore(d => {
-        d.x0 = d.x;
-        d.y0 = d.y;
-      });
-    }
-
-    root.x0 = dy / 2;
-    root.y0 = 0;
-    root.descendants().forEach((d, i) => {
-      d.id = i;
-      d._children = d.children;
-      if (d.depth && d.data.name.length !== 7) d.children = null;
-    });
-
-    treeRoot = root;
-    updateTree = update;
-    update(null, root);
-  }
-
   function handleScatterPointClick(event) {
     const { path } = event.detail;
     console.log("Clicked path:", path);
-    highlightPath(path);
-  }
-
-  function highlightPath(path) {
-    console.log("Highlighting path:", path);
-
-    if (!treeRoot || !updateTree) {
-      console.error("Tree root or update function not available");
-      return;
+    if (d3TreeComponent) {
+      d3TreeComponent.highlightPath(path);
+      console.log("Highlighted path in main:", path);
+    } else {
+      console.error("D3Tree component not found");
     }
-
-    // Clear existing highlights
-    d3.select(d3TreeContainer).selectAll('.highlighted').classed('highlighted', false);
-
-    let currentNode = treeRoot;
-    path.forEach((nodeName, index) => {
-      const node = findNodeByName(currentNode, nodeName);
-      if (node) {
-        // Highlight the node
-        d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', true);
-        // Highlight the path/edge that leads to this node
-        if (index > 0) {
-          d3.select(d3TreeContainer).select(`path[data-target="${nodeName}"]`).classed('highlighted', true);
-        }
-        currentNode = node;
-      }
-    });
-
-    expandPath(treeRoot, path);
-    updateTree(null, treeRoot);
-  }
-
-  function expandPath(node, path) {
-    if (path.length === 0) return;
-    
-    const childName = path[0];
-    const child = findNodeByName(node, childName);
-    
-    if (child) {
-      if (child._children) {
-        child.children = child._children;
-        child._children = null;
-      }
-      expandPath(child, path.slice(1));
-    }
-  }
-
-  function findNodeByName(node, name) {
-    if (node.data.name === name) return node;
-    if (node.children) {
-      for (let child of node.children) {
-        const found = findNodeByName(child, name);
-        if (found) return found;
-      }
-    }
-    if (node._children) {
-      for (let child of node._children) {
-        const found = findNodeByName(child, name);
-        if (found) return found;
-      }
-    }
-    return null;
   }
 
   function handleStepSelected(event) {
@@ -863,10 +678,6 @@ const runShuffledAnalysis = async () => {
       .then(data => {
         console.log("Data loaded successfully:", data);
         treeData = data
-        console.log("treeData after assignment:", treeData);
-        if (d3TreeContainer) {
-          renderD3Tree(d3TreeContainer, data);
-        }
       })
       .catch(error => console.error('Error loading or parsing data.json:', error));
 
@@ -973,19 +784,6 @@ const runShuffledAnalysis = async () => {
     height: 200px;
     margin-bottom: 20px;
   }
-
-  .d3-tree-container {
-    flex: 0 0 80%; /* Take up 80% of the available space */
-    height: 100%; /* Full height of the parent */
-    border: 1px solid #ddd;
-    background-color: #fff;
-    overflow: auto; /* Allow scrolling if the tree content overflows */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    border-radius: 8px;
-    box-sizing: border-box;
-  }
-
   .scatter-plot-container {
     flex: 0 0 20%; /* Take up 20% of the available space */
     height: 100%; /* Full height of the parent */
@@ -996,21 +794,6 @@ const runShuffledAnalysis = async () => {
     box-sizing: border-box;
     border-radius: 8px;
     margin-left: 10px; /* Add some space between the containers */
-  }
-
-  :global(.highlighted circle) {
-    stroke: #f00; /* Red color stroke for the highlighted circle */
-    stroke-width: 5px;
-  }
-
-  :global(.highlighted text) {
-    font-weight: bold;
-    fill: #f00; /* Red color text for highlighted node */
-  }
-
-  :global(.highlighted path) {
-    stroke: #f00; /* Red color stroke for the highlighted path */
-    stroke-width: 2px;
   }
 
 </style>
@@ -1037,7 +820,7 @@ const runShuffledAnalysis = async () => {
   <div class="content">
     <div class="tree-container-wrapper">
       <!-- D3 Tree Container -->
-      <div class="d3-tree-container" bind:this={d3TreeContainer}></div>
+      <D3Tree {treeData} bind:this={d3TreeComponent} />
       <!-- Scatter Plot -->
       <div class="scatter-plot-container">
         <ScatterPlot on:pointClick={handleScatterPointClick} />
