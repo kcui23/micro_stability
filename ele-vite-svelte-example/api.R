@@ -627,3 +627,33 @@ function(req, res) {
   res$headers$`Content-Disposition` <- "attachment; filename=selected_points.tsv"
   res
 }
+
+#* Update leaf data with random data points
+#* @post /update_leaf_data
+#* @serializer json
+#* @response 200 list(message="JSON file successfully updated")
+#* @response 500 list(error="Error updating JSON file") 
+function(req, res) {
+  json_file_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+  
+  generate_random_pair <- function() {
+    return(runif(2, min = 0, max = 10))
+  }
+  
+  tryCatch({
+    json_data <- fromJSON(json_file_path)
+    
+    for (leaf in names(json_data)) {
+      json_data[[leaf]]$data_point <- generate_random_pair()
+    }
+    
+    write_json(json_data, json_file_path, pretty = TRUE, auto_unbox = TRUE)
+    
+    res$status <- 200
+    return(list(message = "JSON file successfully updated"))
+  }, error = function(e) {
+    
+    res$status <- 500
+    return(list(error = paste("Error updating the JSON file:", e$message)))
+  })
+}

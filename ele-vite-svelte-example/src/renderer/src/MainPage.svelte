@@ -14,6 +14,7 @@
   let treeData;
   let d3TreeContainer;
   let d3TreeComponent;
+  let data_points_updated_counter = 0;
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
@@ -97,6 +98,34 @@
   let ws;
   let ws_id;
 
+  const interactWithJson = async () => {
+    console.log("Interacting with JSON in main page");
+
+    try {
+      const response = await fetch(`http://localhost:8000/update_leaf_data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (response.ok) {
+        data_points_updated_counter += 1;
+        console.log("Data points updated successfully in main page.");
+        const jsonResponse = await fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json');
+        if (jsonResponse.ok) {
+          const jsonData = await jsonResponse.json();
+          console.log("Local data points JSON file content:", jsonData);
+        } else {
+          console.error("Not able to fetch local data points JSON file");
+        }
+      } else {
+        console.error("Failed to update data points JSON file");
+      }
+    } catch (error) {
+      console.error("Error during fetch:", error);
+    }
+  }
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Stability Metric'];
 
@@ -825,7 +854,7 @@ const runShuffledAnalysis = async () => {
       <D3Tree {treeData} bind:this={d3TreeComponent} />
       <!-- Scatter Plot -->
       <div class="scatter-plot-container">
-        <ScatterPlot on:pointClick={handleScatterPointClick} />
+        <ScatterPlot on:pointClick={handleScatterPointClick} {data_points_updated_counter}/>
       </div> 
     </div>
 
@@ -1006,6 +1035,10 @@ const runShuffledAnalysis = async () => {
               <ASVSelector />
             {/if}
           </div>
+        {/if}
+
+        {#if selectedOperations['Stability Metric']?.includes('json interaction')}
+          <button on:click={() => interactWithJson()}>Interact with JSON</button>
         {/if}
         
       </div>

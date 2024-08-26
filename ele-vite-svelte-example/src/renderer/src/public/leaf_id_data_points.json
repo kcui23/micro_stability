@@ -1,254 +1,128 @@
 {
   "leaf-1": {
-    "data_point": [
-      8.51,
-      9.87
-    ]
+    "data_point": [6.3891, 1.383]
   },
   "leaf-2": {
-    "data_point": [
-      9.61,
-      5.77
-    ]
+    "data_point": [4.7781, 5.1762]
   },
   "leaf-3": {
-    "data_point": [
-      8.12,
-      8.71
-    ]
+    "data_point": [9.7438, 6.8302]
   },
   "leaf-4": {
-    "data_point": [
-      7.49,
-      1.32
-    ]
+    "data_point": [5.9254, 8.5406]
   },
   "leaf-5": {
-    "data_point": [
-      8.93,
-      7.04
-    ]
+    "data_point": [9.47, 9.2195]
   },
   "leaf-6": {
-    "data_point": [
-      2.16,
-      5.65
-    ]
+    "data_point": [8.1134, 5.2597]
   },
   "leaf-7": {
-    "data_point": [
-      0.52,
-      9.26
-    ]
+    "data_point": [3.8115, 2.6803]
   },
   "leaf-8": {
-    "data_point": [
-      2.55,
-      5.04
-    ]
+    "data_point": [0.8585, 1.9268]
   },
   "leaf-9": {
-    "data_point": [
-      5.32,
-      8.33
-    ]
+    "data_point": [3.4016, 3.097]
   },
   "leaf-10": {
-    "data_point": [
-      3.75,
-      3.74
-    ]
+    "data_point": [8.1623, 6.4754]
   },
   "leaf-11": {
-    "data_point": [
-      5.64,
-      8.85
-    ]
+    "data_point": [3.2844, 0.9437]
   },
   "leaf-12": {
-    "data_point": [
-      4.93,
-      3.0
-    ]
+    "data_point": [3.7441, 4.2269]
   },
   "leaf-13": {
-    "data_point": [
-      9.18,
-      9.43
-    ]
+    "data_point": [2.5063, 9.9327]
   },
   "leaf-14": {
-    "data_point": [
-      4.47,
-      5.85
-    ]
+    "data_point": [9.3955, 8.6548]
   },
   "leaf-15": {
-    "data_point": [
-      9.92,
-      8.22
-    ]
+    "data_point": [7.0108, 9.9595]
   },
   "leaf-16": {
-    "data_point": [
-      7.59,
-      8.0
-    ]
+    "data_point": [5.5653, 5.1698]
   },
   "leaf-17": {
-    "data_point": [
-      2.76,
-      1.13
-    ]
+    "data_point": [2.9469, 5.7766]
   },
   "leaf-18": {
-    "data_point": [
-      9.48,
-      4.62
-    ]
+    "data_point": [0.5439, 0.4059]
   },
   "leaf-19": {
-    "data_point": [
-      0.93,
-      1.83
-    ]
+    "data_point": [3.922, 7.9782]
   },
   "leaf-20": {
-    "data_point": [
-      3.66,
-      6.91
-    ]
+    "data_point": [4.3894, 3.9842]
   },
   "leaf-21": {
-    "data_point": [
-      6.26,
-      6.72
-    ]
+    "data_point": [8.7611, 3.0558]
   },
   "leaf-22": {
-    "data_point": [
-      3.96,
-      9.53
-    ]
+    "data_point": [4.7204, 0.2347]
   },
   "leaf-23": {
-    "data_point": [
-      2.11,
-      6.73
-    ]
+    "data_point": [5.2328, 0.8368]
   },
   "leaf-24": {
-    "data_point": [
-      5.29,
-      1.92
-    ]
+    "data_point": [0.7855, 1.3589]
   },
   "leaf-25": {
-    "data_point": [
-      4.32,
-      0.1
-    ]
+    "data_point": [6.7542, 2.9985]
   },
   "leaf-26": {
-    "data_point": [
-      7.24,
-      6.62
-    ]
+    "data_point": [4.0854, 1.7503]
   },
   "leaf-27": {
-    "data_point": [
-      4.98,
-      5.85
-    ]
+    "data_point": [3.8933, 3.8324]
   },
   "leaf-28": {
-    "data_point": [
-      4.44,
-      0.51
-    ]
+    "data_point": [1.5918, 2.455]
   },
   "leaf-29": {
-    "data_point": [
-      2.35,
-      1.82
-    ]
+    "data_point": [4.7426, 3.3478]
   },
   "leaf-30": {
-    "data_point": [
-      7.75,
-      0.7
-    ]
+    "data_point": [9.8885, 2.4396]
   },
   "leaf-31": {
-    "data_point": [
-      2.3,
-      9.87
-    ]
+    "data_point": [5.7319, 1.3057]
   },
   "leaf-32": {
-    "data_point": [
-      2.64,
-      4.99
-    ]
+    "data_point": [7.1969, 6.5822]
   },
   "leaf-33": {
-    "data_point": [
-      7.6,
-      2.5
-    ]
+    "data_point": [9.3665, 6.1327]
   },
   "leaf-34": {
-    "data_point": [
-      7.5,
-      4.08
-    ]
+    "data_point": [1.7403, 9.1213]
   },
   "leaf-35": {
-    "data_point": [
-      7.56,
-      7.18
-    ]
+    "data_point": [9.0345, 5.3961]
   },
   "leaf-36": {
-    "data_point": [
-      2.72,
-      0.96
-    ]
+    "data_point": [8.1269, 6.7134]
   },
   "leaf-37": {
-    "data_point": [
-      6.65,
-      5.95
-    ]
+    "data_point": [6.1098, 3.2669]
   },
   "leaf-38": {
-    "data_point": [
-      2.82,
-      9.95
-    ]
+    "data_point": [9.6527, 8.8782]
   },
   "leaf-39": {
-    "data_point": [
-      8.66,
-      7.13
-    ]
+    "data_point": [7.8389, 1.9633]
   },
   "leaf-40": {
-    "data_point": [
-      3.53,
-      9.23
-    ]
+    "data_point": [6.4687, 2.4912]
   },
   "leaf-41": {
-    "data_point": [
-      4.13,
-      6.45
-    ]
+    "data_point": [6.7654, 7.2129]
   },
   "leaf-42": {
-    "data_point": [
-      4.02,
-      8.48
-    ]
+    "data_point": [4.4307, 2.5084]
   }
 }

@@ -6,6 +6,7 @@
   let svg;
   let data;
   let leafIdDataPoints;
+  export let data_points_updated_counter;
 
   async function fetchData(url) {
     const response = await fetch(url);
@@ -15,15 +16,26 @@
     return await response.json();
   }
 
-  onMount(async () => {
+  $: if (data_points_updated_counter) {
+    console.log("data_points_updated_counter in scatter plot");
+    main_function();
+    console.log('after main function')
+  }
+
+  onMount(() => {
+    main_function();
+  });
+
+  async function main_function() {
     try {
       // Fetch both data.json and leaf_id_data_points.json 
       const [dataResponse, leafIdDataPointsResponse] = await Promise.all([
         fetchData('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json'),
-        fetchData('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json')
+        fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json')
       ]);
       data = dataResponse;
       leafIdDataPoints = leafIdDataPointsResponse;
+      console.log("leafIdDataPoints in scatter plot:", leafIdDataPoints);
 
       const width = 300;
       const height = 300;
@@ -31,6 +43,9 @@
 
       const x = d3.scaleLinear().range([margin.left, width - margin.right]);
       const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+
+      // clean any previous svg element
+      d3.select(svg).selectAll('*').remove();
 
       const svgElement = d3.select(svg)
         .attr('width', '100%')
@@ -72,7 +87,7 @@
     } catch (error) {
       console.error('Error fetching or processing data:', error);
     }
-  });
+  }
 
   function handlePointClick(d) {
     dispatch('pointClick', { path: d.path });
