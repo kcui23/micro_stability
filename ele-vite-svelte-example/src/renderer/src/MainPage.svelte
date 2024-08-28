@@ -625,11 +625,8 @@ const runShuffledAnalysis = async () => {
   function handleScatterPointClick(event) {
     const { path } = event.detail;
     currentPath.set(path);
-    console.log("currentPath (store, writable):", $currentPath);
-    console.log("Clicked path:", path);
     if (d3TreeComponent) {
       d3TreeComponent.highlightPath(path);
-      console.log("Highlighted path in main:", path);
     } else {
       console.error("D3Tree component not found");
     }

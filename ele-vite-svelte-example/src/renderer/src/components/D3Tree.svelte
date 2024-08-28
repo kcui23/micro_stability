@@ -113,6 +113,7 @@
   
             const link = gLink.selectAll("path")
                 .data(links, d => d.target.id);
+            console.log("links:", links);
   
             const linkEnter = link.enter().append("path")
                 .attr("d", (d) => {
@@ -160,7 +161,8 @@
         }
 
         if (previousPath.length) {
-            dehighlightPath(previousPath);
+            console.log("Dehighlighting previous path:", previousPath);
+            dehighlightPathElements(previousPath);
             collapsePath(treeRoot, previousPath);
         }
 
@@ -230,21 +232,24 @@
             if (index > 0) {
                 const previousNodeName = path[index - 1];
                 d3.select(d3TreeContainer).select(`path[data-source="${previousNodeName}"][data-target="${nodeName}"]`)
-                    .attr("stroke", "#f00")
-                    .style("stroke-opacity", 1.0)
-                    .style("stroke-width", "2px")
+                    .attr("stroke", (d) => {console.log("Highlighted path id:", d.target.data.id); return "f000"})
+                    .attr("stroke-opacity", 1.0)
+                    .attr("stroke-width", "2px")
             }
         });
     }
 
-    function dehighlightPath(path) {
-        path.forEach((nodeName) => {
+    function dehighlightPathElements(path) {
+        path.forEach((nodeName, index) => {
             d3.select(d3TreeContainer).select(`g[data-name="${nodeName}"]`).classed('highlighted', false);
-            // restore the original stroke opacity, width, stroke of path
-            d3.select(d3TreeContainer).select(`path[data-source="${nodeName}"]`)
-                .attr("stroke-opacity", 0.4)
-                .attr("stroke-width", "1.5px")
-                .attr("stroke", "#555");
+
+            if (index > 0) {
+                const previousNodeName = path[index - 1];
+                d3.select(d3TreeContainer).select(`path[data-source="${previousNodeName}"][data-target="${nodeName}"]`)
+                    .attr("stroke-opacity", (d) => {console.log("Dehighlighted path id:", d.target.data.id); return 0.4})
+                    .attr("stroke-width", "1.5px")
+                    .attr("stroke", "#555");
+            }
         });
     }
 </script>
