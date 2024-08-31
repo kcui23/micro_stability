@@ -22,10 +22,12 @@
   <div class="visualization-header">
     <h2>Visualizations</h2>
     <div class="view-toggle">
-      <button class:active={isStatic} on:click={() => toggleView('static')}>Static</button>
-      <button class:active={!isStatic} on:click={() => toggleView('interactive')}
-        >Interactive</button
-      >
+      <button class:activeToggle={isStatic} on:click={() => toggleView('static')}>
+        Static
+      </button>
+      <button class:activeToggle={!isStatic} on:click={() => toggleView('interactive')}>
+        Interactive
+      </button>
     </div>
   </div>
 
@@ -136,7 +138,7 @@
   {#if zoomedImage}
     <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>
       <div class="zoomed-image-content" on:click|stopPropagation transition:scale>
-        <img src={visualizations[zoomedImage]} alt="Zoomed Image" />
+        <img src={visualizations[zoomedImage]} alt="Zoomed Image" class="bounded-image" />
         <button
           class="download-button"
           on:click|stopPropagation={() => handleDownload(selectedMethod)}
@@ -162,22 +164,28 @@
 
   .view-toggle {
     display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
   }
 
   .view-toggle button {
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    border: none;
     background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    width: 100px;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  .view-toggle button.active {
+  .view-toggle button:hover {
+    background-color: #e0e0e0;
+  }
+
+  .view-toggle button.activeToggle {
     background-color: #007bff;
     color: white;
+  }
+
+  .view-toggle button.activeToggle:hover {
+    background-color: #0073ee;
   }
 
   .card-container {
@@ -193,6 +201,7 @@
     overflow: hidden;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
   }
 
   .card-header {
@@ -227,7 +236,7 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 100;
   }
 
@@ -304,18 +313,20 @@
     background-color: white;
     padding: 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
   }
 
   .zoomed-image-content img {
     max-width: 100%;
-    max-height: 100%;
+    max-height: 80vh; /* Ensure the image fits within the viewport */
     object-fit: contain;
   }
 
   .download-button {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
+    align-self: center;
+    margin-top: 1rem;
     padding: 0.5rem 1rem;
     background-color: #007bff;
     color: white;

@@ -811,17 +811,18 @@ const runShuffledAnalysis = async () => {
     width: 100%;
     height: 200px;
     margin-bottom: 20px;
+    padding-right: 10px;
   }
   .scatter-plot-container {
-    flex: 0 0 20%; /* Take up 20% of the available space */
-    height: 100%; /* Full height of the parent */
+    flex: 0 0 20%;
+    height: 100%;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     box-sizing: border-box;
     border-radius: 8px;
-    margin-left: 10px; /* Add some space between the containers */
+    margin-left: 10px;
   }
 
 </style>
