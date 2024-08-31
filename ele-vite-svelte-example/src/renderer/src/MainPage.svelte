@@ -21,35 +21,6 @@
     console.log("selectedPointsList updated:", selectedPointsList);
   });
 
-  const downloadSelectedPoints = async () => {
-    const data = selectedPointsList.map(point => ({
-      name: point.name,
-      x: point.x,
-      y: point.y
-    }));
-
-    const response = await fetch('http://localhost:8000/download_selected_points', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ points: data })
-    });
-
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'selected_points.tsv';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else {
-      console.error('Error downloading selected points:', response.statusText);
-    }
-  };
   let asvFiles = [];
   let groupingsFile = null;
   let selectedOperations = {};
@@ -129,10 +100,6 @@
 
   const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Stability Metric'];
 
-  const removePoint = (pointToRemove) => {
-    selectedPoints.update(points => points.filter(point => point !== pointToRemove));
-  };
-  
   const showNotification = () => {
     const notification = document.getElementById('notification');
     notification.classList.add('show');
@@ -1058,8 +1025,6 @@ const runShuffledAnalysis = async () => {
       {isStatic}
       {toggleView}
       {selectedPointsList}
-      {removePoint}
-      {downloadSelectedPoints}
       {selectedMethod}
       {isSubmitted}
       {handleDownload}

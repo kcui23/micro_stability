@@ -10,12 +10,44 @@
   export let isStatic
   export let toggleView
   export let selectedPointsList
-  export let removePoint
-  export let downloadSelectedPoints
   export let selectedMethod
   export let isSubmitted
   export let handleDownload
   export let zoomedImage
+
+  const removePoint = (pointToRemove) => {
+    selectedPoints.update(points => points.filter(point => point !== pointToRemove));
+  };
+
+  const downloadSelectedPoints = async () => {
+    const data = selectedPointsList.map(point => ({
+      name: point.name,
+      x: point.x,
+      y: point.y
+    }));
+
+    const response = await fetch('http://localhost:8000/download_selected_points', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ points: data })
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'selected_points.tsv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      console.error('Error downloading selected points:', response.statusText);
+    }
+  };
 </script>
 
 <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
