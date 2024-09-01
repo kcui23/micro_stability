@@ -1,6 +1,6 @@
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { stepStatus, subOperations, selectedOperations, openMenus } from '../store.js';
 	import { fade, slide } from 'svelte/transition';
 
 	export let steps;
@@ -9,22 +9,26 @@
 
 	const dispatch = createEventDispatcher();
 
-	let stepStatus = writable(
+	stepStatus.set(
 		steps.reduce((acc, step) => {
 			acc[step] = step === 'Raw data' ? 'Enabled' : 'Disabled';
 			return acc;
 		}, {})
-	);
+	)
 
-	let subOperations = writable({
+	stepStatus.subscribe(value => {
+		console.log("stepStatus:", value);
+	});
+
+	subOperations.set({
 		'Raw data': ['Set Random Seed', 'Preview', 'Quick Explore'],
 		'Data Perturbation': ['Filter', 'Threshold', 'Transformation', 'R/A Abundance', 'Data Splitting', 'Batch Effect Removal'],
 		'Model Perturbation': ['Select Method'],
 		'Stability Metric': ['All methods calculation', 'Differences in ASVs', 'AUROC', 'FDR', 'View Stability Plot', 'Run Shuffled Analysis', 'ASV Selector', 'json interaction']
 	});
 
-	let selectedOperations = writable(Object.fromEntries(steps.map((step) => [step, []])));
-	let openMenus = writable(Object.fromEntries(steps.map((step) => [step, false])));
+	selectedOperations.set(Object.fromEntries(steps.map((step) => [step, []])));
+	openMenus.set(Object.fromEntries(steps.map((step) => [step, false])));
 
 	function toggleStepStatus(step) {
 		if (step === 'Raw data') return; // Raw data is always enabled
@@ -125,14 +129,14 @@
 							class:inactive={$stepStatus[step] === 'Enabled'}
 							on:click={() => ($stepStatus[step] === 'Enabled' ? toggleStepStatus(step) : null)}
 						>
-							Disabled
+							{$stepStatus[step] === 'Enabled' ? 'Disable' : 'Disabled'}
 						</button>
 						<button
 							class="status-toggle enabled"
 							class:inactive={$stepStatus[step] === 'Disabled'}
 							on:click={() => ($stepStatus[step] === 'Disabled' ? toggleStepStatus(step) : null)}
 						>
-							Enabled
+							{$stepStatus[step] === 'Disabled' ? 'Enable' : 'Enabled'}
 						</button>
 					</div>
 				{/if}

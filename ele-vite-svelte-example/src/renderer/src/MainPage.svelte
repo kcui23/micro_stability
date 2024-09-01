@@ -643,7 +643,7 @@ const runShuffledAnalysis = async () => {
 
   $: {
     console.log('Current step:', currentStep);
-    console.log('Selected operations:', selectedOperations);
+    console.log('Selected operations:', JSON.stringify(selectedOperations, null, 2));
     console.log("Tree data in main:", treeData);
   }
 
@@ -819,7 +819,7 @@ const runShuffledAnalysis = async () => {
 
     {#if currentStep === 'Raw data'}
       <div>
-        <h1>Raw Data</h1>
+        <h2>Raw Data</h2>
         <!-- ASV File Upload UI -->
         <FileUploader 
           {handleFileChange} 
@@ -856,6 +856,7 @@ const runShuffledAnalysis = async () => {
 
       </div>
     {:else if currentStep === 'Data Perturbation'}
+      <h2>Data Perturbation</h2>
       <div>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
         {#if selectedOperations['Data Perturbation']?.includes('Filter')}
@@ -924,6 +925,7 @@ const runShuffledAnalysis = async () => {
         {/if}
       </div>
     {:else if currentStep === 'Model Perturbation'}
+      <h2>Model Perturbation</h2>
       <div>
         {#if selectedOperations['Model Perturbation']?.includes('Select Method')}
           <!-- Method Selection UI -->

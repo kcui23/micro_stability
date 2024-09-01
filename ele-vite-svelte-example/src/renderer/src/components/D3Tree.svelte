@@ -177,7 +177,7 @@
         if (previousPath.length) {
             console.log("Dehighlighting previous path:", previousPath);
             dehighlightPathElements(previousPath);
-            collapsePath(treeRoot, previousPath);
+            collapsePath(treeRoot);
         }
 
         previousPath = path.slice();
@@ -204,16 +204,16 @@
         }
     }
 
-    function collapsePath(node, path) {
-        if (path.length === 0) return;
+    function collapsePath(node) {
+        if (!node) return;
 
-        const childName = path[0];
-        const child = findNodeByName(node, childName);
+        if (node.children) {
+            node._children = node.children;
+            node.children = null;
+        }
 
-        if (child && child.children) {
-            child._children = child.children;
-            child.children = null;
-            collapsePath(child, path.slice(1));
+        if (node._children) {
+            node._children.forEach(collapsePath);
         }
     }
 
