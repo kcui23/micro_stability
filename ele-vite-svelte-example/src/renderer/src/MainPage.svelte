@@ -11,6 +11,7 @@
   import ScatterPlot from './components/ScatterPlot.svelte';
 
 
+  let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5']
   let treeData;
   let d3TreeContainer;
   let d3TreeComponent;
@@ -41,7 +42,7 @@
   };
   let previousMethodFileStatus = { ...methodFileStatus };
   let dataChanged = false;
-  let selectedMethod = '';
+  let selectedMethod = 'deseq2';
   let currentStep = 'Raw data';
   let lastStep = 'Raw data';
   let previewContent = [];
@@ -164,13 +165,6 @@
     resetMethodStatus();
   };
 
-  const handleMethodChange = (method) => {
-    selectedMethod = method;
-    showAllPlots = false;
-    showDetailedPlots = false;
-    isSubmitted = false;
-  };
-
   const handleQuickExplore = async () => {
     showAllPlots = true;
     isCalculating = true;
@@ -191,6 +185,8 @@
   const handleSubmit = async () => {
     isCalculating = true;
     isSubmitted = true;
+    showAllPlots = false;
+    showDetailedPlots = false;
     const asvContent = filteredAsvContent || asvFiles[0];
 
     if (typeof asvContent === 'string') {
@@ -704,13 +700,6 @@ const runShuffledAnalysis = async () => {
     flex-direction: column;
     margin: 20px 0;
   }
-  .methods button {
-    margin: 5px 0;
-  }
-  .methods button.selected {
-    background-color: #007bff;
-    color: white;
-  }
 
   .method-file-status {
     margin-top: 20px;
@@ -869,6 +858,16 @@ const runShuffledAnalysis = async () => {
     {:else if currentStep === 'Data Perturbation'}
       <div>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+        {#if selectedOperations['Data Perturbation']?.includes('Filter')}
+          <div class="filters">
+            <label for="filter">Filter:</label>
+            <select id="filter">
+              <option value="genefilter">genefilter</option>
+              <option value="koverAfilter">koverAfilter</option>
+            </select>
+            <button>Apply Filter</button>
+          </div>
+        {/if}
         {#if selectedOperations['Data Perturbation']?.includes('Threshold')}
           <!-- Threshold Application UI -->
             <div class="filters">
@@ -878,18 +877,49 @@ const runShuffledAnalysis = async () => {
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Additional Option 1')}
-          <!-- Additional Option 1 UI -->
+        {#if selectedOperations['Data Perturbation']?.includes('Transformation')}
+          <!-- Transformation Application UI -->
           <div class="filters">
-            <label for="option1">Additional Option 1:</label>
-            <input type="text" id="option1" />
+            <label for="transformation">Transformation:</label>
+            <select id="transformation">
+              <option value="log">tidybult</option>
+              <option value="sqrt">log</option>
+              <option value="boxcox">normalization</option>
+            </select>
+            <button>Apply Transformation</button>
           </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Additional Option 2')}
-          <!-- Additional Option 2 UI -->
+        {#if selectedOperations['Data Perturbation']?.includes('R/A Abundance')}
+          <!-- R/A Abundance Application UI -->
           <div class="filters">
-            <label for="option2">Additional Option 2:</label>
-            <input type="text" id="option2" />
+            <label for="raAbundance">R/A Abundance:</label>
+            <select id="raAbundance">
+              <option value="Compositional data analysis (CoDa)">Compositional data analysis (CoDa)</option>
+              <option value="Additive Log-ratio Transformation">Additive Log-ratio Transformation</option>
+            </select>
+            <button>Apply R/A Abundance</button>
+          </div>
+        {/if}
+        {#if selectedOperations['Data Perturbation']?.includes('Data Splitting')}
+          <!-- Data Splitting Application UI -->
+          <div class="filters">
+            <label for="dataSplitting">Data Splitting:</label>
+            <select id="dataSplitting">
+              <option value="splitByGroup">K-Fold</option>
+            </select>
+            <button>Apply Data Splitting</button>
+          </div>
+        {/if}
+        {#if selectedOperations['Data Perturbation']?.includes('Batch Effect Removal')}
+          <!-- Batch Effect Removal Application UI -->
+          <div class="filters">
+            <label for="batchEffectRemoval">Batch Effect Removal:</label>
+            <select id="batchEffectRemoval">
+              <option value="ComBat">ComBat</option>
+              <option value="RUV">RUV</option>
+              <option value="CQN">CQN</option>
+            </select>
+            <button>Apply Batch Effect Removal</button>
           </div>
         {/if}
       </div>
@@ -898,54 +928,81 @@ const runShuffledAnalysis = async () => {
         {#if selectedOperations['Model Perturbation']?.includes('Select Method')}
           <!-- Method Selection UI -->
           <div class="methods">
-            <button on:click={() => handleMethodChange('deseq2')} class:selected={selectedMethod === 'deseq2'}>Method 1 (DESeq2)</button>
-            <button on:click={() => handleMethodChange('aldex2')} class:selected={selectedMethod === 'aldex2'}>Method 2 (ALDEx2)</button>
-            <button on:click={() => handleMethodChange('edger')} class:selected={selectedMethod === 'edger'}>Method 3 (edgeR)</button>
-            <button on:click={() => handleMethodChange('maaslin2')} class:selected={selectedMethod === 'maaslin2'}>Method 4 (Maaslin2)</button>
-            <button on:click={() => handleMethodChange('method5')} class:selected={selectedMethod === 'method5'}>Method 5</button>
+            <label for="method-select">Select Method:</label>
+            <select id="method-select" bind:value={selectedMethod}>
+              {#each DataPerturbationMethods as method}
+                <option value={method}>{method}</option>
+              {/each}
+            </select>
           </div>
         {/if}
+
+        {#if selectedOperations['Model Perturbation']?.includes('Select Method') && asvFiles.length > 0 && groupingsFile && selectedMethod}
+          <button on:click={handleSubmit}>Submit</button>
+          <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
+        {/if}
+
       </div>
     {:else if currentStep === 'Stability Metric'}
       <div>
         <h2>Stability Metric</h2>
-        <div class="method-file-status">
-          <h3>Method File Status:</h3>
-          {#each Object.entries(methodFileStatus) as [method, status]}
-            <div class="method-status">
-              <span>{method}: {status[0] ? '✅ Ready' : '❌ Not ready'}</span>
-              {#if status[0]}
-                <button on:click={() => downloadMethodFile(method)}>Download {method} file</button>
-              {:else}
-                <button disabled>Download {method} file</button>
-              {/if}
-              {#if dataChanged && previousMethodFileStatus[method][0]}
-                <span class="warning">⚠️ Data changed, recalculation needed</span>
-              {/if}
-            </div>
-          {/each}
-        </div>
-        
-        <button on:click={calculateMissingMethods} disabled={isCalculatingMissing}>
-          {#if isCalculatingMissing}
-            Calculating...
-          {:else if dataChanged}
-            Recalculate All Methods
-          {:else if Object.values(methodFileStatus).some(status => !status[0])}
-            Calculate Missing Methods
-          {:else}
-            All Methods Calculated
-          {/if}
-        </button>
-  
-        <div class="combined-results-actions">
-          <button on:click={generateCombinedResults} disabled={isCombiningResults || !Object.values(methodFileStatus).every(status => status[0])}>
-            {isCombiningResults ? 'Generating...' : 'Generate Combined Results'}
+        {#if selectedOperations['Stability Metric']?.includes('All methods calculation')}
+          <div class="method-file-status">
+            <h3>Method File Status:</h3>
+            {#each Object.entries(methodFileStatus) as [method, status]}
+              <div class="method-status">
+                <span>{method}: {status[0] ? '✅ Ready' : '❌ Not ready'}</span>
+                {#if status[0]}
+                  <button on:click={() => downloadMethodFile(method)}>Download {method} file</button>
+                {:else}
+                  <button disabled>Download {method} file</button>
+                {/if}
+                {#if dataChanged && previousMethodFileStatus[method][0]}
+                  <span class="warning">⚠️ Data changed, recalculation needed</span>
+                {/if}
+              </div>
+            {/each}
+          </div>
+          
+          <button on:click={calculateMissingMethods} disabled={isCalculatingMissing}>
+            {#if isCalculatingMissing}
+              Calculating...
+            {:else if dataChanged}
+              Recalculate All Methods
+            {:else if Object.values(methodFileStatus).some(status => !status[0])}
+              Calculate Missing Methods
+            {:else}
+              All Methods Calculated
+            {/if}
           </button>
-          <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
-            Download Combined Results
-          </button>
-        </div>
+    
+          <div class="combined-results-actions">
+            <button on:click={generateCombinedResults} disabled={isCombiningResults || !Object.values(methodFileStatus).every(status => status[0])}>
+              {isCombiningResults ? 'Generating...' : 'Generate Combined Results'}
+            </button>
+            <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
+              Download Combined Results
+            </button>
+          </div>
+        {/if}
+
+        {#if selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
+          <div>
+            <button>Calculate Differences in ASVs</button>
+          </div>
+        {/if}
+
+        {#if selectedOperations['Stability Metric']?.includes('AUROC')}
+          <div>
+            <button>Calculate AUROC</button>
+          </div>
+        {/if}
+
+        {#if selectedOperations['Stability Metric']?.includes('FDR')}
+          <div>
+            <button>Calculate FDR</button>
+          </div>
+        {/if}
 
         {#if selectedOperations['Stability Metric']?.includes('View Stability Plot')}
           <!-- Stability Plot Viewing UI -->
@@ -1014,7 +1071,7 @@ const runShuffledAnalysis = async () => {
       <div class="shuffled-analysis">
         
       </div>
-    </div>    
+    </div>
 
     <VisualizationSection
       {visualizations} 
@@ -1030,12 +1087,6 @@ const runShuffledAnalysis = async () => {
       {handleDownload}
       {zoomedImage}
     />
-    
-    
-    {#if currentStep === 'Model Perturbation' && asvFiles.length > 0 && groupingsFile && selectedMethod}
-      <button on:click={handleSubmit}>Submit</button>
-      <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
-    {/if}
 
   </div>
 </div>

@@ -1,516 +1,363 @@
 {
-  "name": "Raw Data",
+  "name": "Raw data",
   "children": [
     {
-      "name": "Data Type",
+      "name": "Data Perturbation",
       "children": [
         {
-          "name": "Count Matrix with Metadata",
+          "name": "Filter",
           "children": [
             {
-              "name": "Data Perturbation",
+              "name": "Model Perturbation",
               "children": [
                 {
-                  "name": "Filter",
+                  "name": "deseq2",
                   "children": [
-                    {
-                      "name": "Filter Out Rare Data",
-                      "children": [
-                        {
-                          "name": "genefilter",
-                          "children": [
-                            {
-                              "name": "Model Perturbation",
-                              "children": [
-                                {
-                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                  "children": [
-                                    {
-                                      "name": "Stability Metric",
-                                      "children": [
-                                        {
-                                          "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "id": "leaf-1"
-                                        },
-                                        {
-                                          "name": "AUROC",
-                                          "id": "leaf-2"
-                                        },
-                                        {
-                                          "name": "False Discovery Rate (FDR)",
-                                          "id": "leaf-3"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "name": "koverAfilter",
-                          "children": [
-                            {
-                              "name": "Model Perturbation",
-                              "children": [
-                                {
-                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                  "children": [
-                                    {
-                                      "name": "Stability Metric",
-                                      "children": [
-                                        {
-                                          "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "id": "leaf-4"
-                                        },
-                                        {
-                                          "name": "AUROC",
-                                          "id": "leaf-5"
-                                        },
-                                        {
-                                          "name": "False Discovery Rate (FDR)",
-                                          "id": "leaf-6"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-1" },
+                      { "name": "AUROC", "id": "leaf-2" },
+                      { "name": "FDR", "id": "leaf-3" }
+                    ]}
                   ]
                 },
                 {
-                  "name": "Transformation",
+                  "name": "edger",
                   "children": [
-                    {
-                      "name": "R Package",
-                      "children": [
-                        {
-                          "name": "tidybult",
-                          "children": [
-                            {
-                              "name": "Model Perturbation",
-                              "children": [
-                                {
-                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                  "children": [
-                                    {
-                                      "name": "Stability Metric",
-                                      "children": [
-                                        {
-                                          "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "id": "leaf-7"
-                                        },
-                                        {
-                                          "name": "AUROC",
-                                          "id": "leaf-8"
-                                        },
-                                        {
-                                          "name": "False Discovery Rate (FDR)",
-                                          "id": "leaf-9"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "Log",
-                      "children": [
-                        {
-                          "name": "Model Perturbation",
-                          "children": [
-                            {
-                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                              "children": [
-                                {
-                                  "name": "Stability Metric",
-                                  "children": [
-                                    {
-                                      "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "id": "leaf-10"
-                                    },
-                                    {
-                                      "name": "AUROC",
-                                      "id": "leaf-11"
-                                    },
-                                    {
-                                      "name": "False Discovery Rate (FDR)",
-                                      "id": "leaf-12"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "Normalization",
-                      "children": [
-                        {
-                          "name": "Negative Binomial Distribution",
-                          "children": [
-                            {
-                              "name": "edgeR",
-                              "children": [
-                                {
-                                  "name": "Model Perturbation",
-                                  "children": [
-                                    {
-                                      "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                      "children": [
-                                        {
-                                          "name": "Stability Metric",
-                                          "children": [
-                                            {
-                                              "name": "Differences in ASVs/OTUs/Species/Clades",
-                                              "id": "leaf-13"
-                                            },
-                                            {
-                                              "name": "AUROC",
-                                              "id": "leaf-14"
-                                            },
-                                            {
-                                              "name": "False Discovery Rate (FDR)",
-                                              "id": "leaf-15"
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "name": "DESeq2",
-                                  "children": [
-                                    {
-                                      "name": "Model Perturbation",
-                                      "children": [
-                                        {
-                                          "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                          "children": [
-                                            {
-                                              "name": "Stability Metric",
-                                              "children": [
-                                                {
-                                                  "name": "Differences in ASVs/OTUs/Species/Clades",
-                                                  "id": "leaf-16"
-                                                },
-                                                {
-                                                  "name": "AUROC",
-                                                  "id": "leaf-17"
-                                                },
-                                                {
-                                                  "name": "False Discovery Rate (FDR)",
-                                                  "id": "leaf-18"
-                                                }
-                                              ]
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            },
-                            {
-                              "name": "Zero-Inflated Gaussian Distribution",
-                              "children": [
-                                {
-                                  "name": "metagenomeSeq",
-                                  "children": [
-                                    {
-                                      "name": "Model Perturbation",
-                                      "children": [
-                                        {
-                                          "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                          "children": [
-                                            {
-                                              "name": "Stability Metric",
-                                              "children": [
-                                                {
-                                                  "name": "Differences in ASVs/OTUs/Species/Clades",
-                                                  "id": "leaf-19"
-                                                },
-                                                {
-                                                  "name": "AUROC",
-                                                  "id": "leaf-20"
-                                                },
-                                                {
-                                                  "name": "False Discovery Rate (FDR)",
-                                                  "id": "leaf-21"
-                                                }
-                                              ]
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            },
-                            {
-                              "name": "CLR",
-                              "children": [
-                                {
-                                  "name": "Model Perturbation",
-                                  "children": [
-                                    {
-                                      "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                      "children": [
-                                        {
-                                          "name": "Stability Metric",
-                                          "children": [
-                                            {
-                                              "name": "Differences in ASVs/OTUs/Species/Clades",
-                                              "id": "leaf-22"
-                                            },
-                                            {
-                                              "name": "AUROC",
-                                              "id": "leaf-23"
-                                            },
-                                            {
-                                              "name": "False Discovery Rate (FDR)",
-                                              "id": "leaf-24"
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-4" },
+                      { "name": "AUROC", "id": "leaf-5" },
+                      { "name": "FDR", "id": "leaf-6" }
+                    ]}
                   ]
                 },
                 {
-                  "name": "Relative and Absolute Abundance",
+                  "name": "maaslin2",
                   "children": [
-                    {
-                      "name": "Compositional Data Analysis (CoDa)",
-                      "children": [
-                        {
-                          "name": "ALDEx2",
-                          "children": [
-                            {
-                              "name": "Model Perturbation",
-                              "children": [
-                                {
-                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                  "children": [
-                                    {
-                                      "name": "Stability Metric",
-                                      "children": [
-                                        {
-                                          "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "id": "leaf-25"
-                                        },
-                                        {
-                                          "name": "AUROC",
-                                          "id": "leaf-26"
-                                        },
-                                        {
-                                          "name": "False Discovery Rate (FDR)",
-                                          "id": "leaf-27"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "Additive Log-Ratio Transformation",
-                      "children": [
-                        {
-                          "name": "ANCOM",
-                          "children": [
-                            {
-                              "name": "Model Perturbation",
-                              "children": [
-                                {
-                                  "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                                  "children": [
-                                    {
-                                      "name": "Stability Metric",
-                                      "children": [
-                                        {
-                                          "name": "Differences in ASVs/OTUs/Species/Clades",
-                                          "id": "leaf-28"
-                                        },
-                                        {
-                                          "name": "AUROC",
-                                          "id": "leaf-29"
-                                        },
-                                        {
-                                          "name": "False Discovery Rate (FDR)",
-                                          "id": "leaf-30"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-7" },
+                      { "name": "AUROC", "id": "leaf-8" },
+                      { "name": "FDR", "id": "leaf-9" }
+                    ]}
                   ]
                 },
                 {
-                  "name": "Data Split (with the Stat Metric)",
+                  "name": "aldex2",
                   "children": [
-                    {
-                      "name": "Model Perturbation",
-                      "children": [
-                        {
-                          "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                          "children": [
-                            {
-                              "name": "Stability Metric",
-                              "children": [
-                                {
-                                  "name": "Differences in ASVs/OTUs/Species/Clades",
-                                  "id": "leaf-31"
-                                },
-                                {
-                                  "name": "AUROC",
-                                  "id": "leaf-32"
-                                },
-                                {
-                                  "name": "False Discovery Rate (FDR)",
-                                  "id": "leaf-33"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-10" },
+                      { "name": "AUROC", "id": "leaf-11" },
+                      { "name": "FDR", "id": "leaf-12" }
+                    ]}
                   ]
                 },
                 {
-                  "name": "Batch Effect Removal",
+                  "name": "method5",
                   "children": [
-                    {
-                      "name": "Combat",
-                      "children": [
-                        {
-                          "name": "Model Perturbation",
-                          "children": [
-                            {
-                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                              "children": [
-                                {
-                                  "name": "Stability Metric",
-                                  "children": [
-                                    {
-                                      "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "id": "leaf-34"
-                                    },
-                                    {
-                                      "name": "AUROC",
-                                      "id": "leaf-35"
-                                    },
-                                    {
-                                      "name": "False Discovery Rate (FDR)",
-                                      "id": "leaf-36"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "RUV",
-                      "children": [
-                        {
-                          "name": "Model Perturbation",
-                          "children": [
-                            {
-                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                              "children": [
-                                {
-                                  "name": "Stability Metric",
-                                  "children": [
-                                    {
-                                      "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "id": "leaf-37"
-                                    },
-                                    {
-                                      "name": "AUROC",
-                                      "id": "leaf-38"
-                                    },
-                                    {
-                                      "name": "False Discovery Rate (FDR)",
-                                      "id": "leaf-39"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "CQN",
-                      "children": [
-                        {
-                          "name": "Model Perturbation",
-                          "children": [
-                            {
-                              "name": "Diff Algorithm (for Type I&II Error and P-Value)",
-                              "children": [
-                                {
-                                  "name": "Stability Metric",
-                                  "children": [
-                                    {
-                                      "name": "Differences in ASVs/OTUs/Species/Clades",
-                                      "id": "leaf-40"
-                                    },
-                                    {
-                                      "name": "AUROC",
-                                      "id": "leaf-41"
-                                    },
-                                    {
-                                      "name": "False Discovery Rate (FDR)",
-                                      "id": "leaf-42"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-13" },
+                      { "name": "AUROC", "id": "leaf-14" },
+                      { "name": "FDR", "id": "leaf-15" }
+                    ]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Threshold",
+          "children": [
+            {
+              "name": "Model Perturbation",
+              "children": [
+                {
+                  "name": "deseq2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-16" },
+                      { "name": "AUROC", "id": "leaf-17" },
+                      { "name": "FDR", "id": "leaf-18" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "edger",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-19" },
+                      { "name": "AUROC", "id": "leaf-20" },
+                      { "name": "FDR", "id": "leaf-21" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "maaslin2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-22" },
+                      { "name": "AUROC", "id": "leaf-23" },
+                      { "name": "FDR", "id": "leaf-24" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "aldex2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-25" },
+                      { "name": "AUROC", "id": "leaf-26" },
+                      { "name": "FDR", "id": "leaf-27" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "method5",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-28" },
+                      { "name": "AUROC", "id": "leaf-29" },
+                      { "name": "FDR", "id": "leaf-30" }
+                    ]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transformation",
+          "children": [
+            {
+              "name": "Model Perturbation",
+              "children": [
+                {
+                  "name": "deseq2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-31" },
+                      { "name": "AUROC", "id": "leaf-32" },
+                      { "name": "FDR", "id": "leaf-33" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "edger",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-34" },
+                      { "name": "AUROC", "id": "leaf-35" },
+                      { "name": "FDR", "id": "leaf-36" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "maaslin2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-37" },
+                      { "name": "AUROC", "id": "leaf-38" },
+                      { "name": "FDR", "id": "leaf-39" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "aldex2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-40" },
+                      { "name": "AUROC", "id": "leaf-41" },
+                      { "name": "FDR", "id": "leaf-42" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "method5",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-43" },
+                      { "name": "AUROC", "id": "leaf-44" },
+                      { "name": "FDR", "id": "leaf-45" }
+                    ]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "R/A Abundance",
+          "children": [
+            {
+              "name": "Model Perturbation",
+              "children": [
+                {
+                  "name": "deseq2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-46" },
+                      { "name": "AUROC", "id": "leaf-47" },
+                      { "name": "FDR", "id": "leaf-48" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "edger",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-49" },
+                      { "name": "AUROC", "id": "leaf-50" },
+                      { "name": "FDR", "id": "leaf-51" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "maaslin2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-52" },
+                      { "name": "AUROC", "id": "leaf-53" },
+                      { "name": "FDR", "id": "leaf-54" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "aldex2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-55" },
+                      { "name": "AUROC", "id": "leaf-56" },
+                      { "name": "FDR", "id": "leaf-57" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "method5",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-58" },
+                      { "name": "AUROC", "id": "leaf-59" },
+                      { "name": "FDR", "id": "leaf-60" }
+                    ]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Data Splitting",
+          "children": [
+            {
+              "name": "Model Perturbation",
+              "children": [
+                {
+                  "name": "deseq2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-61" },
+                      { "name": "AUROC", "id": "leaf-62" },
+                      { "name": "FDR", "id": "leaf-63" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "edger",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-64" },
+                      { "name": "AUROC", "id": "leaf-65" },
+                      { "name": "FDR", "id": "leaf-66" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "maaslin2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-67" },
+                      { "name": "AUROC", "id": "leaf-68" },
+                      { "name": "FDR", "id": "leaf-69" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "aldex2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-70" },
+                      { "name": "AUROC", "id": "leaf-71" },
+                      { "name": "FDR", "id": "leaf-72" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "method5",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-73" },
+                      { "name": "AUROC", "id": "leaf-74" },
+                      { "name": "FDR", "id": "leaf-75" }
+                    ]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Batch Effect Removal",
+          "children": [
+            {
+              "name": "Model Perturbation",
+              "children": [
+                {
+                  "name": "deseq2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-76" },
+                      { "name": "AUROC", "id": "leaf-77" },
+                      { "name": "FDR", "id": "leaf-78" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "edger",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-79" },
+                      { "name": "AUROC", "id": "leaf-80" },
+                      { "name": "FDR", "id": "leaf-81" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "maaslin2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-82" },
+                      { "name": "AUROC", "id": "leaf-83" },
+                      { "name": "FDR", "id": "leaf-84" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "aldex2",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-85" },
+                      { "name": "AUROC", "id": "leaf-86" },
+                      { "name": "FDR", "id": "leaf-87" }
+                    ]}
+                  ]
+                },
+                {
+                  "name": "method5",
+                  "children": [
+                    { "name": "Stability Metric", "children": [
+                      { "name": "Differences in ASVs", "id": "leaf-88" },
+                      { "name": "AUROC", "id": "leaf-89" },
+                      { "name": "FDR", "id": "leaf-90" }
+                    ]}
                   ]
                 }
               ]

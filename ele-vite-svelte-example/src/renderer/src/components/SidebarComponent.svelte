@@ -18,9 +18,9 @@
 
 	let subOperations = writable({
 		'Raw data': ['Set Random Seed', 'Preview', 'Quick Explore'],
-		'Data Perturbation': ['Threshold', 'Additional Option 1', 'Additional Option 2'],
+		'Data Perturbation': ['Filter', 'Threshold', 'Transformation', 'R/A Abundance', 'Data Splitting', 'Batch Effect Removal'],
 		'Model Perturbation': ['Select Method'],
-		'Stability Metric': ['View Stability Plot', 'Run Shuffled Analysis', 'ASV Selector', 'json interaction']
+		'Stability Metric': ['All methods calculation', 'Differences in ASVs', 'AUROC', 'FDR', 'View Stability Plot', 'Run Shuffled Analysis', 'ASV Selector', 'json interaction']
 	});
 
 	let selectedOperations = writable(Object.fromEntries(steps.map((step) => [step, []])));
