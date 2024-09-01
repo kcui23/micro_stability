@@ -66,6 +66,7 @@
 	}
 
 	function selectStep(step) {
+		console.log("selectStep and stepStatus:", {step: step, status: $stepStatus[step]});
 		if ($stepStatus[step] === 'Enabled') {
 			setCurrentStep(step);
 			dispatch('stepSelected', { step });
@@ -82,7 +83,6 @@
 			}
 			return selections;
 		});
-		dispatch('operationsChanged', { step, operations: $selectedOperations[step] });
 	}
 
 	function toggleMenu(step) {

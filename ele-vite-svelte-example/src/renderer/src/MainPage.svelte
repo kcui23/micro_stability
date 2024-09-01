@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { selectedPoints, currentPath } from './store.js';
+  import { selectedPoints, currentPath, stepStatus, selectedOperations } from './store.js';
 
   import D3Tree from './components/D3Tree.svelte';
   import FileUploader from './components/FileUploader.svelte';
@@ -24,7 +24,6 @@
 
   let asvFiles = [];
   let groupingsFile = null;
-  let selectedOperations = {};
   let isStatic = true;
   let zoomedImage = null;
   let visualizations = {
@@ -587,22 +586,36 @@ const runShuffledAnalysis = async () => {
 
   function handleScatterPointClick(event) {
     const { path } = event.detail;
+
+    // Update d3 tree
     currentPath.set(path);
     if (d3TreeComponent) {
       d3TreeComponent.highlightPath(path);
     } else {
       console.error("D3Tree component not found");
     }
+
+    // Update sidebar
+    stepStatus.update(status => {
+      return Object.fromEntries(
+        Object.keys(status).map(key => [key, 'Enabled'])
+      );
+    });
+    
+    selectedOperations.update(operations => {
+      operations[path[1]] = [path[2]];
+      operations['Model Perturbation'] = ['Select Method'];
+      operations[path[5]] = [path[6]];
+      return operations;
+    });
+
+    // Update selected methods
+    selectedMethod = path[4];
   }
 
   function handleStepSelected(event) {
     const { step } = event.detail;
     currentStep = step;
-  }
-
-  function handleOperationsChanged(event) {
-    const { step, operations } = event.detail;
-    selectedOperations[step] = operations;
   }
 
   function toggleView(view) {
@@ -643,7 +656,7 @@ const runShuffledAnalysis = async () => {
 
   $: {
     console.log('Current step:', currentStep);
-    console.log('Selected operations:', JSON.stringify(selectedOperations, null, 2));
+    console.log('Selected operations:', JSON.stringify($selectedOperations, null, 2));
     console.log("Tree data in main:", treeData);
   }
 
@@ -797,7 +810,6 @@ const runShuffledAnalysis = async () => {
       currentStep={currentStep} 
       setCurrentStep={goToStep}
       on:stepSelected={handleStepSelected}
-      on:operationsChanged={handleOperationsChanged}
     />
   </div>
 
@@ -839,7 +851,7 @@ const runShuffledAnalysis = async () => {
           />
         {/if}
 
-        {#if selectedOperations['Raw data']?.includes('Set Random Seed')}
+        {#if $selectedOperations['Raw data']?.includes('Set Random Seed')}
           <!-- Random Seed Input UI -->
           <div>
             <label for="randomSeed">Set Random Seed:</label>
@@ -847,7 +859,7 @@ const runShuffledAnalysis = async () => {
           </div>
         {/if}
 
-        {#if selectedOperations['Raw data']?.includes('Quick Explore')}
+        {#if $selectedOperations['Raw data']?.includes('Quick Explore')}
           <div class="tooltip">
             <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
             <span class="tooltiptext">Upload files to continue</span>
@@ -859,7 +871,7 @@ const runShuffledAnalysis = async () => {
       <h2>Data Perturbation</h2>
       <div>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-        {#if selectedOperations['Data Perturbation']?.includes('Filter')}
+        {#if $selectedOperations['Data Perturbation']?.includes('Filter')}
           <div class="filters">
             <label for="filter">Filter:</label>
             <select id="filter">
@@ -869,7 +881,7 @@ const runShuffledAnalysis = async () => {
             <button>Apply Filter</button>
           </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Threshold')}
+        {#if $selectedOperations['Data Perturbation']?.includes('Threshold')}
           <!-- Threshold Application UI -->
             <div class="filters">
               <label for="threshold">Threshold for Rare Genes:</label>
@@ -878,7 +890,7 @@ const runShuffledAnalysis = async () => {
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Transformation')}
+        {#if $selectedOperations['Data Perturbation']?.includes('Transformation')}
           <!-- Transformation Application UI -->
           <div class="filters">
             <label for="transformation">Transformation:</label>
@@ -890,7 +902,7 @@ const runShuffledAnalysis = async () => {
             <button>Apply Transformation</button>
           </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('R/A Abundance')}
+        {#if $selectedOperations['Data Perturbation']?.includes('R/A Abundance')}
           <!-- R/A Abundance Application UI -->
           <div class="filters">
             <label for="raAbundance">R/A Abundance:</label>
@@ -901,7 +913,7 @@ const runShuffledAnalysis = async () => {
             <button>Apply R/A Abundance</button>
           </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Data Splitting')}
+        {#if $selectedOperations['Data Perturbation']?.includes('Data Splitting')}
           <!-- Data Splitting Application UI -->
           <div class="filters">
             <label for="dataSplitting">Data Splitting:</label>
@@ -911,7 +923,7 @@ const runShuffledAnalysis = async () => {
             <button>Apply Data Splitting</button>
           </div>
         {/if}
-        {#if selectedOperations['Data Perturbation']?.includes('Batch Effect Removal')}
+        {#if $selectedOperations['Data Perturbation']?.includes('Batch Effect Removal')}
           <!-- Batch Effect Removal Application UI -->
           <div class="filters">
             <label for="batchEffectRemoval">Batch Effect Removal:</label>
@@ -927,7 +939,7 @@ const runShuffledAnalysis = async () => {
     {:else if currentStep === 'Model Perturbation'}
       <h2>Model Perturbation</h2>
       <div>
-        {#if selectedOperations['Model Perturbation']?.includes('Select Method')}
+        {#if $selectedOperations['Model Perturbation']?.includes('Select Method')}
           <!-- Method Selection UI -->
           <div class="methods">
             <label for="method-select">Select Method:</label>
@@ -939,7 +951,7 @@ const runShuffledAnalysis = async () => {
           </div>
         {/if}
 
-        {#if selectedOperations['Model Perturbation']?.includes('Select Method') && asvFiles.length > 0 && groupingsFile && selectedMethod}
+        {#if $selectedOperations['Model Perturbation']?.includes('Select Method') && asvFiles.length > 0 && groupingsFile && selectedMethod}
           <button on:click={handleSubmit}>Submit</button>
           <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
         {/if}
@@ -948,7 +960,7 @@ const runShuffledAnalysis = async () => {
     {:else if currentStep === 'Stability Metric'}
       <div>
         <h2>Stability Metric</h2>
-        {#if selectedOperations['Stability Metric']?.includes('All methods calculation')}
+        {#if $selectedOperations['Stability Metric']?.includes('All methods calculation')}
           <div class="method-file-status">
             <h3>Method File Status:</h3>
             {#each Object.entries(methodFileStatus) as [method, status]}
@@ -988,25 +1000,25 @@ const runShuffledAnalysis = async () => {
           </div>
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
+        {#if $selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
           <div>
             <button>Calculate Differences in ASVs</button>
           </div>
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('AUROC')}
+        {#if $selectedOperations['Stability Metric']?.includes('AUROC')}
           <div>
             <button>Calculate AUROC</button>
           </div>
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('FDR')}
+        {#if $selectedOperations['Stability Metric']?.includes('FDR')}
           <div>
             <button>Calculate FDR</button>
           </div>
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('View Stability Plot')}
+        {#if $selectedOperations['Stability Metric']?.includes('View Stability Plot')}
           <!-- Stability Plot Viewing UI -->
           {#if stabilityPlot}
             <div class="stability-plot">
@@ -1015,7 +1027,7 @@ const runShuffledAnalysis = async () => {
             </div>
           {/if}
         {/if}
-        {#if selectedOperations['Stability Metric']?.includes('Run Shuffled Analysis')}
+        {#if $selectedOperations['Stability Metric']?.includes('Run Shuffled Analysis')}
           <!-- Shuffled Analysis UI -->
           <h3>Shuffled Analysis</h3>
 
@@ -1050,7 +1062,7 @@ const runShuffledAnalysis = async () => {
           {/if}
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('ASV Selector')}
+        {#if $selectedOperations['Stability Metric']?.includes('ASV Selector')}
           <button on:click={() => showASVSelector = !showASVSelector} disabled={!combinedResultsReady}>
             {showASVSelector ? 'Hide' : 'Show'} ASV Selector
           </button>
@@ -1061,7 +1073,7 @@ const runShuffledAnalysis = async () => {
           </div>
         {/if}
 
-        {#if selectedOperations['Stability Metric']?.includes('json interaction')}
+        {#if $selectedOperations['Stability Metric']?.includes('json interaction')}
           <button on:click={() => interactWithJson()}>Interact with JSON</button>
         {/if}
         
