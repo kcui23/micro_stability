@@ -223,6 +223,7 @@
 
 	.step-item.active {
 		box-shadow: 0 0 0 2px #007bff;
+		filter: drop-shadow(0 0 3px #bdddff);
 	}
 
 	.step-button {

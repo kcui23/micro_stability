@@ -1,4 +1,5 @@
 <script>
+  import { fade } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
   import { selectedPoints, currentPath, stepStatus, selectedOperations } from './store.js';
 
@@ -789,6 +790,18 @@ const runShuffledAnalysis = async () => {
     margin-left: 10px;
   }
 
+  .content > .step-content {
+    position: absolute; /* Make all content divs overlap */
+    width: calc(100% - 320px); /* Adjust width to account for sidebar */
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .content > .step-content.active {
+    opacity: 1;
+  }
+
 </style>
 
 <div id="app" class="container">
@@ -828,7 +841,7 @@ const runShuffledAnalysis = async () => {
 
 
     {#if currentStep === 'Raw data'}
-      <div>
+      <div key='raw-data' in:fade class="step-content" class:active={currentStep === 'Raw data'}>
         <h2>Raw Data</h2>
         <!-- ASV File Upload UI -->
         <FileUploader 
@@ -866,8 +879,8 @@ const runShuffledAnalysis = async () => {
 
       </div>
     {:else if currentStep === 'Data Perturbation'}
-      <h2>Data Perturbation</h2>
-      <div>
+      <div key='data-perturbation' in:fade class="step-content" class:active={currentStep === 'Data Perturbation'}>
+        <h2>Data Perturbation</h2>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
         {#if $selectedOperations['Data Perturbation']?.includes('Filter')}
           <div class="filters">
@@ -935,8 +948,8 @@ const runShuffledAnalysis = async () => {
         {/if}
       </div>
     {:else if currentStep === 'Model Perturbation'}
-      <h2>Model Perturbation</h2>
-      <div>
+      <div key='model-perturbation' in:fade class="step-content" class:active={currentStep === 'Model Perturbation'}>
+        <h2>Model Perturbation</h2>
         {#if $selectedOperations['Model Perturbation']?.includes('Select Method')}
           <!-- Method Selection UI -->
           <div class="methods">
@@ -956,7 +969,7 @@ const runShuffledAnalysis = async () => {
 
       </div>
     {:else if currentStep === 'Stability Metric'}
-      <div>
+      <div key='stability-metric' in:fade class="step-content" class:active={currentStep === 'Stability Metric'}>
         <h2>Stability Metric</h2>
 
         {#if $selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
