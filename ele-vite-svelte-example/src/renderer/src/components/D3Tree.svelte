@@ -96,8 +96,7 @@
                     .attr("stroke-opacity", 0)
                     .attr("data-name", d => d.data.name)
                     .on("click", (event, d) => {
-                        d.children = d.children ? null : d._children;
-                        update(event, d);
+                        console.log("Clicked node:", d);
                     });
 
                 nodeEnter.append("circle")

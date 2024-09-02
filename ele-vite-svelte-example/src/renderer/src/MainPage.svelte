@@ -613,11 +613,6 @@ const runShuffledAnalysis = async () => {
     selectedMethod = path[4];
   }
 
-  function handleStepSelected(event) {
-    const { step } = event.detail;
-    currentStep = step;
-  }
-
   function toggleView(view) {
     isStatic = view === 'static';
   }
@@ -803,13 +798,12 @@ const runShuffledAnalysis = async () => {
     <span>Please upload the required files first.</span>
   </div>
 
-  <!-- ADG Sidebar -->
+  <!-- Sidebar -->
   <div class="sidebar">
     <SidebarComponent 
       steps={steps} 
       currentStep={currentStep} 
       setCurrentStep={goToStep}
-      on:stepSelected={handleStepSelected}
     />
   </div>
 

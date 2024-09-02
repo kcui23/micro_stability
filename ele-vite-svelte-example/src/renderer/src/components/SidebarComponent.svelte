@@ -1,13 +1,11 @@
 <script>
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount } from 'svelte';
 	import { stepStatus, subOperations, selectedOperations, openMenus } from '../store.js';
 	import { fade, slide } from 'svelte/transition';
 
 	export let steps;
 	export let currentStep;
 	export let setCurrentStep;
-
-	const dispatch = createEventDispatcher();
 
 	stepStatus.set(
 		steps.reduce((acc, step) => {
@@ -69,7 +67,6 @@
 		console.log("selectStep and stepStatus:", {step: step, status: $stepStatus[step]});
 		if ($stepStatus[step] === 'Enabled') {
 			setCurrentStep(step);
-			dispatch('stepSelected', { step });
 			toggleMenu(step);
 		}
 	}
