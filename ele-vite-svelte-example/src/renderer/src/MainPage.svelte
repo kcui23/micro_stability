@@ -811,7 +811,11 @@ const runShuffledAnalysis = async () => {
   <div class="content">
     <div class="tree-container-wrapper">
       <!-- D3 Tree Container -->
-      <D3Tree {treeData} bind:this={d3TreeComponent} />
+      <D3Tree 
+        {treeData}
+        setCurrentStep={goToStep}
+        bind:this={d3TreeComponent} 
+      />
       <!-- Scatter Plot -->
       <div class="scatter-plot-container">
         <ScatterPlot on:pointClick={handleScatterPointClick} {data_points_updated_counter}/>
@@ -834,7 +838,7 @@ const runShuffledAnalysis = async () => {
           {groupingsFile} 
         />
         
-        {#if selectedOperations['Raw data']?.includes('Preview')}
+        {#if $selectedOperations['Raw data']?.includes('Preview')}
           <PreviewSection
             {filteredContent}
             {groupingsContentPreview}

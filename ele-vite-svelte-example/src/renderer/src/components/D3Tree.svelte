@@ -1,8 +1,10 @@
 <script>
     import { onDestroy } from 'svelte';
     import * as d3 from 'd3';
+    import { subOperations, openMenus, stepStatus } from '../store.js';
 
     export let treeData;
+    export let setCurrentStep;
 
     let d3TreeContainer;
     let treeRoot;
@@ -19,7 +21,18 @@
 
     onDestroy(() => {
         d3.select(d3TreeContainer).select("svg").remove(); // Clean up on component destruction
+        subOperations.unsubscribe();
     });
+
+    function toggleMenu_in_D3Tree(step) {
+		openMenus.update((menus) => {
+			Object.keys(menus).forEach((key) => {
+				if (key !== step) menus[key] = false;
+			});
+			menus[step] = true;
+			return menus;
+		});
+	}
 
     function renderD3Tree(container, data) {
         const width = container.offsetWidth || 400;
@@ -96,7 +109,36 @@
                     .attr("stroke-opacity", 0)
                     .attr("data-name", d => d.data.name)
                     .on("click", (event, d) => {
+                        let name = d.data.name;
+                        console.log('=====')
                         console.log("Clicked node:", d);
+                        console.log("clicked node name:", d.data.name);
+                        console.log('=====')
+                        // Check if name is in subOperations keys or values
+                        subOperations.subscribe(operations => {
+                            let found = false;
+                            if (Object.keys(operations).includes(name)) {
+                                console.log("Node is a main operation:", name);
+                                setCurrentStep(name);
+                                toggleMenu_in_D3Tree(name);
+                                found = true;
+                            } else {
+                                for (let [key, value] of Object.entries(operations)) {
+                                    if (value.includes(name)) {
+                                        console.log("Node is a sub-operation of:", key);
+                                        setCurrentStep(key);
+                                        toggleMenu_in_D3Tree(key);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    console.log("Node is from 'Model Perturbation'");
+                                    setCurrentStep('Model Perturbation');
+                                    toggleMenu_in_D3Tree('Model Perturbation');
+                                }
+                            }
+                        });
                     });
 
                 nodeEnter.append("circle")
