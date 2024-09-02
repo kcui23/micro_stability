@@ -1,6 +1,12 @@
 <script>
 	import { onMount } from 'svelte';
-	import { stepStatus, subOperations, selectedOperations, openMenus } from '../store.js';
+	import {
+		stepStatus,
+		subOperations,
+		selectedOperations,
+		openMenus,
+		singleSelectOperations
+	} from '../store.js';
 	import { fade, slide } from 'svelte/transition';
 
 	export let steps;
@@ -12,7 +18,7 @@
 			acc[step] = step === 'Raw data' ? 'Enabled' : 'Disabled';
 			return acc;
 		}, {})
-	)
+	);
 
 	stepStatus.subscribe(value => {
 		console.log("stepStatus:", value);
@@ -26,7 +32,7 @@
 		stepStatus.update((status) => {
 			const newStatus = status[step] === 'Enabled' ? 'Disabled' : 'Enabled';
 			status[step] = newStatus;
-			
+
 			// If the new status is 'Disabled', close the menu and update currentStep
 			if (newStatus === 'Disabled') {
 				openMenus.update(menus => {
@@ -40,10 +46,10 @@
 
 			// If the new status is 'Enabled', open the menu and update currentStep
 			if (newStatus === 'Enabled') {
-				openMenus.update(menus => {
+				openMenus.update((menus) => {
 					menus[step] = true;
 					// set all the other menus[step] to false
-					Object.keys(menus).forEach(key => {
+					Object.keys(menus).forEach((key) => {
 						if (key !== step) menus[key] = false;
 					});
 					return menus;
@@ -51,13 +57,12 @@
 				setCurrentStep(step);
 			}
 			
-			
 			return status;
 		});
 	}
 
 	function selectStep(step) {
-		console.log("selectStep and stepStatus:", {step: step, status: $stepStatus[step]});
+		console.log('selectStep and stepStatus:', { step: step, status: $stepStatus[step] });
 		if ($stepStatus[step] === 'Enabled') {
 			setCurrentStep(step);
 			toggleMenu(step);
@@ -66,14 +71,24 @@
 
 	function toggleOperation(step, operation) {
 		selectedOperations.update((selections) => {
-			if (selections[step].includes(operation)) {
-				selections[step] = selections[step].filter((op) => op !== operation);
+			const isSingleSelect = $singleSelectOperations[step] && $singleSelectOperations[step].includes(operation);
+			if (isSingleSelect) {
+				const existingSingleSelect = $singleSelectOperations[step].find(op => selections[step].includes(op));
+				if (existingSingleSelect) {
+					selections[step] = selections[step].filter(op => op !== existingSingleSelect);
+				}
+				selections[step].push(operation);
 			} else {
-				selections[step] = [...selections[step], operation];
+				if (selections[step].includes(operation)) {
+					selections[step] = selections[step].filter(op => op !== operation);
+				} else {
+					selections[step] = [...selections[step], operation];
+				}
 			}
-			return selections;
-		});
-	}
+
+		return selections;
+	});
+}
 
 	function toggleMenu(step) {
 		openMenus.update((menus) => {
@@ -107,8 +122,9 @@
 					on:click={() => selectStep(step)}
 					disabled={$stepStatus[step] === 'Disabled'}
 				>
-					<!-- <span class="step-number">{index + 1}</span> -->
-					<span class="step-number" class:disabled={$stepStatus[step] === 'Disabled'}>{index + 1}</span>
+					<span class="step-number" class:disabled={$stepStatus[step] === 'Disabled'}>
+						{index + 1}
+					</span>
 					<span class="step-text">{step}</span>
 					<span class="dropdown-indicator">{$openMenus[step] ? '▲' : '▼'}</span>
 				</button>
@@ -132,15 +148,34 @@
 				{/if}
 				{#if $openMenus[step]}
 					<div class="sub-operations" transition:slide={{ duration: 300 }}>
+						{#if $singleSelectOperations[step]}
+							<!-- Single Select (Radio) Operations -->
+							{#each $singleSelectOperations[step] as operation}
+								<label class="operation-radio" transition:fade={{ duration: 200 }}>
+									<input
+										type="radio"
+										name={step + "-singleSelect"}
+										checked={$selectedOperations[step].includes(operation)}
+										on:change={() => toggleOperation(step, operation)}
+									/>
+									{operation}
+								</label>
+							{/each}
+							<hr /> <!-- Divider between radio and checkbox selections -->
+						{/if}
+
+						<!-- Multiple Select (Checkbox) Operations -->
 						{#each $subOperations[step] as operation}
-							<label class="operation-checkbox" transition:fade={{ duration: 200 }}>
-								<input
-									type="checkbox"
-									checked={$selectedOperations[step].includes(operation)}
-									on:change={() => toggleOperation(step, operation)}
-								/>
-								{operation}
-							</label>
+							{#if !$singleSelectOperations[step] || !$singleSelectOperations[step].includes(operation)}
+								<label class="operation-checkbox" transition:fade={{ duration: 200 }}>
+									<input
+										type="checkbox"
+										checked={$selectedOperations[step].includes(operation)}
+										on:change={() => toggleOperation(step, operation)}
+									/>
+									{operation}
+								</label>
+							{/if}
 						{/each}
 					</div>
 				{/if}
@@ -291,14 +326,22 @@
 		border-top: 1px solid #e0e0e0;
 	}
 
-	.operation-checkbox {
+	hr {
+		border: none;
+		border-top: 1px solid #e0e0e0;
+		margin: 10px 0;
+	}
+
+	.operation-checkbox,
+	.operation-radio {
 		display: flex;
 		align-items: center;
 		margin-bottom: 5px;
 		font-size: 0.9em;
 	}
 
-	.operation-checkbox input {
+	.operation-checkbox input,
+	.operation-radio input {
 		margin-right: 5px;
 	}
 </style>

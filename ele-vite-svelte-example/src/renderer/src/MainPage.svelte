@@ -958,6 +958,25 @@ const runShuffledAnalysis = async () => {
     {:else if currentStep === 'Stability Metric'}
       <div>
         <h2>Stability Metric</h2>
+
+        {#if $selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
+          <div>
+            <button>Calculate Differences in ASVs</button>
+          </div>
+        {/if}
+
+        {#if $selectedOperations['Stability Metric']?.includes('AUROC')}
+          <div>
+            <button>Calculate AUROC</button>
+          </div>
+        {/if}
+
+        {#if $selectedOperations['Stability Metric']?.includes('FDR')}
+          <div>
+            <button>Calculate FDR</button>
+          </div>
+        {/if}
+
         {#if $selectedOperations['Stability Metric']?.includes('All methods calculation')}
           <div class="method-file-status">
             <h3>Method File Status:</h3>
@@ -995,24 +1014,6 @@ const runShuffledAnalysis = async () => {
             <button on:click={downloadCombinedResults} disabled={!combinedResultsReady}>
               Download Combined Results
             </button>
-          </div>
-        {/if}
-
-        {#if $selectedOperations['Stability Metric']?.includes('Differences in ASVs')}
-          <div>
-            <button>Calculate Differences in ASVs</button>
-          </div>
-        {/if}
-
-        {#if $selectedOperations['Stability Metric']?.includes('AUROC')}
-          <div>
-            <button>Calculate AUROC</button>
-          </div>
-        {/if}
-
-        {#if $selectedOperations['Stability Metric']?.includes('FDR')}
-          <div>
-            <button>Calculate FDR</button>
           </div>
         {/if}
 
