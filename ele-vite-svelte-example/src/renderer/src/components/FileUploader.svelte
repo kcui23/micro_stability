@@ -1,31 +1,31 @@
 <script>
-  export let handleFileChange
-  export let handleGroupingsChange
-  export let asvFiles = []
-  export let groupingsFile = null
+  export let handleFileChange;
+  export let handleGroupingsChange;
+  export let asvFiles = [];
+  export let groupingsFile = null;
 
   function getFileName(files) {
-    return files && files.length > 0 ? `Selected file: ${files[0].name}` : ''
+    return files && files.length > 0 ? `Selected file: ${files[0].name}` : '';
+  }
+
+  function triggerFileInput(id) {
+    document.getElementById(id).click();
   }
 </script>
 
 <div class="upload-container">
   <div class="upload-section">
     <span class="file-label">Upload ASV File:</span>
-    <div class="custom-file-input">
-      <label for="fileInput1">Choose File</label>
-      <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} />
-    </div>
+    <button type="button" on:click={() => triggerFileInput('fileInput1')}>Choose File</button>
+    <input id="fileInput1" type="file" accept=".tsv" on:change={handleFileChange} style="display: none;" />
     <div class="note">Note: Please upload a .tsv file</div>
     <div id="fileName1" class="file-name">{getFileName(asvFiles)}</div>
   </div>
 
   <div class="upload-section">
     <span class="file-label">Upload Groupings File:</span>
-    <div class="custom-file-input">
-      <label for="fileInput2">Choose File</label>
-      <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} />
-    </div>
+    <button type="button" on:click={() => triggerFileInput('fileInput2')}>Choose File</button>
+    <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsChange} style="display: none;" />
     <div class="note">Note: Please upload a .tsv file</div>
     <div id="fileName2" class="file-name">{getFileName(groupingsFile ? [groupingsFile] : [])}</div>
   </div>
@@ -43,37 +43,30 @@
     margin-right: 20px;
   }
 
-  .custom-file-input {
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-  }
-
-  .custom-file-input input[type="file"] {
-    position: absolute;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    right: 0;
-    top: 0;
-  }
-
-  .custom-file-input label {
-    background-color: rgb(235, 235, 235);
+  button {
+    background-color: #f0f0f0;
     color: black;
-    padding: 0 7px;
-    font-size: 14px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: bold;
     text-align: center;
-    height: 25px;
-    line-height: 25px;
-    border-radius: 2px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
     cursor: pointer;
-    display: inline-block;
-    border: 1px solid black;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.1s ease;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .custom-file-input label:hover {
-    background-color: rgb(223, 223, 223);
+  button:hover {
+    background-color: #e2e8ef;
+  }
+
+  button:active {
+    background-color: #b6c2ce;
   }
 
   .file-label {

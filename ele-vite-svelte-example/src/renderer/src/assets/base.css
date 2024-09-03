@@ -66,11 +66,34 @@ th {
 
 button {
   height: 25px;
+  background-color: #f0f0f0;
+  color: black;
+  margin-left: 5px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
   cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+button:hover {
+  background-color: #e2e8ef;
+}
+
+button:active {
+  background-color: #b6c2ce;
 }
 
 button:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f0f0f0;
+  color: #999;
+  border-color: #ccc;
+}
+
+button:disabled:hover {
+  background-color: #f0f0f0;
 }
 
 .file-label {

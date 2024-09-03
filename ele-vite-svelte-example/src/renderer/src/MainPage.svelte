@@ -790,18 +790,6 @@ const runShuffledAnalysis = async () => {
     margin-left: 10px;
   }
 
-  .content > .step-content {
-    position: absolute; /* Make all content divs overlap */
-    width: calc(100% - 320px); /* Adjust width to account for sidebar */
-    padding: 20px;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-  }
-
-  .content > .step-content.active {
-    opacity: 1;
-  }
-
 </style>
 
 <div id="app" class="container">
