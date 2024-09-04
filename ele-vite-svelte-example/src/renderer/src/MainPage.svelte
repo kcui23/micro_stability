@@ -631,6 +631,41 @@ const runShuffledAnalysis = async () => {
     selectedMethod = path[4];
   }
 
+  function updateTreeandScatterplot() {
+    currentPath.update(path => {
+      path[4] = selectedMethod;
+      return path;
+    });
+    console.log("currentPath after update:", $currentPath);
+    handlePathChangeFromSidebar($currentPath, true);
+  }
+
+  function handlePathChangeFromSidebar(event, direct=false) {
+    let data;
+    if (direct) { data = event } else { data = event.detail }
+    console.log("【】event", data);
+    let allEnabled = Object.values($stepStatus).every(value => value === 'Enabled');;
+    
+    if (allEnabled) {
+      let path = new Array(7).fill('');
+      path[0] = steps[0]
+      path[1] = steps[1]
+      path[2] = data[steps[1]]&&data[steps[1]].length > 0 ? data[steps[1]][0] : data[2]
+      path[3] = steps[2]
+      path[4] = selectedMethod
+      path[5] = steps[3]
+      path[6] = data[steps[3]]&&data[steps[3]].length > 0 ? data[steps[3]][0] : data[6]
+      console.log("【】path", path)
+      // Update d3 tree
+      currentPath.set(path);
+      if (d3TreeComponent) {
+        d3TreeComponent.highlightPath(path);
+      } else {
+        console.error("D3Tree component not found");
+      }
+    }
+  }
+
   function toggleView(view) {
     isStatic = view === 'static';
   }
@@ -822,6 +857,7 @@ const runShuffledAnalysis = async () => {
       steps={steps} 
       currentStep={currentStep} 
       setCurrentStep={goToStep}
+      on:pathChange={handlePathChangeFromSidebar}
     />
   </div>
 
@@ -836,7 +872,10 @@ const runShuffledAnalysis = async () => {
       />
       <!-- Scatter Plot -->
       <div class="scatter-plot-container">
-        <ScatterPlot on:pointClick={handleScatterPointClick} {data_points_updated_counter}/>
+        <ScatterPlot 
+          on:pointClick={handleScatterPointClick} 
+          {data_points_updated_counter}
+        />
       </div> 
     </div>
 
@@ -959,7 +998,7 @@ const runShuffledAnalysis = async () => {
           <!-- Method Selection UI -->
           <div class="methods">
             <label for="method-select">Select Method:</label>
-            <select id="method-select" bind:value={selectedMethod}>
+            <select id="method-select" bind:value={selectedMethod} on:change={updateTreeandScatterplot}>
               {#each DataPerturbationMethods as method}
                 <option value={method}>{method}</option>
               {/each}

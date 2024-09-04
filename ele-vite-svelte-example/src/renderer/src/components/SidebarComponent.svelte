@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import {
 		stepStatus,
 		subOperations,
@@ -12,6 +12,8 @@
 	export let steps;
 	export let currentStep;
 	export let setCurrentStep;
+
+	const dispatch = createEventDispatcher();
 
 	stepStatus.set(
 		steps.reduce((acc, step) => {
@@ -89,6 +91,7 @@
 
 		return selections;
 	});
+	dispatch('pathChange', $selectedOperations);
 }
 
 	function toggleMenu(step) {
