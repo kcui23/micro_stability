@@ -126,7 +126,6 @@
   // Event handlers
   const handleFileChange = (event) => {
     const fileInput = event.target;
-    const fileNameDisplay = document.getElementById('fileName1');
     asvFiles = fileInput.files;
     if (fileInput.files.length > 0) {
       const reader = new FileReader();
@@ -138,17 +137,13 @@
         filteredDimensions = fileDimensions;
         filteredAsvContent = content;
       };
-      fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
       reader.readAsText(fileInput.files[0]);
-    } else {
-      fileNameDisplay.textContent = '';
     }
     resetMethodStatus();
   };
 
   const handleGroupingsChange = (event) => {
     const fileInput = event.target;
-    const fileNameDisplay = document.getElementById('fileName2');
     groupingsFile = fileInput.files[0];
     if (groupingsFile) {
       const reader = new FileReader();
@@ -157,10 +152,7 @@
         groupingsContentPreview = previewFileContent(content);
         groupingsDimensions = getFileDimensions(content);
       };
-      fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
       reader.readAsText(groupingsFile);
-    } else {
-      fileNameDisplay.textContent = '';
     }
     resetMethodStatus();
   };
@@ -835,8 +827,8 @@ const runShuffledAnalysis = async () => {
         <FileUploader 
           {handleFileChange} 
           {handleGroupingsChange} 
-          asvFiles={asvFiles || []}
-          {groupingsFile} 
+          bind:asvFiles
+          bind:groupingsFile
         />
         
         {#if $selectedOperations['Raw data']?.includes('Preview')}
