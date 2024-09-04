@@ -606,6 +606,7 @@ const runShuffledAnalysis = async () => {
       return operations;
     });
 
+    // deal with single select and multi-select in 'Stability Metric' step
     selectedOperations.update((selections) => {
 			const isSingleSelect = $singleSelectOperations[path[5]] && $singleSelectOperations[path[5]].includes(path[6]);
 			if (isSingleSelect) {

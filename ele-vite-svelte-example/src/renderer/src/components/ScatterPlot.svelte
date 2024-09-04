@@ -7,6 +7,7 @@
   let data;
   let leafIdDataPoints;
   export let data_points_updated_counter;
+  let selectedPointScatterPlot = null;
 
   async function fetchData(url) {
     const response = await fetch(url);
@@ -19,7 +20,7 @@
   $: if (data_points_updated_counter) {
     console.log("data_points_updated_counter in scatter plot");
     main_function();
-    console.log('after main function')
+    console.log('after main function');
   }
 
   onMount(() => {
@@ -44,7 +45,7 @@
       const x = d3.scaleLinear().range([margin.left, width - margin.right]);
       const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 
-      // clean any previous svg element
+      // Clear any previous svg elements
       d3.select(svg).selectAll('*').remove();
 
       const svgElement = d3.select(svg)
@@ -58,9 +59,14 @@
         x.domain(d3.extent(points, d => d.x));
         y.domain(d3.extent(points, d => d.y));
 
-        svgElement.selectAll('circle')
-          .data(points)
-          .enter()
+        const circles = svgElement.selectAll('circle')
+          .data(points, d => d);
+
+        // Remove old circles
+        circles.exit().remove();
+
+        // Append new circles
+        circles.enter()
           .append('circle')
           .attr('cx', d => x(d.x))
           .attr('cy', d => y(d.y))
@@ -68,7 +74,7 @@
           .attr('fill', 'steelblue')
           .on('click', (event, d) => {
             handlePointClick(d);
-          });
+          })
 
         svgElement.append('g')
           .attr('transform', `translate(0,${height - margin.bottom})`)
@@ -90,7 +96,14 @@
   }
 
   function handlePointClick(d) {
+    selectedPointScatterPlot = d;
+    console.log("selectedPoint in scatter plot:", selectedPointScatterPlot);
     dispatch('pointClick', { path: d.path });
+
+    // Update circle fills without redrawing the whole plot
+    d3.select(svg).selectAll('circle')
+      .attr('fill', circleData => circleData === selectedPointScatterPlot ? 'orange' : 'steelblue')
+      .attr('r', circleData => circleData === selectedPointScatterPlot ? 10 : 5);
   }
 
   function extractDataPoints(node, path = []) {
