@@ -81,6 +81,7 @@
 					selections[step] = selections[step].filter(op => op !== existingSingleSelect);
 				}
 				selections[step].push(operation);
+				dispatch('pathChange', $selectedOperations);
 			} else {
 				if (selections[step].includes(operation)) {
 					selections[step] = selections[step].filter(op => op !== operation);
@@ -91,7 +92,6 @@
 
 		return selections;
 	});
-	dispatch('pathChange', $selectedOperations);
 }
 
 	function toggleMenu(step) {

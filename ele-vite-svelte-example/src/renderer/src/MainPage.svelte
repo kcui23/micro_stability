@@ -22,6 +22,7 @@
   let d3TreeContainer;
   let d3TreeComponent;
   let data_points_updated_counter = 0;
+  let highlight_point_path = [];
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
@@ -631,6 +632,11 @@ const runShuffledAnalysis = async () => {
     selectedMethod = path[4];
   }
 
+  function highlightPoint(path, parent_func='') {
+    console.log("Called from " + parent_func + ": highlightPoint:", path);
+    highlight_point_path = path;
+  }
+
   function updateTreeandScatterplot() {
     currentPath.update(path => {
       path[4] = selectedMethod;
@@ -638,12 +644,17 @@ const runShuffledAnalysis = async () => {
     });
     console.log("currentPath after update:", $currentPath);
     handlePathChangeFromSidebar($currentPath, true);
+    highlightPoint($currentPath, "updateTreeandScatterplot");
   }
 
   function handlePathChangeFromSidebar(event, direct=false) {
+    console.log("【handlePathChangeFromSidebar】:", event);
     let data;
-    if (direct) { data = event } else { data = event.detail }
-    console.log("【】event", data);
+    let existingSingleSelect;
+    if (direct) { data = event } else { 
+      data = event.detail 
+      existingSingleSelect = $singleSelectOperations[steps[3]].find(op => data[steps[3]].includes(op));
+    }
     let allEnabled = Object.values($stepStatus).every(value => value === 'Enabled');;
     
     if (allEnabled) {
@@ -654,8 +665,8 @@ const runShuffledAnalysis = async () => {
       path[3] = steps[2]
       path[4] = selectedMethod
       path[5] = steps[3]
-      path[6] = data[steps[3]]&&data[steps[3]].length > 0 ? data[steps[3]][0] : data[6]
-      console.log("【】path", path)
+      path[6] = data[steps[3]]&&data[steps[3]].length > 0 ? existingSingleSelect : data[6]
+      console.log("New path from sidebar:", path)
       // Update d3 tree
       currentPath.set(path);
       if (d3TreeComponent) {
@@ -663,6 +674,7 @@ const runShuffledAnalysis = async () => {
       } else {
         console.error("D3Tree component not found");
       }
+      highlightPoint(path, "handlePathChangeFromSidebar");
     }
   }
 
@@ -875,6 +887,7 @@ const runShuffledAnalysis = async () => {
         <ScatterPlot 
           on:pointClick={handleScatterPointClick} 
           {data_points_updated_counter}
+          {highlight_point_path}
         />
       </div> 
     </div>

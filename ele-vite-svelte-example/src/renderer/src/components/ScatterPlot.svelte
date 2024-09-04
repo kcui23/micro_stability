@@ -6,8 +6,12 @@
   let svg;
   let data;
   let leafIdDataPoints;
-  export let data_points_updated_counter;
   let selectedPointScatterPlot = null;
+  
+  export let data_points_updated_counter;
+  export let highlight_point_path;
+
+  $: highlightPoint(highlight_point_path);
 
   async function fetchData(url) {
     const response = await fetch(url);
@@ -74,7 +78,7 @@
           .attr('fill', 'steelblue')
           .on('click', (event, d) => {
             handlePointClick(d);
-          })
+          });
 
         svgElement.append('g')
           .attr('transform', `translate(0,${height - margin.bottom})`)
@@ -100,10 +104,23 @@
     console.log("selectedPoint in scatter plot:", selectedPointScatterPlot);
     dispatch('pointClick', { path: d.path });
 
-    // Update circle fills without redrawing the whole plot
+    // Update circle styles without redrawing the whole plot
     d3.select(svg).selectAll('circle')
+      .transition()
+      .duration(100)
       .attr('fill', circleData => circleData === selectedPointScatterPlot ? 'orange' : 'steelblue')
       .attr('r', circleData => circleData === selectedPointScatterPlot ? 10 : 5);
+  }
+
+  function highlightPoint(path) {
+    if (path) {
+      console.log("Highlighting point with path:", path);
+      d3.select(svg).selectAll('circle')
+        .transition()
+        .duration(100)
+        .attr('fill', d => d.path.toString() === path.toString() ? 'orange' : 'steelblue')
+        .attr('r', d => d.path.toString() === path.toString() ? 10 : 5);
+    }
   }
 
   function extractDataPoints(node, path = []) {
