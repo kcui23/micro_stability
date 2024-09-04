@@ -74,6 +74,7 @@
 			const isSingleSelect = $singleSelectOperations[step] && $singleSelectOperations[step].includes(operation);
 			if (isSingleSelect) {
 				const existingSingleSelect = $singleSelectOperations[step].find(op => selections[step].includes(op));
+				console.log('existingSingleSelect:', existingSingleSelect);
 				if (existingSingleSelect) {
 					selections[step] = selections[step].filter(op => op !== existingSingleSelect);
 				}

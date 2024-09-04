@@ -1,7 +1,12 @@
 <script>
   import { fade } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
-  import { selectedPoints, currentPath, stepStatus, selectedOperations } from './store.js';
+  import { selectedPoints, 
+    currentPath, 
+    stepStatus, 
+    selectedOperations, 
+    singleSelectOperations 
+  } from './store.js';
 
   import D3Tree from './components/D3Tree.svelte';
   import FileUploader from './components/FileUploader.svelte';
@@ -598,9 +603,28 @@ const runShuffledAnalysis = async () => {
     selectedOperations.update(operations => {
       operations[path[1]] = [path[2]];
       operations['Model Perturbation'] = ['Select Method'];
-      operations[path[5]] = [path[6]];
       return operations;
     });
+
+    selectedOperations.update((selections) => {
+			const isSingleSelect = $singleSelectOperations[path[5]] && $singleSelectOperations[path[5]].includes(path[6]);
+			if (isSingleSelect) {
+				const existingSingleSelect = $singleSelectOperations[path[5]].find(op => selections[path[5]].includes(op));
+				console.log('existingSingleSelect:', existingSingleSelect);
+				if (existingSingleSelect) {
+					selections[path[5]] = selections[path[5]].filter(op => op !== existingSingleSelect);
+				}
+				selections[path[5]].push(path[6]);
+			} else {
+				if (selections[path[5]].includes(path[6])) {
+					selections[path[5]] = selections[path[5]].filter(op => op !== path[6]);
+				} else {
+					selections[path[5]] = [...selections[path[5]], path[6]];
+				}
+			}
+
+		return selections;
+	});
 
     // Update selected methods
     selectedMethod = path[4];

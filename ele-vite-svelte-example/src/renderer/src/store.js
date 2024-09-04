@@ -11,6 +11,7 @@ export const subOperations = readable({
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR', 'All methods calculation', 'View Stability Plot', 'Run Shuffled Analysis', 'ASV Selector', 'json interaction']
 });
 export const singleSelectOperations = readable({
+    'Data Perturbation': ['Filter', 'Threshold', 'Transformation', 'R/A Abundance', 'Data Splitting', 'Batch Effect Removal'],
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
 })
 export const selectedOperations = writable({});
