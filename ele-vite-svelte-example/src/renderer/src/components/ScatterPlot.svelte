@@ -6,12 +6,18 @@
   let svg;
   let data;
   let leafIdDataPoints;
-  let selectedPointScatterPlot = null;
+  let selectedPointId = null;
   
   export let data_points_updated_counter;
   export let highlight_point_path;
 
-  $: highlightPoint(highlight_point_path);
+  $: if (data_points_updated_counter) {
+    main_function();
+  }
+
+  $: if (highlight_point_path) {
+    highlightPoint(highlight_point_path);
+  }
 
   async function fetchData(url) {
     const response = await fetch(url);
@@ -21,26 +27,18 @@
     return await response.json();
   }
 
-  $: if (data_points_updated_counter) {
-    console.log("data_points_updated_counter in scatter plot");
-    main_function();
-    console.log('after main function');
-  }
-
   onMount(() => {
     main_function();
   });
 
   async function main_function() {
     try {
-      // Fetch both data.json and leaf_id_data_points.json 
       const [dataResponse, leafIdDataPointsResponse] = await Promise.all([
         fetchData('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json'),
         fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json')
       ]);
       data = dataResponse;
       leafIdDataPoints = leafIdDataPointsResponse;
-      console.log("leafIdDataPoints in scatter plot:", leafIdDataPoints);
 
       const width = 300;
       const height = 300;
@@ -49,7 +47,6 @@
       const x = d3.scaleLinear().range([margin.left, width - margin.right]);
       const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 
-      // Clear any previous svg elements
       d3.select(svg).selectAll('*').remove();
 
       const svgElement = d3.select(svg)
@@ -63,22 +60,21 @@
         x.domain(d3.extent(points, d => d.x));
         y.domain(d3.extent(points, d => d.y));
 
-        const circles = svgElement.selectAll('circle')
-          .data(points, d => d);
-
-        // Remove old circles
-        circles.exit().remove();
-
-        // Append new circles
-        circles.enter()
-          .append('circle')
-          .attr('cx', d => x(d.x))
-          .attr('cy', d => y(d.y))
-          .attr('r', 5)
-          .attr('fill', 'steelblue')
-          .on('click', (event, d) => {
-            handlePointClick(d);
-          });
+        svgElement.selectAll('circle')
+          .data(points, d => d.id)
+          .join(
+            enter => enter.append('circle')
+              .attr('cx', d => x(d.x))
+              .attr('cy', d => y(d.y))
+              .attr('r', 5)
+              .attr('fill', 'steelblue')
+              .on('click', (event, d) => handlePointClick(d)),
+            update => update
+              .attr('cx', d => x(d.x))
+              .attr('cy', d => y(d.y))
+          )
+          .attr('r', d => d.id === selectedPointId ? 10 : 5)
+          .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue');
 
         svgElement.append('g')
           .attr('transform', `translate(0,${height - margin.bottom})`)
@@ -100,26 +96,24 @@
   }
 
   function handlePointClick(d) {
-    selectedPointScatterPlot = d;
-    console.log("selectedPoint in scatter plot:", selectedPointScatterPlot);
+    selectedPointId = d.id;
     dispatch('pointClick', { path: d.path });
-
-    // Update circle styles without redrawing the whole plot
-    d3.select(svg).selectAll('circle')
-      .transition()
-      .duration(100)
-      .attr('fill', circleData => circleData === selectedPointScatterPlot ? 'orange' : 'steelblue')
-      .attr('r', circleData => circleData === selectedPointScatterPlot ? 10 : 5);
+    highlightPoint(d.path);
   }
 
   function highlightPoint(path) {
-    if (path) {
-      console.log("Highlighting point with path:", path);
+    if (!path) return;
+    
+    const points = extractDataPoints(data);
+    const selectedPoint = points.find(p => p.path.toString() === path.toString());
+    
+    if (selectedPoint) {
+      selectedPointId = selectedPoint.id;
       d3.select(svg).selectAll('circle')
         .transition()
         .duration(100)
-        .attr('fill', d => d.path.toString() === path.toString() ? 'orange' : 'steelblue')
-        .attr('r', d => d.path.toString() === path.toString() ? 10 : 5);
+        .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
+        .attr('r', d => d.id === selectedPointId ? 10 : 5);
     }
   }
 
@@ -128,7 +122,12 @@
     if (node && node.id && leafIdDataPoints[node.id]) {
       const dataPoint = leafIdDataPoints[node.id].data_point;
       if (dataPoint) {
-        points.push({ x: dataPoint[0], y: dataPoint[1], path: [...path, node.name] });
+        points.push({ 
+          id: node.id, 
+          x: dataPoint[0], 
+          y: dataPoint[1], 
+          path: [...path, node.name] 
+        });
       }
     }
     if (node && node.children) {
