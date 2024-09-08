@@ -12,8 +12,27 @@
   export let selectedPointsList
   export let selectedMethod
   export let isSubmitted
-  export let handleDownload
   export let zoomedImage
+
+  const saveImage = (imageData, name) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = name + '.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    img.src = imageData;
+  }
 
   const removePoint = (pointToRemove) => {
     selectedPoints.update(points => points.filter(point => point !== pointToRemove));
@@ -173,9 +192,9 @@
         <img src={visualizations[zoomedImage]} alt="Zoomed Image" class="bounded-image" />
         <button
           class="download-button"
-          on:click|stopPropagation={() => handleDownload(selectedMethod)}
+          on:click|stopPropagation={() => saveImage(visualizations[zoomedImage], zoomedImage)}
         >
-          Download
+          Save Image
         </button>
       </div>
     </div>
@@ -340,10 +359,10 @@
 
   .zoomed-image-content {
     position: relative;
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 90vw;
+    max-height: 90vh;
     background-color: white;
-    padding: 20px;
+    padding: 20px 20px 45px 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     display: flex;
@@ -351,26 +370,18 @@
   }
 
   .zoomed-image-content img {
-    max-width: 100%;
-    max-height: 80vh; /* Ensure the image fits within the viewport */
+    max-width: 100vw;
+    max-height: 75vh;
     object-fit: contain;
   }
 
   .download-button {
-    align-self: center;
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    position: absolute;
+    width: 20%;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
   }
-
-  .download-button:hover {
-    background-color: #0056b3;
-  }
-
   .loader {
     display: flex;
     justify-content: center;

@@ -1167,7 +1167,7 @@ const runShuffledAnalysis = async () => {
       {selectedPointsList}
       {selectedMethod}
       {isSubmitted}
-      {handleDownload}
+      {downloadImage}
       {zoomedImage}
     />
 
