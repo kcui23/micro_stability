@@ -657,3 +657,32 @@ function(req, res) {
     return(list(error = paste("Error updating the JSON file:", e$message)))
   })
 }
+
+#* Calculate stability metric
+#* @post /calculate_stability_metric
+#* @serializer json
+#* @response 200 list(message="Stability metric calculated successfully")
+#* @response 500 list(error="Error calculating stability metric")
+function(req, res) {
+  tryCatch({
+    body <- fromJSON(req$postBody)
+    asv <- body$asv
+    groupings <- body$groupings
+    stability_metric <- calculate_stability_metric(asv, groupings)
+    
+    res$status <- 200
+    return(list(message = "Stability metric calculated successfully", stability_metric = stability_metric))
+  }, error = function(e) {
+    res$status <- 500
+    return(list(error = paste("Error calculating stability metric:", e$message)))
+  })
+}
+
+calculate_stability_metric <- function(asv, groupings) {
+  # Implement your stability metric calculation logic here
+  # For now, it returns previews of the files
+  asv_preview <- head(strsplit(asv, "\n")[[1]])
+  groupings_preview <- head(strsplit(groupings, "\n")[[1]])
+  
+  return(list(asv_preview = asv_preview, groupings_preview = groupings_preview))
+}

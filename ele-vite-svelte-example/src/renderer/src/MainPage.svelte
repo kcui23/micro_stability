@@ -29,6 +29,55 @@
     console.log("selectedPointsList updated:", selectedPointsList);
   });
 
+  $: if (asvFiles.length > 0 && groupingsFile) {
+    console.log("&&&&&&&&&&& asvFiles &&&&&&&&&&", asvFiles);
+    console.log("&&&&&&&&&&& groupingsFile &&&&&&&&&&", groupingsFile);
+    calculateStabilityMetric();
+  }
+
+  const calculateStabilityMetric = async () => {
+    try {
+      // Read the ASV file as text
+      const asvContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Failed to read ASV file"));
+        reader.readAsText(asvFiles[0]);
+      });
+
+      // Read the groupings file as text
+      const groupingsContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Failed to read groupings file"));
+        reader.readAsText(groupingsFile);
+      });
+
+      const response = await fetch('http://localhost:8000/calculate_stability_metric', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          asv: asvContent,
+          groupings: groupingsContent
+        })
+      });
+
+      if (response.ok) {
+        console.log("&&&&&&&&&&& calculate stability metric &&&&&&&&&&");
+        data_points_updated_counter += 1;
+        const result = await response.json();
+        console.log("Stability Metric:", result.stability_metric);
+      } else {
+        const errorMessage = await response.json();
+        console.error('Failed to calculate stability metric:', errorMessage.error);
+      }
+    } catch (error) {
+      console.error('Error calculating stability metric:', error);
+    }
+  }
+
   let asvFiles = [];
   let groupingsFile = null;
   let isStatic = true;
