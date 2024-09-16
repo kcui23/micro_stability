@@ -668,7 +668,8 @@ function(req, res) {
     body <- fromJSON(req$postBody)
     asv <- body$asv
     groupings <- body$groupings
-    stability_metric <- calculate_stability_metric(asv, groupings)
+    method <- "edger"
+    stability_metric <- calculate_stability_metric(asv, groupings, method)
     
     res$status <- 200
     return(list(message = "Stability metric calculated successfully", stability_metric = stability_metric))
@@ -678,11 +679,43 @@ function(req, res) {
   })
 }
 
-calculate_stability_metric <- function(asv, groupings) {
-  # Implement your stability metric calculation logic here
-  # For now, it returns previews of the files
-  asv_preview <- head(strsplit(asv, "\n")[[1]])
-  groupings_preview <- head(strsplit(groupings, "\n")[[1]])
-  
-  return(list(asv_preview = asv_preview, groupings_preview = groupings_preview))
+calculate_stability_metric <- function(asv, groupings, method) {
+  asv_df <- read_tsv(asv)
+  groupings_df <- read_tsv(groupings)
+
+  shuffled_groupings <- groupings_df %>%
+    mutate(!!names(groupings_df)[2] := sample(!!sym(names(groupings_df)[2])))
+
+  temp_asv_file <- tempfile(fileext = ".tsv")
+  temp_shuffled_groupings <- tempfile(fileext = ".tsv")
+  write_tsv(asv_df, temp_asv_file)
+  write_tsv(shuffled_groupings, temp_shuffled_groupings)
+
+  output_file <- tempfile(fileext = ".tsv")
+
+  if (method == "deseq2") {
+    source(safe_file_path("DESeq2.R"))
+    run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+  } else if (method == "aldex2") {
+    source(safe_file_path("Aldex2.R"))
+    run_aldex2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+  } else if (method == "edger") {
+    source(safe_file_path("edgeR.R"))
+    run_edgeR(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+  } else if (method == "maaslin2") {
+    source(safe_file_path("Maaslin2.R"))
+    run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, output_dir = tempfile(), seed = 1234)
+  } else {
+    stop("Invalid method specified")
+  }
+
+  result <- read_tsv(output_file)
+  significant_asvs <- get_significant_asvs(result, method)
+
+  stability_metric <- list(
+    significant_asvs = significant_asvs,
+    count = length(significant_asvs)
+  )
+
+  return(stability_metric)
 }
