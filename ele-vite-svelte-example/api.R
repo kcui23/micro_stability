@@ -636,10 +636,6 @@ function(req, res) {
 function(req, res) {
   json_file_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
   
-  generate_random_pair <- function() {
-    return(runif(2, min = 0, max = 10))
-  }
-  
   tryCatch({
     json_data <- fromJSON(json_file_path)
     
@@ -658,6 +654,10 @@ function(req, res) {
   })
 }
 
+generate_random_pair <- function() {
+    return(runif(2, min = 0, max = 10))
+  }
+
 #* Calculate stability metric
 #* @post /calculate_stability_metric
 #* @serializer json
@@ -668,8 +668,18 @@ function(req, res) {
     body <- fromJSON(req$postBody)
     asv <- body$asv
     groupings <- body$groupings
-    method <- "edger"
-    stability_metric <- calculate_stability_metric(asv, groupings, method)
+
+    leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+    tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
+    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
+    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
+
+    for (leaf in names(leaf_data)) {
+      print("=====================finding path=====================")
+      print(leaf)
+      path <- find_path_from_id(leaf, tree_data)
+      stability_metric <- calculate_stability_metric(asv, groupings, path, leaf_data, leaf_json_path, test = TRUE)
+    }
     
     res$status <- 200
     return(list(message = "Stability metric calculated successfully", stability_metric = stability_metric))
@@ -679,43 +689,78 @@ function(req, res) {
   })
 }
 
-calculate_stability_metric <- function(asv, groupings, method) {
-  asv_df <- read_tsv(asv)
-  groupings_df <- read_tsv(groupings)
+find_path_from_id <- function(id, tree = tree_data) {
+    recurse <- function(node, target_id, current_path) {
+        new_path <- c(current_path, node$name)
+        
+        if (!is.null(node$id) && node$id == target_id) {
+        return(new_path)
+        }
+        
+        if (!is.null(node$children)) {
+        for (child in node$children) {
+            result <- recurse(child, target_id, new_path)
+            if (!is.null(result)) {
+            return(result)
+            }
+        }
+        }
+        
+        return(NULL)
+    }
+    path <- recurse(tree, id, c())
+    if (is.null(path)) {
+        stop(paste("ID", id, "not found in the tree data."))
+    }
+    return(path)
+}
 
-  shuffled_groupings <- groupings_df %>%
-    mutate(!!names(groupings_df)[2] := sample(!!sym(names(groupings_df)[2])))
-
-  temp_asv_file <- tempfile(fileext = ".tsv")
-  temp_shuffled_groupings <- tempfile(fileext = ".tsv")
-  write_tsv(asv_df, temp_asv_file)
-  write_tsv(shuffled_groupings, temp_shuffled_groupings)
-
-  output_file <- tempfile(fileext = ".tsv")
-
-  if (method == "deseq2") {
-    source(safe_file_path("DESeq2.R"))
-    run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-  } else if (method == "aldex2") {
-    source(safe_file_path("Aldex2.R"))
-    run_aldex2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-  } else if (method == "edger") {
-    source(safe_file_path("edgeR.R"))
-    run_edgeR(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-  } else if (method == "maaslin2") {
-    source(safe_file_path("Maaslin2.R"))
-    run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, output_dir = tempfile(), seed = 1234)
-  } else {
-    stop("Invalid method specified")
+calculate_stability_metric <- function(asv, groupings, path, json_data = NULL, json_file_path = NULL, test = FALSE) {
+  if (test) {
+    for (leaf in names(json_data)) {
+      json_data[[leaf]]$data_point <- generate_random_pair()
+    }
+    
+    write_json(json_data, json_file_path, pretty = TRUE, auto_unbox = TRUE)
   }
+  else {
+    asv_df <- read_tsv(asv)
+    groupings_df <- read_tsv(groupings)
+    shuffled_groupings <- groupings_df %>%
+      mutate(!!names(groupings_df)[2] := sample(!!sym(names(groupings_df)[2])))
 
-  result <- read_tsv(output_file)
-  significant_asvs <- get_significant_asvs(result, method)
+    temp_asv_file <- tempfile(fileext = ".tsv")
+    temp_shuffled_groupings <- tempfile(fileext = ".tsv")
+    write_tsv(asv_df, temp_asv_file)
+    write_tsv(shuffled_groupings, temp_shuffled_groupings)
 
-  stability_metric <- list(
-    significant_asvs = significant_asvs,
-    count = length(significant_asvs)
-  )
+    output_file <- tempfile(fileext = ".tsv")
 
-  return(stability_metric)
+    method <- path[5]
+    if (method == "deseq2") {
+      source(safe_file_path("DESeq2.R"))
+      run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+    } else if (method == "aldex2") {
+      source(safe_file_path("Aldex2.R"))
+      run_aldex2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+    } else if (method == "edger") {
+      source(safe_file_path("edgeR.R"))
+      run_edgeR(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
+    } else if (method == "maaslin2") {
+      source(safe_file_path("Maaslin2.R"))
+      run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, output_dir = tempfile(), seed = 1234)
+    } else {
+      stop("Invalid method specified")
+    }
+
+    result <- read_tsv(output_file)
+    significant_asvs <- get_significant_asvs(result, method)
+
+    stability_metric <- list(
+      significant_asvs = significant_asvs,
+      count = length(significant_asvs)
+    )
+
+    return(stability_metric)
+  }
 }
