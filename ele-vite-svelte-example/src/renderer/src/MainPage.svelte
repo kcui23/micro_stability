@@ -29,12 +29,6 @@
     console.log("selectedPointsList updated:", selectedPointsList);
   });
 
-  $: if (asvFiles.length > 0 && groupingsFile) {
-    console.log("&&&&&&&&&&& asvFiles &&&&&&&&&&", asvFiles);
-    console.log("&&&&&&&&&&& groupingsFile &&&&&&&&&&", groupingsFile);
-    calculateStabilityMetric();
-  }
-
   const calculateStabilityMetric = async () => {
     try {
       // Read the ASV file as text
@@ -60,7 +54,8 @@
         },
         body: JSON.stringify({
           asv: asvContent,
-          groupings: groupingsContent
+          groupings: groupingsContent,
+          method: selectedMethod
         })
       });
 
@@ -883,7 +878,6 @@ const runShuffledAnalysis = async () => {
     height: auto;
     margin-bottom: 1rem;
   }
-
   .tree-container-wrapper {
     display: flex;
     width: 100%;
@@ -901,6 +895,14 @@ const runShuffledAnalysis = async () => {
     box-sizing: border-box;
     border-radius: 8px;
     margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .scatter-plot-container button {
+    display: block;
+    margin: 10px auto;
   }
 
 </style>
@@ -938,6 +940,7 @@ const runShuffledAnalysis = async () => {
           {data_points_updated_counter}
           {highlight_point_path}
         />
+        <button on:click={calculateStabilityMetric}>Start with deseq2</button>
       </div> 
     </div>
 

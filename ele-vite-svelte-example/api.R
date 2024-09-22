@@ -668,19 +668,26 @@ function(req, res) {
     body <- fromJSON(req$postBody)
     asv <- body$asv
     groupings <- body$groupings
+    method <- body$method
 
     leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
     tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
     leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
     tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
 
+    reset_leaf_data(leaf_data)
+
+    stability_metric <- list()
     for (leaf in names(leaf_data)) {
-      print("=====================finding path=====================")
-      print(leaf)
       path <- find_path_from_id(leaf, tree_data)
-      stability_metric <- calculate_stability_metric(asv, groupings, path, leaf_data, leaf_json_path, test = TRUE)
+      if (path[5] == method) {
+        leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
+        print(paste("Updated leaf data for", leaf, ":", leaf_data[[leaf]]$data_point))
+      }
     }
-    
+
+    write_json(leaf_data, leaf_json_path, pretty = TRUE, auto_unbox = TRUE)
+
     res$status <- 200
     return(list(message = "Stability metric calculated successfully", stability_metric = stability_metric))
   }, error = function(e) {
@@ -715,13 +722,22 @@ find_path_from_id <- function(id, tree = tree_data) {
     return(path)
 }
 
-calculate_stability_metric <- function(asv, groupings, path, json_data = NULL, json_file_path = NULL, test = FALSE) {
+reset_leaf_data <- function(json_data){
+  for (leaf in names(json_data)) {
+    json_data[[leaf]]$data_point <- c(0, 0)
+  }
+}
+
+calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
   if (test) {
-    for (leaf in names(json_data)) {
-      json_data[[leaf]]$data_point <- generate_random_pair()
-    }
-    
-    write_json(json_data, json_file_path, pretty = TRUE, auto_unbox = TRUE)
+    Sys.sleep(0.1)
+    print("=====test=====")
+    print(leaf)
+    print(path)
+    new_data_point <- generate_random_pair()
+    print(paste("New data point for leaf", leaf, ":", new_data_point))
+    json_data[[leaf]]$data_point <- new_data_point
+    return(json_data)
   }
   else {
     asv_df <- read_tsv(asv)
@@ -736,7 +752,6 @@ calculate_stability_metric <- function(asv, groupings, path, json_data = NULL, j
 
     output_file <- tempfile(fileext = ".tsv")
 
-    method <- path[5]
     if (method == "deseq2") {
       source(safe_file_path("DESeq2.R"))
       run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
