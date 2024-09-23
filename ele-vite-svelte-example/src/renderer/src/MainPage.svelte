@@ -17,7 +17,9 @@
   import ScatterPlot from './components/ScatterPlot.svelte';
 
 
-  let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5']
+  let startMethod = 'deseq2';
+  let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
+  let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
   let treeData;
   let d3TreeContainer;
   let d3TreeComponent;
@@ -29,7 +31,7 @@
     console.log("selectedPointsList updated:", selectedPointsList);
   });
 
-  const calculateStabilityMetric = async () => {
+  const calculateStabilityMetric = async (method) => {
     try {
       // Read the ASV file as text
       const asvContent = await new Promise((resolve, reject) => {
@@ -55,7 +57,8 @@
         body: JSON.stringify({
           asv: asvContent,
           groupings: groupingsContent,
-          method: selectedMethod
+          method: method,
+          missingMethods: missingMethods
         })
       });
 
@@ -805,7 +808,12 @@
   // Function to Hide Start Page
   function startApp() {
     showStartPage = false;
-    calculateStabilityMetric();
+    calculateStabilityMetric(startMethod);
+    missingMethods = missingMethods.filter(method => method !== startMethod);
+    for (let method of missingMethods) {
+      calculateStabilityMetric(method);
+      missingMethods = missingMethods.filter(method => method !== method);
+    }
   }
 </script>
 
@@ -1034,7 +1042,7 @@
 
         <div class="step-2">
           <p><strong>Step 2:</strong> Choose a method you like to start: </p>
-          <select bind:value={selectedMethod}>
+          <select bind:value={startMethod}>
             {#each DataPerturbationMethods as method}
               <option value={method}>{method}</option>
             {/each}

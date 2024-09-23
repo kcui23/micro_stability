@@ -669,13 +669,19 @@ function(req, res) {
     asv <- body$asv
     groupings <- body$groupings
     method <- body$method
+    missingMethods <- body$missingMethods
 
     leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
     tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
     leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
     tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
 
-    reset_leaf_data(leaf_data)
+    for (leaf in names(leaf_data)) {
+      tmp_path <- find_path_from_id(leaf, tree_data)
+      if (tmp_path[5] %in% missingMethods) {
+        leaf_data[[leaf]]$data_point <- c(0, 0)
+      }
+    }
 
     stability_metric <- list()
     for (leaf in names(leaf_data)) {
@@ -720,12 +726,6 @@ find_path_from_id <- function(id, tree = tree_data) {
         stop(paste("ID", id, "not found in the tree data."))
     }
     return(path)
-}
-
-reset_leaf_data <- function(json_data){
-  for (leaf in names(json_data)) {
-    json_data[[leaf]]$data_point <- c(0, 0)
-  }
 }
 
 calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
