@@ -97,18 +97,21 @@
   }
 
   .file-label {
+    text-align: left;
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
   }
 
   .note {
+    text-align: left;
     font-size: 0.9em;
     color: gray;
     margin-top: 5px;
   }
 
   .file-name {
+    text-align: left;
     font-size: 0.9em;
     color: green;
     margin-top: 5px;

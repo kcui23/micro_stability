@@ -532,100 +532,100 @@
   };
 
   const generateCombinedResults = async () => {
-  isCombiningResults = true;
-  try {
-    const response = await fetch('http://localhost:8000/generate_combined_results', {
-      method: 'POST'
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log(result.message);
-      combinedResultsReady = true;
-      await fetchStabilityPlot();  // Fetch the stability plot after generating combined results
-    } else {
-      console.error('Failed to generate combined results');
-    }
-  } catch (error) {
-    console.error('Error generating combined results:', error);
-  }
-  isCombiningResults = false;
-};
-
-const downloadCombinedResults = async () => {
-  try {
-    const response = await fetch('http://localhost:8000/download_combined_results', {
-      method: 'GET'
-    });
-
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'combined_results.tsv';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else {
-      console.error('Failed to download combined results');
-    }
-  } catch (error) {
-    console.error('Error downloading combined results:', error);
-  }
-};
-
-const fetchStabilityPlot = async () => {
-  try {
-    const response = await fetch('http://localhost:8000/generate_stability_plot');
-    if (response.ok) {
-      const blob = await response.blob();
-      stabilityPlot = URL.createObjectURL(blob);
-    } else {
-      console.error('Failed to fetch stability plot');
-    }
-  } catch (error) {
-    console.error('Error fetching stability plot:', error);
-  }
-};
-
-const runShuffledAnalysis = async () => {
-    if (!ws_id) {
-      console.error('WebSocket not connected');
-      return;
-    }
-
-    isShuffledAnalysisRunning = true;
-    shuffledAnalysisProgress = 0;
-
+    isCombiningResults = true;
     try {
-      const response = await fetch('http://localhost:8000/shuffled_analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          asv: filteredAsvContent,
-          groupings: await (new Response(groupingsFile)).text(),
-          seed: randomSeed,
-          iterations: shuffledAnalysisTotal,
-          ws_id: ws_id
-        })
+      const response = await fetch('http://localhost:8000/generate_combined_results', {
+        method: 'POST'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to run shuffled analysis');
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result.message);
+        combinedResultsReady = true;
+        await fetchStabilityPlot();  // Fetch the stability plot after generating combined results
+      } else {
+        console.error('Failed to generate combined results');
       }
-
-      const result = await response.json();
-      shuffledAnalysisPlot = `data:image/png;base64,${result.plot}`;
     } catch (error) {
-      console.error('Error running shuffled analysis:', error);
-    } finally {
-      isShuffledAnalysisRunning = false;
+      console.error('Error generating combined results:', error);
+    }
+    isCombiningResults = false;
+  };
+
+  const downloadCombinedResults = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/download_combined_results', {
+        method: 'GET'
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'combined_results.tsv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Failed to download combined results');
+      }
+    } catch (error) {
+      console.error('Error downloading combined results:', error);
     }
   };
+
+  const fetchStabilityPlot = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/generate_stability_plot');
+      if (response.ok) {
+        const blob = await response.blob();
+        stabilityPlot = URL.createObjectURL(blob);
+      } else {
+        console.error('Failed to fetch stability plot');
+      }
+    } catch (error) {
+      console.error('Error fetching stability plot:', error);
+    }
+  };
+
+  const runShuffledAnalysis = async () => {
+      if (!ws_id) {
+        console.error('WebSocket not connected');
+        return;
+      }
+
+      isShuffledAnalysisRunning = true;
+      shuffledAnalysisProgress = 0;
+
+      try {
+        const response = await fetch('http://localhost:8000/shuffled_analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            asv: filteredAsvContent,
+            groupings: await (new Response(groupingsFile)).text(),
+            seed: randomSeed,
+            iterations: shuffledAnalysisTotal,
+            ws_id: ws_id
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to run shuffled analysis');
+        }
+
+        const result = await response.json();
+        shuffledAnalysisPlot = `data:image/png;base64,${result.plot}`;
+      } catch (error) {
+        console.error('Error running shuffled analysis:', error);
+      } finally {
+        isShuffledAnalysisRunning = false;
+      }
+    };
 
   function handleScatterPointClick(event) {
     const { path } = event.detail;
@@ -653,24 +653,24 @@ const runShuffledAnalysis = async () => {
 
     // deal with single select and multi-select in 'Stability Metric' step
     selectedOperations.update((selections) => {
-			const isSingleSelect = $singleSelectOperations[path[5]] && $singleSelectOperations[path[5]].includes(path[6]);
-			if (isSingleSelect) {
-				const existingSingleSelect = $singleSelectOperations[path[5]].find(op => selections[path[5]].includes(op));
-				console.log('existingSingleSelect:', existingSingleSelect);
-				if (existingSingleSelect) {
-					selections[path[5]] = selections[path[5]].filter(op => op !== existingSingleSelect);
-				}
-				selections[path[5]].push(path[6]);
-			} else {
-				if (selections[path[5]].includes(path[6])) {
-					selections[path[5]] = selections[path[5]].filter(op => op !== path[6]);
-				} else {
-					selections[path[5]] = [...selections[path[5]], path[6]];
-				}
-			}
+      const isSingleSelect = $singleSelectOperations[path[5]] && $singleSelectOperations[path[5]].includes(path[6]);
+      if (isSingleSelect) {
+        const existingSingleSelect = $singleSelectOperations[path[5]].find(op => selections[path[5]].includes(op));
+        console.log('existingSingleSelect:', existingSingleSelect);
+        if (existingSingleSelect) {
+          selections[path[5]] = selections[path[5]].filter(op => op !== existingSingleSelect);
+        }
+        selections[path[5]].push(path[6]);
+      } else {
+        if (selections[path[5]].includes(path[6])) {
+          selections[path[5]] = selections[path[5]].filter(op => op !== path[6]);
+        } else {
+          selections[path[5]] = [...selections[path[5]], path[6]];
+        }
+      }
 
-		return selections;
-	});
+      return selections;
+    });
 
     // Update selected methods
     selectedMethod = path[4];
@@ -798,6 +798,15 @@ const runShuffledAnalysis = async () => {
 
     d3.select(d3TreeContainer).select("svg").remove(); // Clean up on component destruction
   });
+
+  // Added State for Start Page
+  let showStartPage = true;
+
+  // Function to Hide Start Page
+  function startApp() {
+    showStartPage = false;
+    calculateStabilityMetric();
+  }
 </script>
 
 <style>
@@ -845,69 +854,197 @@ const runShuffledAnalysis = async () => {
     cursor: not-allowed;
   }
 
-#asv-selector-main {
-  margin-top: 10px;
-}
-.progress-bar {
-    width: 100%;
-    height: 20px;
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    overflow: hidden;
+  #asv-selector-main {
+    margin-top: 10px;
   }
-  .progress-bar-fill {
-    height: 100%;
-    background-color: #4CAF50;
-    transition: width 0.5s ease-in-out;
-  }
+  .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #4CAF50;
+      transition: width 0.5s ease-in-out;
+    }
 
-  .input-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .input-group label {
-    margin-right: 10px;
-  }
-  .input-group input {
-    width: 60px;
-  }
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .input-group label {
+      margin-right: 10px;
+    }
+    .input-group input {
+      width: 60px;
+    }
 
-  img {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 1rem;
-  }
-  .tree-container-wrapper {
-    display: flex;
-    width: 100%;
-    height: 200px;
-    margin-bottom: 20px;
-    padding-right: 10px;
-  }
-  .scatter-plot-container {
-    flex: 0 0 20%;
-    height: 100%;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-    border-radius: 8px;
-    margin-left: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+    .tree-container-wrapper {
+      display: flex;
+      width: 100%;
+      height: 200px;
+      margin-bottom: 20px;
+      padding-right: 10px;
+    }
+    .scatter-plot-container {
+      flex: 0 0 20%;
+      height: 100%;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+      border-radius: 8px;
+      margin-left: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-  .scatter-plot-container button {
-    display: block;
-    margin: 10px auto;
-  }
+    /* Start Page Styles */
+    .start-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .start-page-content {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 60px 40px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      max-width: 700px;
+      width: 90%;
+    }
+
+    .start-page-content h2 {
+      margin-bottom: 20px;
+      font-size: 2.3rem;
+      color: #333;
+    }
+
+    .start-page-content p {
+      text-align: left;
+      margin: 15px 0;
+      font-size: 1.4rem;
+      color: #555;
+    }
+
+    .start-page-content button {
+      width: 120px;
+      height: 40px;
+      font-size: 1.1rem;
+      margin-top: 30px;
+    }
+
+    .step-1-upload-section {
+      margin-left: 20px;
+    }
+
+    .step-2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap; 
+      margin-top: 20px;
+    }
+    .step-2 p {
+      margin: 0;
+      font-size: 1.4rem;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .step-2 select {
+      flex: 0 0 auto;
+      width: 100px;
+      max-width: 100px;
+      margin-left: 10px;
+      padding: 5px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #ffdddd;
+      color: #d8000c;
+      padding: 15px;
+      border: 1px solid #d8000c;
+      border-radius: 5px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .notification.hide {
+      opacity: 0;
+    }
+
+    .notification-icon {
+      margin-right: 10px;
+      font-size: 1.5rem;
+    }
 
 </style>
 
 <div id="app" class="container">
+  <!-- Start Page Overlay -->
+  {#if showStartPage}
+    <div class="start-page">
+      <div class="start-page-content">
+        <h2>Welcome to the Micro Stability App</h2>
+        <p><strong>Step 1:</strong> Upload the file, update the ASV file, and grouping file.</p>
+        <div class="step-1-upload-section">
+          <FileUploader 
+            {handleFileChange} 
+            {handleGroupingsChange} 
+            bind:asvFiles
+            bind:groupingsFile
+          />
+        </div>
+
+        <div class="step-2">
+          <p><strong>Step 2:</strong> Choose a method you like to start: </p>
+          <select bind:value={selectedMethod}>
+            {#each DataPerturbationMethods as method}
+              <option value={method}>{method}</option>
+            {/each}
+          </select>
+        </div>
+        <button on:click={startApp}>Start</button>
+      </div>
+    </div>
+  {/if}
+
   <!-- Non-modal notification -->
   <div id="notification" class="notification">
     <span class="notification-icon">⚠️</span>
@@ -940,7 +1077,6 @@ const runShuffledAnalysis = async () => {
           {data_points_updated_counter}
           {highlight_point_path}
         />
-        <button on:click={calculateStabilityMetric}>Start with deseq2</button>
       </div> 
     </div>
 
