@@ -666,19 +666,30 @@ generate_random_pair <- function() {
 function(req, res) {
   tryCatch({
     body <- fromJSON(req$postBody)
-    asv <- body$asv
-    groupings <- body$groupings
-    method <- body$method
-    missingMethods <- body$missingMethods
-
+    destroy <- body$destroy
+    print("=====destroy=====")
+    print(destroy)
     leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
     tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
     leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
     tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
+    if (destroy) {
+      print("=====destroy is true=====")
+      for (leaf in names(leaf_data)) {
+        leaf_data[[leaf]]$data_point <- c(0, 0)
+      }
+      write_json(leaf_data, leaf_json_path, pretty = TRUE, auto_unbox = TRUE)
+      res$status <- 200
+      return(list(message = "Bye."))
+    }
+    asv <- body$asv
+    groupings <- body$groupings
+    method <- body$method
+    missing_methods <- body$missing_methods
 
     for (leaf in names(leaf_data)) {
       tmp_path <- find_path_from_id(leaf, tree_data)
-      if (tmp_path[5] %in% missingMethods) {
+      if (tmp_path[5] %in% missing_methods) {
         leaf_data[[leaf]]$data_point <- c(0, 0)
       }
     }
@@ -688,7 +699,6 @@ function(req, res) {
       path <- find_path_from_id(leaf, tree_data)
       if (path[5] == method) {
         leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
-        print(paste("Updated leaf data for", leaf, ":", leaf_data[[leaf]]$data_point))
       }
     }
 
@@ -731,11 +741,7 @@ find_path_from_id <- function(id, tree = tree_data) {
 calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
   if (test) {
     Sys.sleep(0.1)
-    print("=====test=====")
-    print(leaf)
-    print(path)
     new_data_point <- generate_random_pair()
-    print(paste("New data point for leaf", leaf, ":", new_data_point))
     json_data[[leaf]]$data_point <- new_data_point
     return(json_data)
   }

@@ -30,8 +30,10 @@
     selectedPointsList = value;
     console.log("selectedPointsList updated:", selectedPointsList);
   });
+  $: console.log("missingMethods updated:", missingMethods);
+  $: console.log("startMethod updated:", startMethod);
 
-  const calculateStabilityMetric = async (method) => {
+  const calculateStabilityMetric = async (method, missing_methods, destroy=false) => {
     try {
       // Read the ASV file as text
       const asvContent = await new Promise((resolve, reject) => {
@@ -58,7 +60,8 @@
           asv: asvContent,
           groupings: groupingsContent,
           method: method,
-          missingMethods: missingMethods
+          missing_methods: missing_methods,
+          destroy: destroy
         })
       });
 
@@ -804,15 +807,17 @@
 
   // Added State for Start Page
   let showStartPage = true;
-
+  let tmp_missingMethods = [];
   // Function to Hide Start Page
   function startApp() {
     showStartPage = false;
-    calculateStabilityMetric(startMethod);
-    missingMethods = missingMethods.filter(method => method !== startMethod);
-    for (let method of missingMethods) {
-      calculateStabilityMetric(method);
-      missingMethods = missingMethods.filter(method => method !== method);
+    calculateStabilityMetric(1,1,true);
+    calculateStabilityMetric(startMethod, missingMethods);
+    missingMethods = missingMethods.filter(m => m !== startMethod);
+    tmp_missingMethods = missingMethods;
+    for (let method of tmp_missingMethods) {
+      calculateStabilityMetric(method, missingMethods);
+      missingMethods = missingMethods.filter(m => m !== method);
     }
   }
 </script>
