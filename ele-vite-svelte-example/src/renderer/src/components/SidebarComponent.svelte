@@ -132,7 +132,7 @@
 					<span class="step-text">{step}</span>
 					<span class="dropdown-indicator">{$openMenus[step] ? '▲' : '▼'}</span>
 				</button>
-				{#if step !== 'Raw data'}
+				<!-- {#if step !== 'Raw data'}
 					<div class="status-toggles">
 						<button
 							class="status-toggle disabled"
@@ -149,7 +149,7 @@
 							{$stepStatus[step] === 'Disabled' ? 'Enable' : 'Enabled'}
 						</button>
 					</div>
-				{/if}
+				{/if} -->
 				{#if $openMenus[step]}
 					<div class="sub-operations" transition:slide={{ duration: 300 }}>
 						{#if $singleSelectOperations[step]}

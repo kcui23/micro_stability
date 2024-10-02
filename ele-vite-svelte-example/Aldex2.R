@@ -44,15 +44,40 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
     }
   }
 
+  unique_groups <- length(unique(conditions))
+  
+  if (unique_groups == 2) {
+    test_type <- "t"
+  } else if (unique_groups > 2) {
+    test_type <- "kw"
+  }
+
+  zero_proportion <- mean(ASV_table == 0)
+  feature_skewness <- skewness(colSums(ASV_table))
+
+  if (zero_proportion > 0.5) {
+    if (feature_skewness > 1) {
+      denom_type <- "iqlr"
+    } else {
+      denom_type <- "zero"
+    }
+  } else {
+    if (feature_skewness > 1) {
+      denom_type <- "iqlr"
+    } else {
+      denom_type <- "all"
+    }
+  }
+
   # Run ALDEx2 analysis
   results <- aldex(reads = ASV_table, 
                    conditions = groupings[,2], 
                    mc.samples = 128, 
-                   test = "t", 
+                   test = test_type, 
                    effect = TRUE,
                    include.sample.summary = FALSE, 
                    verbose = TRUE, 
-                   denom = "all")
+                   denom = denom_type)
 
   # Add ASV names to the results
   results$asv_name <- rownames(ASV_table)
