@@ -34,7 +34,7 @@
   async function main_function() {
     try {
       const [dataResponse, leafIdDataPointsResponse] = await Promise.all([
-        fetchData('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json'),
+        fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json'),
         fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json')
       ]);
       data = dataResponse;

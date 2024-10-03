@@ -4,7 +4,7 @@
   import { selectedPoints, 
     currentPath, 
     stepStatus, 
-    selectedOperations, 
+    selectedOperations,
     singleSelectOperations 
   } from './store.js';
 
@@ -652,34 +652,38 @@
     });
     
     selectedOperations.update(operations => {
-      operations[path[1]] = [path[2]];
-      operations['Model Perturbation'] = ['Select Method'];
+      operations['Filtering'] = [path[1]];
+      operations['Zero-Handling'] = [path[2]];
+      operations['Normalization'] = [path[3]];
+      operations['Transformation'] = [path[4]];
+      operations['Model Perturbation'] = [path[5]];
       return operations;
     });
 
     // deal with single select and multi-select in 'Stability Metric' step
     selectedOperations.update((selections) => {
-      const isSingleSelect = $singleSelectOperations[path[5]] && $singleSelectOperations[path[5]].includes(path[6]);
+      // these 6 and 7 are the 'Stability Metric' step
+      const isSingleSelect = $singleSelectOperations['Stability Metric'] && $singleSelectOperations['Stability Metric'].includes(path[6]);
       if (isSingleSelect) {
-        const existingSingleSelect = $singleSelectOperations[path[5]].find(op => selections[path[5]].includes(op));
+        const existingSingleSelect = $singleSelectOperations['Stability Metric'].find(op => selections['Stability Metric'].includes(op));
         console.log('existingSingleSelect:', existingSingleSelect);
         if (existingSingleSelect) {
-          selections[path[5]] = selections[path[5]].filter(op => op !== existingSingleSelect);
+          selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== existingSingleSelect);
         }
-        selections[path[5]].push(path[6]);
+        selections['Stability Metric'].push(path[6]);
       } else {
-        if (selections[path[5]].includes(path[6])) {
-          selections[path[5]] = selections[path[5]].filter(op => op !== path[6]);
+        if (selections['Stability Metric'].includes(path[6])) {
+          selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== path[6]);
         } else {
-          selections[path[5]] = [...selections[path[5]], path[6]];
+          selections['Stability Metric'] = [...selections['Stability Metric'], path[6]];
         }
       }
 
       return selections;
     });
 
-    // Update selected methods
-    selectedMethod = path[4];
+    // // Update selected methods
+    // selectedMethod = path[5];
   }
 
   function highlightPoint(path, parent_func='') {
@@ -689,7 +693,7 @@
 
   function updateTreeandScatterplot() {
     currentPath.update(path => {
-      path[4] = selectedMethod;
+      path[5] = selectedMethod;
       return path;
     });
     console.log("currentPath after update:", $currentPath);
@@ -703,19 +707,21 @@
     let existingSingleSelect;
     if (direct) { data = event } else { 
       data = event.detail 
-      existingSingleSelect = $singleSelectOperations[steps[3]].find(op => data[steps[3]].includes(op));
+      // steps[5] is the method perturbation, deseq2, ...
+      existingSingleSelect = $singleSelectOperations[steps[5]].find(op => data[steps[5]].includes(op));
     }
     let allEnabled = Object.values($stepStatus).every(value => value === 'Enabled');;
     
     if (allEnabled) {
       let path = new Array(7).fill('');
       path[0] = steps[0]
-      path[1] = steps[1]
-      path[2] = data[steps[1]]&&data[steps[1]].length > 0 ? data[steps[1]][0] : data[2]
-      path[3] = steps[2]
-      path[4] = selectedMethod
-      path[5] = steps[3]
-      path[6] = data[steps[3]]&&data[steps[3]].length > 0 ? existingSingleSelect : data[6]
+      path[1] = data[steps[1]][0]
+      // path[2] = data[steps[1]]&&data[steps[1]].length > 0 ? data[steps[1]][0] : data[2]
+      path[2] = data[steps[2]][0]
+      path[3] = data[steps[3]][0]
+      path[4] = data[steps[4]][0]
+      path[5] = data[steps[5]][0]
+      path[6] = data[steps[6]][0]
       console.log("New path from sidebar:", path)
       // Update d3 tree
       currentPath.set(path);
@@ -787,7 +793,7 @@
       }
     };
 
-    fetch('https://raw.githubusercontent.com/kcui23/micro_stability/main/ele-vite-svelte-example/src/renderer/src/public/data.json')
+    fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
       .then(response => response.json())
       .then(data => {
         console.log("Data loaded successfully:", data);
@@ -1197,8 +1203,8 @@
             <strong>Description:</strong> Transforms data by taking the logarithm of each value divided by the group's geometric mean, emphasizing relative differences. <br>
             <strong>Usually used when:</strong> Analyzing data where only relative differences are meaningful.
           {/if}
-          {#if $selectedOperations['Normalization']?.includes('None')}
-            <strong>None:</strong> Do not perform normalization.
+          {#if $selectedOperations['Normalization']?.includes('No Normalization')}
+            <strong>No Normalization:</strong> Do not perform normalization.
           {/if}
         </p>
       </div>
@@ -1222,8 +1228,8 @@
             <strong>Description:</strong> Applies the arcsine square root transformation to each proportion, stabilizing variance for proportional data. <br>
             <strong>Usually used when:</strong> Dealing with proportional data, especially when proportions are near 0 or 1.
           {/if}
-          {#if $selectedOperations['Transformation']?.includes('None')}
-            <strong>None:</strong> Do not perform transformation.
+          {#if $selectedOperations['Transformation']?.includes('No Transformation')}
+            <strong>No Transformation:</strong> Do not perform transformation.
           {/if}
         </p>
       </div>
@@ -1231,19 +1237,33 @@
     {:else if currentStep === 'Model Perturbation'}
       <div key='model-perturbation' in:fade class="step-content" class:active={currentStep === 'Model Perturbation'}>
         <h2>Model Perturbation</h2>
-        {#if $selectedOperations['Model Perturbation']?.includes('Select Method')}
-          <!-- Method Selection UI -->
-          <div class="methods">
-            <label for="method-select">Select Method:</label>
-            <select id="method-select" bind:value={selectedMethod} on:change={updateTreeandScatterplot}>
-              {#each DataPerturbationMethods as method}
-                <option value={method}>{method}</option>
-              {/each}
-            </select>
-          </div>
+        {#if $selectedOperations['Model Perturbation']?.includes('deseq2')}
+          <p>deseq2</p>
+        {/if}
+        {#if $selectedOperations['Model Perturbation']?.includes('edger')}
+          <p>edger</p>
+        {/if}
+        {#if $selectedOperations['Model Perturbation']?.includes('maaslin2')}
+          <p>maaslin2</p>
+        {/if}
+        {#if $selectedOperations['Model Perturbation']?.includes('aldex2')}
+          <p>aldex2</p>
+        {/if}
+        {#if $selectedOperations['Model Perturbation']?.includes('method5')}
+          <p>method5</p>
         {/if}
 
-        {#if $selectedOperations['Model Perturbation']?.includes('Select Method') && asvFiles.length > 0 && groupingsFile && selectedMethod}
+        <!-- Method Selection UI -->
+        <!-- <div class="methods">
+          <label for="method-select">Select Method:</label>
+          <select id="method-select" bind:value={selectedMethod} on:change={updateTreeandScatterplot}>
+            {#each DataPerturbationMethods as method}
+              <option value={method}>{method}</option>
+            {/each}
+          </select>
+        </div> -->
+
+        {#if $selectedOperations['Model Perturbation'].length > 0 && asvFiles.length > 0 && groupingsFile && selectedMethod}
           <button on:click={handleSubmit}>Submit</button>
           <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
         {/if}
