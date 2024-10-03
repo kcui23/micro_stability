@@ -165,10 +165,12 @@
 									{operation}
 								</label>
 							{/each}
-							<hr /> <!-- Divider between radio and checkbox selections -->
+							{#if $subOperations[step].length > $singleSelectOperations[step].length}
+								<hr /> <!-- Divider between radio and checkbox selections -->
+							{/if}
 						{/if}
-
 						<!-- Multiple Select (Checkbox) Operations -->
+						
 						{#each $subOperations[step] as operation}
 							{#if !$singleSelectOperations[step] || !$singleSelectOperations[step].includes(operation)}
 								<label class="operation-checkbox" transition:fade={{ duration: 200 }}>
@@ -319,7 +321,7 @@
 		cursor: not-allowed;
 	}
 
-	.status-toggles {
+	/* .status-toggles {
 		display: flex;
 		justify-content: space-between;
 		padding: 5px 10px;
@@ -359,7 +361,7 @@
 	.step-item.disabled .status-toggle.enabled:hover {
 		background-color: #66ff66;
 		color: #006600;
-	}
+	} */
 
 	.sub-operations {
 		padding: 10px;

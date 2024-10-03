@@ -155,7 +155,7 @@
     }
   }
 
-  const steps = ['Raw data', 'Data Perturbation', 'Model Perturbation', 'Stability Metric'];
+  const steps = ['Raw data', 'Filtering', 'Zero-Handling', 'Normalization', 'Transformation', 'Model Perturbation', 'Stability Metric'];
 
   const showNotification = () => {
     const notification = document.getElementById('notification');
@@ -1027,6 +1027,28 @@
       font-size: 1.5rem;
     }
 
+    .normalization-description {
+    font-size: 1.1rem;
+    color: #4a4a4a;
+    line-height: 1.6;
+    margin-top: 10px;
+    background-color: #f0f4f8;
+    padding: 15px 20px;
+    border-left: 4px solid #007BFF;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, border-left-color 0.3s ease;
+  }
+
+  .normalization-description:hover {
+    background-color: #e6f0fa;
+    border-left-color: #0056b3;
+  }
+
+  strong {
+    font-weight: bold;
+  }
+
 </style>
 
 <div id="app" class="container">
@@ -1136,75 +1158,76 @@
         {/if}
 
       </div>
-    {:else if currentStep === 'Data Perturbation'}
-      <div key='data-perturbation' in:fade class="step-content" class:active={currentStep === 'Data Perturbation'}>
-        <h2>Data Perturbation</h2>
+    {:else if currentStep === 'Filtering'}
+      <div key='filter-rare-units' in:fade class="step-content" class:active={currentStep === 'Filtering'}>
+        <h2>Rare Unit Filtering</h2>
         <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-        {#if $selectedOperations['Data Perturbation']?.includes('Filter')}
-          <div class="filters">
-            <label for="filter">Filter:</label>
-            <select id="filter">
-              <option value="genefilter">genefilter</option>
-              <option value="koverAfilter">koverAfilter</option>
-            </select>
-            <button>Apply Filter</button>
-          </div>
-        {/if}
-        {#if $selectedOperations['Data Perturbation']?.includes('Threshold')}
+        {#if $selectedOperations['Filtering']?.includes('Low Abundance Filtering')}
           <!-- Threshold Application UI -->
             <div class="filters">
-              <label for="threshold">Threshold for Rare Genes:</label>
+              <label for="threshold">Threshold for Rare Units:</label>
               <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
               <span>{threshold}</span>
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
         {/if}
-        {#if $selectedOperations['Data Perturbation']?.includes('Transformation')}
-          <!-- Transformation Application UI -->
-          <div class="filters">
-            <label for="transformation">Transformation:</label>
-            <select id="transformation">
-              <option value="log">tidybult</option>
-              <option value="sqrt">log</option>
-              <option value="boxcox">normalization</option>
-            </select>
-            <button>Apply Transformation</button>
-          </div>
-        {/if}
-        {#if $selectedOperations['Data Perturbation']?.includes('R/A Abundance')}
-          <!-- R/A Abundance Application UI -->
-          <div class="filters">
-            <label for="raAbundance">R/A Abundance:</label>
-            <select id="raAbundance">
-              <option value="Compositional data analysis (CoDa)">Compositional data analysis (CoDa)</option>
-              <option value="Additive Log-ratio Transformation">Additive Log-ratio Transformation</option>
-            </select>
-            <button>Apply R/A Abundance</button>
-          </div>
-        {/if}
-        {#if $selectedOperations['Data Perturbation']?.includes('Data Splitting')}
-          <!-- Data Splitting Application UI -->
-          <div class="filters">
-            <label for="dataSplitting">Data Splitting:</label>
-            <select id="dataSplitting">
-              <option value="splitByGroup">K-Fold</option>
-            </select>
-            <button>Apply Data Splitting</button>
-          </div>
-        {/if}
-        {#if $selectedOperations['Data Perturbation']?.includes('Batch Effect Removal')}
-          <!-- Batch Effect Removal Application UI -->
-          <div class="filters">
-            <label for="batchEffectRemoval">Batch Effect Removal:</label>
-            <select id="batchEffectRemoval">
-              <option value="ComBat">ComBat</option>
-              <option value="RUV">RUV</option>
-              <option value="CQN">CQN</option>
-            </select>
-            <button>Apply Batch Effect Removal</button>
-          </div>
-        {/if}
       </div>
+
+    {:else if currentStep === 'Normalization'}
+      <div key='normalization' in:fade class="step-content" class:active={currentStep === 'Normalization'}>
+        <h2>Normalization</h2>
+        <p class="normalization-description">
+          {#if $selectedOperations['Normalization']?.includes('TSS')}
+            <strong>TSS:</strong> Total Sum Scaling<br>
+            <strong>Description:</strong> Each value is divided by the total sum of all values in its group, converting data into relative proportions. <br>
+            <strong>Usually used when:</strong> Adjusting data to account for differences in total sums across groups or samples.
+          {/if}
+          {#if $selectedOperations['Normalization']?.includes('CSS')}
+            <strong>CSS:</strong> Cumulative Sum Scaling<br>
+            <strong>Description:</strong> Values are scaled using a factor derived from cumulative distributions, reducing the influence of large values. <br>
+            <strong>Usually used when:</strong> Normalizing data with skewed distributions to lessen the impact of extreme values.
+          {/if}
+          {#if $selectedOperations['Normalization']?.includes('TMM')}
+            <strong>TMM:</strong> Trimmed Mean of M-values<br>
+            <strong>Description:</strong> Computes scaling factors by averaging log ratios after trimming extreme values, adjusting for sample differences. <br>
+            <strong>Usually used when:</strong> Correcting data for composition differences while minimizing the effect of outliers.
+          {/if}
+          {#if $selectedOperations['Normalization']?.includes('CLR')}
+            <strong>CLR:</strong> Centered Log-Ratio<br>
+            <strong>Description:</strong> Transforms data by taking the logarithm of each value divided by the group's geometric mean, emphasizing relative differences. <br>
+            <strong>Usually used when:</strong> Analyzing data where only relative differences are meaningful.
+          {/if}
+          {#if $selectedOperations['Normalization']?.includes('None')}
+            <strong>None:</strong> Do not perform normalization.
+          {/if}
+        </p>
+      </div>
+
+    {:else if currentStep === 'Transformation'}
+      <div key='transformation' in:fade class="step-content" class:active={currentStep === 'Transformation'}>
+        <h2>Transformation</h2>
+        <p class="normalization-description">
+          {#if $selectedOperations['Transformation']?.includes('Log')}
+            <strong>Log</strong> <br>
+            <strong>Description:</strong> Applies a logarithmic scale to data to reduce skewness and stabilize variance. <br>
+            <strong>Usually used when:</strong> Dealing with data that spans multiple orders of magnitude and has a skewed distribution.
+          {/if}
+          {#if $selectedOperations['Transformation']?.includes('Logit')}
+            <strong>Logit</strong> <br>
+            <strong>Description:</strong> Converts proportion data to a log-odds scale, linearizing relationships. <br>
+            <strong>Usually used when:</strong> Analyzing proportions or probabilities that are bounded between 0 and 1.
+          {/if}
+          {#if $selectedOperations['Transformation']?.includes('AST')}
+            <strong>AST:</strong> Arcsine Transformation<br>
+            <strong>Description:</strong> Applies the arcsine square root transformation to each proportion, stabilizing variance for proportional data. <br>
+            <strong>Usually used when:</strong> Dealing with proportional data, especially when proportions are near 0 or 1.
+          {/if}
+          {#if $selectedOperations['Transformation']?.includes('None')}
+            <strong>None:</strong> Do not perform transformation.
+          {/if}
+        </p>
+      </div>
+
     {:else if currentStep === 'Model Perturbation'}
       <div key='model-perturbation' in:fade class="step-content" class:active={currentStep === 'Model Perturbation'}>
         <h2>Model Perturbation</h2>
