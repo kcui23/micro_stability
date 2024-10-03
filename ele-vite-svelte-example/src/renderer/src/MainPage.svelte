@@ -20,6 +20,11 @@
   let startMethod = 'deseq2';
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
   let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
+  let abundance_threshold = 0.0;
+  let prevalence_threshold = 0.0;
+  let variance_threshold = 0.0;
+  let pseudocount = 1;
+  let knn = 5;
   let treeData;
   let d3TreeContainer;
   let d3TreeComponent;
@@ -1055,6 +1060,39 @@
     font-weight: bold;
   }
 
+  .dimensions-table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+
+  .dimensions-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background-color: #fff;
+  }
+
+  .dimensions-table thead {
+    background-color: #f5f5f5;
+  }
+
+  .dimensions-table th, .dimensions-table td {
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .dimensions-table th {
+    font-weight: bold;
+    color: #333;
+  }
+
+  .dimensions-table tbody tr:hover {
+    background-color: #fafafa;
+  }
+
+
 </style>
 
 <div id="app" class="container">
@@ -1166,16 +1204,77 @@
       </div>
     {:else if currentStep === 'Filtering'}
       <div key='filter-rare-units' in:fade class="step-content" class:active={currentStep === 'Filtering'}>
-        <h2>Rare Unit Filtering</h2>
-        <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+        <h2>Filtering</h2>
+        <div class="dimensions-table-container">
+          <table class="dimensions-table">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Rows</th>
+                <th>Columns</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Original</td>
+                <td>{fileDimensions.rows}</td>
+                <td>{fileDimensions.columns}</td>
+              </tr>
+              <tr>
+                <td>Filtered</td>
+                <td>...</td>
+                <td>...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         {#if $selectedOperations['Filtering']?.includes('Low Abundance Filtering')}
           <!-- Threshold Application UI -->
             <div class="filters">
-              <label for="threshold">Threshold for Rare Units:</label>
-              <input type="range" id="threshold" bind:value={threshold} min="0" max="1" step="0.01" />
-              <span>{threshold}</span>
+              <label for="abundance_threshold">Low Abundance Filtering Threshold:</label>
+              <input type="range" id="abundance_threshold" bind:value={abundance_threshold} min="0" max="1" step="0.01" />
+              <span>{abundance_threshold}</span>
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
+        {/if}
+        {#if $selectedOperations['Filtering']?.includes('Prevalence Filtering')}
+          <!-- Threshold Application UI -->
+            <div class="filters">
+              <label for="prevalence_threshold">Prevalence Filtering Threshold:</label>
+              <input type="range" id="prevalence_threshold" bind:value={prevalence_threshold} min="0" max="1" step="0.01" />
+              <span>{prevalence_threshold}</span>
+              <button on:click={handleFilter}>Apply Threshold</button>
+            </div>
+        {/if}
+        {#if $selectedOperations['Filtering']?.includes('Variance Filtering')}
+          <!-- Threshold Application UI -->
+            <div class="filters">
+              <label for="variance_threshold">Variance Filtering Threshold:</label>
+              <input type="range" id="variance_threshold" bind:value={variance_threshold} min="0" max="1" step="0.01" />
+              <span>{variance_threshold}</span>
+              <button on:click={handleFilter}>Apply Threshold</button>
+            </div>
+        {/if}
+      </div>
+
+      {:else if currentStep === 'Zero-Handling'}
+      <div key='zero-handling' in:fade class="step-content" class:active={currentStep === 'Zero-Handling'}>
+        <h2>Zero-Handling</h2>
+        {#if $selectedOperations['Zero-Handling']?.includes('Pseudocount Addition')}
+          <div class="filters">
+            <label for="pseudocount">Pseudocount Addition:</label>
+            <input type="range" id="pseudocount" bind:value={pseudocount} min="0" max="10" step="0.1" />
+            <span>{pseudocount}</span>
+            <button on:click={handleFilter}>Apply Pseudocount Addition</button>
+          </div>
+        {/if}
+        {#if $selectedOperations['Zero-Handling']?.includes('k-NN Imputation')}
+          <div class="filters">
+            <label for="knn">k-NN Imputation number of neighbors:</label>
+            <input type="range" id="knn" bind:value={knn} min="0" max="10" step="1" />
+            <span>{knn}</span>
+            <button on:click={handleFilter}>Apply k-NN Imputation</button>
+          </div>
         {/if}
       </div>
 
