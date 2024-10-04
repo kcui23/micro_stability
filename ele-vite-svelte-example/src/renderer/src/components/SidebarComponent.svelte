@@ -130,7 +130,7 @@
 						{index + 1}
 					</span>
 					<span class="step-text">{step}</span>
-					<span class="dropdown-indicator">{$openMenus[step] ? '▲' : '▼'}</span>
+					<span class="dropdown-indicator" class:open={$openMenus[step]}>▼</span>
 				</button>
 				<!-- {#if step !== 'Raw data'}
 					<div class="status-toggles">
@@ -386,5 +386,15 @@
 	.operation-checkbox input,
 	.operation-radio input {
 		margin-right: 5px;
+	}
+	
+	.dropdown-indicator {
+		flex: 0 0 20px;
+		text-align: center;
+		transition: transform 0.3s ease;
+	}
+
+	.dropdown-indicator.open {
+		transform: rotate(180deg);
 	}
 </style>
