@@ -12,15 +12,24 @@
     <div class="preview">
       <h2>Preview of ASV File</h2>
       <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
-      <div class="table-container">
-        <table>
-          {#each filteredContent as row}
+      <div class="tidy-table-container">
+        <table class="tidy-table">
+          <thead>
             <tr>
-              {#each row as cell}
-                <td>{cell}</td>
+              {#each filteredContent[0] as header}
+                <th>{header}</th>
               {/each}
             </tr>
-          {/each}
+          </thead>
+          <tbody>
+            {#each filteredContent.slice(1) as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </tbody>
         </table>
       </div>
     </div>
@@ -29,16 +38,25 @@
   {#if groupingsFile}
     <div class="preview">
       <h2>Preview of Groupings File</h2>
-      <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns}</p>
-      <div class="table-container">
-        <table>
-          {#each groupingsContentPreview as row}
+      <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+      <div class="tidy-table-container">
+        <table class="tidy-table">
+          <thead>
             <tr>
-              {#each row as cell}
-                <td>{cell}</td>
+              {#each groupingsContentPreview[0] as header}
+                <th>{header}</th>
               {/each}
             </tr>
-          {/each}
+          </thead>
+          <tbody>
+            {#each groupingsContentPreview.slice(1) as row}
+              <tr>
+                {#each row as cell}
+                  <td>{cell}</td>
+                {/each}
+              </tr>
+            {/each}
+          </tbody>
         </table>
       </div>
     </div>
@@ -54,29 +72,4 @@
     margin-top: 20px;
   }
 
-  .table-container {
-    margin-top: 10px;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th,
-  td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-
-  td {
-    font-size: 0.9rem;
-  }
 </style>

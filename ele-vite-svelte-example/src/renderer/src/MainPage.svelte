@@ -1060,58 +1060,6 @@
     font-weight: bold;
   }
 
-  .dimensions-table-container {
-    margin-top: 20px;
-    overflow-x: auto;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .dimensions-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    border-radius: 8px;
-  }
-
-  .dimensions-table thead {
-    background-color: #f5f5f5;
-  }
-
-  .dimensions-table th, .dimensions-table td {
-    padding: 12px 20px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
-
-  .dimensions-table th {
-    font-weight: bold;
-    color: #333;
-  }
-
-  .dimensions-table th:first-child {
-    border-top-left-radius: 8px;
-  }
-
-  .dimensions-table th:last-child {
-    border-top-right-radius: 8px;
-  }
-
-  .dimensions-table tbody tr:last-child td:first-child {
-    border-bottom-left-radius: 8px;
-  }
-
-  .dimensions-table tbody tr:last-child td:last-child {
-    border-bottom-right-radius: 8px;
-  }
-
-  .dimensions-table tbody tr:hover {
-    background-color: #fafafa;
-  }
-
-
 </style>
 
 <div id="app" class="container">
@@ -1224,8 +1172,8 @@
     {:else if currentStep === 'Filtering'}
       <div key='filter-rare-units' in:fade class="step-content" class:active={currentStep === 'Filtering'}>
         <h2>Filtering</h2>
-        <div class="dimensions-table-container">
-          <table class="dimensions-table">
+        <div class="tidy-table-container">
+          <table class="tidy-table">
             <thead>
               <tr>
                 <th>Dimension</th>

@@ -50,18 +50,60 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-table {
-  border-collapse: collapse;
+.tidy-table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
 }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
+.tidy-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.tidy-table thead {
+  background-color: #f5f5f5;
+}
+
+.tidy-table th, .tidy-table td {
+  padding: 8px 20px;
   text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
 }
 
-th {
-  background-color: #f2f2f2;
+.tidy-table th:last-child, .tidy-table td:last-child {
+  border-right: none;
+}
+
+.tidy-table th {
+  font-weight: bold;
+  color: #333;
+}
+
+.tidy-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.tidy-table th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.tidy-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.tidy-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+.tidy-table tbody tr:hover {
+  background-color: #fafafa;
 }
 
 button {
