@@ -34,6 +34,15 @@
     main_function();
   });
 
+  function updatePointsOrder() {
+    d3.select(svg).selectAll('circle')
+      .sort((a, b) => {
+        if (a.id === selectedPointId) return 1;
+        if (b.id === selectedPointId) return -1;
+        return 0;
+      });
+  }
+
   async function main_function() {
     try {
       const [dataResponse, leafIdDataPointsResponse] = await Promise.all([
@@ -88,7 +97,11 @@
               .attr('cy', d => y(d.y))
           )
           .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
-          .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue');
+          .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
+          .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
+          .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0);
+
+        updatePointsOrder();
 
         // Update x-axis
         svgElement.select('.x-axis')
@@ -143,6 +156,7 @@
     selectedPointId = d.id;
     dispatch('pointClick', { path: d.path });
     highlightPoint(d.path);
+    updatePointsOrder();
   }
 
   function highlightPoint(path) {
@@ -156,8 +170,11 @@
       d3.select(svg).selectAll('circle')
         .transition()
         .duration(100)
+        .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
+        .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0)
         .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
         .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius);
+      updatePointsOrder();
     }
   }
 
