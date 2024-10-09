@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,10 +6,11 @@ import icon from '../../resources/icon.png?asset'
 app.commandLine.appendSwitch('lang', 'en-US');
 
 function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 670,
+    width: width,
+    height: height,
     show: false,
     title: 'Micro-stability',
     autoHideMenuBar: true,

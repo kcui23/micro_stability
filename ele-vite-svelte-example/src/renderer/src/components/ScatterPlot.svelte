@@ -11,6 +11,9 @@
   export let data_points_updated_counter;
   export let highlight_point_path;
 
+  const pointRadius = 3;
+  const selectedPointRadius = 7;
+
   $: if (data_points_updated_counter) {
     main_function();
   }
@@ -42,7 +45,7 @@
 
       const width = 300;
       const height = 300;
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const margin = { top: 20, right: 20, bottom: 40, left: 40 };
 
       const x = d3.scaleLinear().range([margin.left, width - margin.right]);
       const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -53,6 +56,17 @@
         .attr('width', '100%')
         .attr('height', '100%')
         .attr('viewBox', `0 0 ${width} ${height}`);
+
+      if (svgElement.select('.x-axis').empty()) {
+        svgElement.append('g')
+          .attr('class', 'x-axis')
+          .attr('transform', `translate(0,${height - margin.bottom})`);
+      }
+      if (svgElement.select('.y-axis').empty()) {
+        svgElement.append('g')
+          .attr('class', 'y-axis')
+          .attr('transform', `translate(${margin.left},0)`);
+      }
 
       const points = extractDataPoints(data);
 
@@ -66,23 +80,53 @@
             enter => enter.append('circle')
               .attr('cx', d => x(d.x))
               .attr('cy', d => y(d.y))
-              .attr('r', 5)
+              .attr('r', pointRadius)
               .attr('fill', 'steelblue')
               .on('click', (event, d) => handlePointClick(d)),
             update => update
               .attr('cx', d => x(d.x))
               .attr('cy', d => y(d.y))
           )
-          .attr('r', d => d.id === selectedPointId ? 10 : 5)
+          .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
           .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue');
 
-        svgElement.append('g')
-          .attr('transform', `translate(0,${height - margin.bottom})`)
+        // Update x-axis
+        svgElement.select('.x-axis')
           .call(d3.axisBottom(x));
 
-        svgElement.append('g')
-          .attr('transform', `translate(${margin.left},0)`)
+        // Update y-axis
+        svgElement.select('.y-axis')
           .call(d3.axisLeft(y));
+
+        // Add or update x-axis label
+        let xLabel = svgElement.select('.x-axis-label');
+        if (xLabel.empty()) {
+          xLabel = svgElement.append('text')
+            .attr('class', 'x-axis-label')
+            .attr('x', width/2 + 10)
+            .attr('y', height - margin.bottom + 25)
+            .attr('fill', 'black')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '12px')
+            .text('Stability Metric 1');
+        }
+
+
+        // Add or update y-axis label
+        let yLabel = svgElement.select('.y-axis-label');
+        if (yLabel.empty()) {
+          yLabel = svgElement.append('text')
+            .attr('class', 'y-axis-label')
+            .attr('transform', `rotate(-90)`) 
+            .attr('x', -height / 2)
+            .attr('y', margin.left - 20)
+            .attr('fill', 'black')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '12px')
+            .text('Stability Metric 2');
+        }
+
+
       } else {
         svgElement.append('text')
           .attr('x', width / 2)
@@ -113,7 +157,7 @@
         .transition()
         .duration(100)
         .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
-        .attr('r', d => d.id === selectedPointId ? 10 : 5);
+        .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius);
     }
   }
 

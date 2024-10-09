@@ -15,6 +15,7 @@
   import SidebarComponent from './components/SidebarComponent.svelte';
   import ASVSelector from './components/ASVSelector.svelte';
   import ScatterPlot from './components/ScatterPlot.svelte';
+  import ControlPanel from './components/ControlPanel.svelte';
 
 
   let startMethod = 'deseq2';
@@ -912,25 +913,25 @@
       margin-bottom: 1rem;
     }
     .tree-container-wrapper {
-      display: flex;
       width: 100%;
       height: 200px;
       margin-bottom: 20px;
-      padding-right: 10px;
+      border: 2px solid #9e34db;
     }
+
+    .control-panel {
+      width: 100%;
+      height: 200px;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 2px solid #76a418;
+    }
+
     .scatter-plot-container {
-      flex: 0 0 20%;
-      height: 100%;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      box-sizing: border-box;
-      border-radius: 8px;
-      margin-left: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      width: 100%;
+      height: 400px;
+      margin-bottom: 20px;
+      border: 2px solid #34db50;
     }
 
     /* Start Page Styles */
@@ -1108,7 +1109,7 @@
   </div>
 
   <!-- Main Content Area -->
-  <div class="content">
+  <div class="content-left">
     <div class="tree-container-wrapper">
       <!-- D3 Tree Container -->
       <D3Tree 
@@ -1116,14 +1117,6 @@
         setCurrentStep={goToStep}
         bind:this={d3TreeComponent} 
       />
-      <!-- Scatter Plot -->
-      <div class="scatter-plot-container">
-        <ScatterPlot 
-          on:pointClick={handleScatterPointClick} 
-          {data_points_updated_counter}
-          {highlight_point_path}
-        />
-      </div> 
     </div>
 
     <div class="logo">
@@ -1481,5 +1474,20 @@
       {zoomedImage}
     />
 
+  </div>
+
+  <div class="content-right">
+    <!-- control panel -->
+    <div class="control-panel">
+      <ControlPanel />
+    </div>
+    <!-- Scatter Plot -->
+    <div class="scatter-plot-container">
+      <ScatterPlot 
+        on:pointClick={handleScatterPointClick} 
+        {data_points_updated_counter}
+        {highlight_point_path}
+      />
+    </div> 
   </div>
 </div>

@@ -17,6 +17,7 @@ body {
 .container {
   display: flex;
   height: 100vh;
+  width: 100%;
 }
 
 .sidebar {
@@ -29,11 +30,20 @@ body {
   flex-shrink: 0;
 }
 
-.content {
-  flex-grow: 1;
-  padding: 20px;
+.content-left {
+  width: 60%;
+  padding: 10px 10px 20px 20px;
   overflow-x: hidden;
   overflow-y: scroll;
+  border: 2px solid #3498db; /* Added blue border for clarity */
+}
+
+.content-right {
+  width: 40%;
+  padding: 10px 10px 20px 10px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  border: 2px solid #e74c3c; /* Added red border for clarity */
 }
 
 .loader {

@@ -41,3 +41,4 @@ export const crossStepMutuallyExclusiveOptions = {
         'No Zero-Handling': { 'Transformation': ['Log', 'Logit'], 'Normalization': ['CLR'] }
     }
 };
+export const selectedStep = writable('Filtering');
