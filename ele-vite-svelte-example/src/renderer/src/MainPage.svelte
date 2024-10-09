@@ -163,17 +163,6 @@
 
   const steps = ['Raw data', 'Filtering', 'Zero-Handling', 'Normalization', 'Transformation', 'Model Perturbation', 'Stability Metric'];
 
-  const showNotification = () => {
-    const notification = document.getElementById('notification');
-    notification.classList.add('show');
-    setTimeout(() => {
-      notification.classList.add('hide');
-      setTimeout(() => {
-        notification.classList.remove('show', 'hide');
-      }, 500); // Match the duration of the hide transition
-    }, 3000); // Duration to show the notification
-  };
-
   const previewFileContent = (fileContent) => {
     const rows = fileContent.split('\n').slice(0, 5);
     return rows.map(row => row.split('\t').slice(0, 5));
@@ -313,10 +302,6 @@
   };
 
   const goToStep = (step) => {
-    if (currentStep === 'Raw data' && (asvFiles.length === 0 || !groupingsFile)) {
-      showNotification();
-      return;
-    }
     lastStep = currentStep;
     currentStep = step;
 
@@ -846,11 +831,6 @@
   .filters {
     margin: 20px 0;
   }
-  .methods {
-    display: flex;
-    flex-direction: column;
-    margin: 20px 0;
-  }
 
   .method-file-status {
     margin-top: 20px;
@@ -1010,34 +990,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #ffdddd;
-      color: #d8000c;
-      padding: 15px;
-      border: 1px solid #d8000c;
-      border-radius: 5px;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-    }
-
-    .notification.show {
-      opacity: 1;
-    }
-
-    .notification.hide {
-      opacity: 0;
-    }
-
-    .notification-icon {
-      margin-right: 10px;
-      font-size: 1.5rem;
-    }
 
     .normalization-description {
     font-size: 1.1rem;
@@ -1091,12 +1043,6 @@
       </div>
     </div>
   {/if}
-
-  <!-- Non-modal notification -->
-  <div id="notification" class="notification">
-    <span class="notification-icon">⚠️</span>
-    <span>Please upload the required files first.</span>
-  </div>
 
   <!-- Sidebar -->
   <div class="sidebar">

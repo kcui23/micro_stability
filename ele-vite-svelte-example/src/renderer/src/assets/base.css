@@ -188,36 +188,6 @@ button:disabled:hover {
   opacity: 1;
 }
 
-/* Notification styles */
-.notification {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #fc9a37; 
-  color: white;
-  padding: 16px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: none; 
-  transition: opacity 0.5s ease, top 0.5s ease;
-}
-
-.notification.show {
-  display: block;
-  opacity: 1;
-}
-
-.notification.hide {
-  opacity: 0;
-  top: 0;
-}
-
-.notification-icon {
-  margin-right: 8px;
-}
-
 .warning {
   color: orange;
   margin-left: 10px;

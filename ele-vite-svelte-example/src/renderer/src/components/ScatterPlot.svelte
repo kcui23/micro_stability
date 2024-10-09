@@ -8,7 +8,8 @@
   let data;
   let leafIdDataPoints;
   let selectedPointId = null;
-  
+  let gradientId;
+
   export let data_points_updated_counter;
   export let highlight_point_path;
 
@@ -24,7 +25,7 @@
   }
 
   // Watch for selectedColorStep updates and refresh the scatter plot colors
-  $: if (selectedColorStep) {
+  $: if ($selectedColorStep) {
     updatePointColors();
   }
 
@@ -72,6 +73,27 @@
         .attr('height', '100%')
         .attr('viewBox', `0 0 ${width} ${height}`);
 
+      const defs = svgElement.append('defs');
+      gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
+      const gradient = defs.append('linearGradient')
+        .attr('id', gradientId)
+        .attr('x1', '0%')
+        .attr('y1', '0%')
+        .attr('x2', '100%')
+        .attr('y2', '100%');
+      
+      gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', 'CornflowerBlue');
+
+      gradient.append('stop')
+        .attr('offset', '65%')
+        .attr('stop-color', 'DarkSalmon');
+      
+      gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', 'MistyRose');
+
       if (svgElement.select('.x-axis').empty()) {
         svgElement.append('g')
           .attr('class', 'x-axis')
@@ -103,7 +125,7 @@
               .attr('cy', d => y(d.y))
           )
           .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
-          .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d)) // Use color based on step
+          .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d)) // Use color based on step
           .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
           .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0);
 
@@ -167,7 +189,7 @@
 
   function updatePointColors() {
     d3.select(svg).selectAll('circle')
-      .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d));
+      .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d));
   }
 
   function handlePointClick(d) {
@@ -190,7 +212,7 @@
         .duration(100)
         .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
         .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0)
-        .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d))
+        .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d))
         .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius);
       updatePointsOrder();
     }
