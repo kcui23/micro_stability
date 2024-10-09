@@ -41,4 +41,12 @@ export const crossStepMutuallyExclusiveOptions = {
         'No Zero-Handling': { 'Transformation': ['Log', 'Logit'], 'Normalization': ['CLR'] }
     }
 };
-export const selectedStep = writable('Filtering');
+export const selectedColorStep = writable('Filtering');
+export const scatterPlotColors = readable({
+    'Filtering': ['#FF5733', '#33FF57', '#3357FF', '#FF33F1'],
+    'Zero-Handling': ['#FFC300', '#DAF7A6', '#FF5733'],
+    'Normalization': ['#C70039', '#900C3F', '#581845', '#FFC300', '#DAF7A6'],
+    'Transformation': ['#FF5733', '#C70039', '#900C3F', '#581845'],
+    'Model Perturbation': ['#FFC300', '#DAF7A6', '#FF5733', '#C70039', '#900C3F'],
+    'Stability Metric': ['#581845', '#FFC300', '#DAF7A6']
+});

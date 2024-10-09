@@ -1,6 +1,7 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
+  import { singleSelectOperations, selectedColorStep, scatterPlotColors } from '../store.js'; // Assume scatterPlotColors is an object with color schemes
 
   const dispatch = createEventDispatcher();
   let svg;
@@ -20,6 +21,11 @@
 
   $: if (highlight_point_path) {
     highlightPoint(highlight_point_path);
+  }
+
+  // Watch for selectedColorStep updates and refresh the scatter plot colors
+  $: if (selectedColorStep) {
+    updatePointColors();
   }
 
   async function fetchData(url) {
@@ -90,14 +96,14 @@
               .attr('cx', d => x(d.x))
               .attr('cy', d => y(d.y))
               .attr('r', pointRadius)
-              .attr('fill', 'steelblue')
+              .attr('fill', d => getColorForPoint(d)) // Update to use the color function
               .on('click', (event, d) => handlePointClick(d)),
             update => update
               .attr('cx', d => x(d.x))
               .attr('cy', d => y(d.y))
           )
           .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
-          .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
+          .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d)) // Use color based on step
           .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
           .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0);
 
@@ -116,7 +122,7 @@
         if (xLabel.empty()) {
           xLabel = svgElement.append('text')
             .attr('class', 'x-axis-label')
-            .attr('x', width/2 + 10)
+            .attr('x', width / 2 + 10)
             .attr('y', height - margin.bottom + 25)
             .attr('fill', 'black')
             .attr('text-anchor', 'middle')
@@ -124,13 +130,12 @@
             .text('Stability Metric 1');
         }
 
-
         // Add or update y-axis label
         let yLabel = svgElement.select('.y-axis-label');
         if (yLabel.empty()) {
           yLabel = svgElement.append('text')
             .attr('class', 'y-axis-label')
-            .attr('transform', `rotate(-90)`) 
+            .attr('transform', `rotate(-90)`)
             .attr('x', -height / 2)
             .attr('y', margin.left - 20)
             .attr('fill', 'black')
@@ -138,8 +143,6 @@
             .attr('font-size', '12px')
             .text('Stability Metric 2');
         }
-
-
       } else {
         svgElement.append('text')
           .attr('x', width / 2)
@@ -150,6 +153,21 @@
     } catch (error) {
       console.error('Error fetching or processing data:', error);
     }
+  }
+
+  function getColorForPoint(d) {
+    const stepColors = $scatterPlotColors[$selectedColorStep];
+    if (!stepColors) return 'pink';
+
+    const legal_ops = $singleSelectOperations[$selectedColorStep];
+    const stepName = d.path.find(op => legal_ops.includes(op));
+    const index = legal_ops.indexOf(stepName);
+    return stepColors[index] || 'black';
+  }
+
+  function updatePointColors() {
+    d3.select(svg).selectAll('circle')
+      .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d));
   }
 
   function handlePointClick(d) {
@@ -172,7 +190,7 @@
         .duration(100)
         .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
         .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0)
-        .attr('fill', d => d.id === selectedPointId ? 'orange' : 'steelblue')
+        .attr('fill', d => d.id === selectedPointId ? 'orange' : getColorForPoint(d))
         .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius);
       updatePointsOrder();
     }

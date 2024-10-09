@@ -1,18 +1,7 @@
 <script>
-    import { singleSelectOperations, selectedStep } from '../store.js';
+    import { singleSelectOperations, selectedColorStep, scatterPlotColors } from '../store.js';
     
-    let colors = {
-        'Filtering': ['#FF5733', '#33FF57', '#3357FF', '#FF33F1'],
-        'Zero-Handling': ['#FFC300', '#DAF7A6', '#FF5733'],
-        'Normalization': ['#C70039', '#900C3F', '#581845', '#FFC300', '#DAF7A6'],
-        'Transformation': ['#FF5733', '#C70039', '#900C3F', '#581845'],
-        'Model Perturbation': ['#FFC300', '#DAF7A6', '#FF5733', '#C70039', '#900C3F'],
-        'Stability Metric': ['#581845', '#FFC300', '#DAF7A6']
-    };
     $: operations = $singleSelectOperations || {};
-    $: if ($selectedStep) {
-        console.log($selectedStep);
-    }
 
     function isLightColor(color) {
         const hex = color.replace('#', '');
@@ -26,15 +15,15 @@
 </script>
 
 <h2>Color Panel</h2>
-<select bind:value={$selectedStep}>
+<select bind:value={$selectedColorStep}>
     {#each Object.keys(operations) as step}
         <option value={step}>{step}</option>
     {/each}
 </select>
 
 <div class="color-options">
-    {#each operations[$selectedStep] as operation, index}
-        {@const bgColor = colors[$selectedStep][index]}
+    {#each operations[$selectedColorStep] as operation, index}
+        {@const bgColor = $scatterPlotColors[$selectedColorStep][index]}
         <div class="color-item" 
              style="background-color: {bgColor}; color: {isLightColor(bgColor) ? 'black' : 'white'}">
             {operation}
