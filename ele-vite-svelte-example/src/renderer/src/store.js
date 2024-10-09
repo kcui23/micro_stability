@@ -25,3 +25,19 @@ export const singleSelectOperations = readable({
 })
 export const selectedOperations = writable({});
 export const openMenus = writable({});
+export const crossStepMutuallyExclusiveOptions = {
+    'Normalization': {
+        'CLR': { 'Transformation': ['Log', 'Logit'], 'Zero-Handling': ['No Zero-Handling'] },
+        'TMM': { 'Transformation': ['Logit'] },
+        'CSS': { 'Transformation': ['Logit'] },
+        'No Normalization': { 'Transformation': ['AST'] }
+    },
+    'Transformation': {
+        'Log': { 'Normalization': ['CLR'], 'Zero-Handling': ['No Zero-Handling'] },
+        'Logit': { 'Normalization': ['CLR', 'TMM', 'CSS'], 'Zero-Handling': ['No Zero-Handling'] },
+        'AST': { 'Normalization': ['No Normalization'] }
+    },
+    'Zero-Handling': {
+        'No Zero-Handling': { 'Transformation': ['Log', 'Logit'], 'Normalization': ['CLR'] }
+    }
+};

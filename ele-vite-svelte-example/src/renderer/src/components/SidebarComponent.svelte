@@ -5,7 +5,8 @@
 		subOperations,
 		selectedOperations,
 		openMenus,
-		singleSelectOperations
+		singleSelectOperations,
+		crossStepMutuallyExclusiveOptions
 	} from '../store.js';
 	import { fade, slide } from 'svelte/transition';
 
@@ -76,12 +77,10 @@
 			const isSingleSelect = $singleSelectOperations[step] && $singleSelectOperations[step].includes(operation);
 			if (isSingleSelect) {
 				const existingSingleSelect = $singleSelectOperations[step].find(op => selections[step].includes(op));
-				console.log('existingSingleSelect:', existingSingleSelect);
 				if (existingSingleSelect) {
 					selections[step] = selections[step].filter(op => op !== existingSingleSelect);
 				}
 				selections[step].push(operation);
-				dispatch('pathChange', $selectedOperations);
 			} else {
 				if (selections[step].includes(operation)) {
 					selections[step] = selections[step].filter(op => op !== operation);
@@ -90,8 +89,30 @@
 				}
 			}
 
-		return selections;
-	});
+			if (crossStepMutuallyExclusiveOptions[step] && crossStepMutuallyExclusiveOptions[step][operation]) {
+                Object.entries(crossStepMutuallyExclusiveOptions[step][operation]).forEach(([mutexStep, mutexOps]) => {
+                    selections[mutexStep] = selections[mutexStep].filter(op => !mutexOps.includes(op));
+                });
+            }
+
+			dispatch('pathChange', selections);
+			return selections;
+		});
+	}
+
+	function isOptionDisabled(step, operation) {
+    for (const [otherStep, options] of Object.entries(crossStepMutuallyExclusiveOptions)) {
+        for (const [otherOp, mutexInfo] of Object.entries(options)) {
+            if ($selectedOperations[otherStep].includes(otherOp)) {
+                for (const [mutexStep, mutexOps] of Object.entries(mutexInfo)) {
+                    if (step === mutexStep && mutexOps.includes(operation)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 	function toggleMenu(step) {
@@ -161,6 +182,7 @@
 										name={step + "-singleSelect"}
 										checked={$selectedOperations[step].includes(operation)}
 										on:change={() => toggleOperation(step, operation)}
+										disabled={isOptionDisabled(step, operation)}
 									/>
 									{operation}
 								</label>
@@ -178,6 +200,7 @@
 										type="checkbox"
 										checked={$selectedOperations[step].includes(operation)}
 										on:change={() => toggleOperation(step, operation)}
+										disabled={isOptionDisabled(step, operation)}
 									/>
 									{operation}
 								</label>
@@ -387,6 +410,17 @@
 	.operation-radio input {
 		margin-right: 5px;
 	}
+
+	.operation-checkbox input:disabled,
+    .operation-radio input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .operation-checkbox:has(input:disabled),
+    .operation-radio:has(input:disabled) {
+        color: #999;
+    }
 	
 	.dropdown-indicator {
 		flex: 0 0 20px;
