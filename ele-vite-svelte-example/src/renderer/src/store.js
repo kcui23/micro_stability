@@ -50,3 +50,11 @@ export const scatterPlotColors = readable({
     'Model Perturbation': ['#FFC300', '#DAF7A6', '#FF5733', '#C70039', '#900C3F'],
     'Stability Metric': ['#581845', '#FFC300', '#DAF7A6']
 });
+export const colorStatus = writable({
+    'Filtering': ['Low Abundance Filtering', 'Prevalence Filtering', 'Variance Filtering', 'No Filtering'],
+    'Zero-Handling': ['Pseudocount Addition', 'k-NN Imputation', 'No Zero-Handling'],
+    'Normalization': ['TSS', 'CSS', 'TMM', 'CLR', 'No Normalization'],
+    'Transformation': ['Log', 'Logit', 'AST', 'No Transformation'],
+    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'],
+    'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
+})

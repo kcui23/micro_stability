@@ -34,10 +34,7 @@
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
-    console.log("selectedPointsList updated:", selectedPointsList);
   });
-  $: console.log("missingMethods updated:", missingMethods);
-  $: console.log("startMethod updated:", startMethod);
 
   const calculateStabilityMetric = async (method, missing_methods, destroy=false) => {
     try {
@@ -72,10 +69,8 @@
       });
 
       if (response.ok) {
-        console.log("&&&&&&&&&&& calculate stability metric &&&&&&&&&&");
         data_points_updated_counter += 1;
         const result = await response.json();
-        console.log("Stability Metric:", result.stability_metric);
       } else {
         const errorMessage = await response.json();
         console.error('Failed to calculate stability metric:', errorMessage.error);
@@ -133,7 +128,6 @@
   let ws_id;
 
   const interactWithJson = async () => {
-    console.log("Interacting with JSON in main page");
 
     try {
       const response = await fetch(`http://localhost:8000/update_leaf_data`, {
@@ -145,11 +139,9 @@
 
       if (response.ok) {
         data_points_updated_counter += 1;
-        console.log("Data points updated successfully in main page.");
         const jsonResponse = await fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json');
         if (jsonResponse.ok) {
           const jsonData = await jsonResponse.json();
-          console.log("Local data points JSON file content:", jsonData);
         } else {
           console.error("Not able to fetch local data points JSON file");
         }
@@ -476,10 +468,7 @@
 
         handleFileChange({ target: { files: [asvFile] } });
         handleGroupingsChange({ target: { files: [groupingFile] } });
-
-        console.log('Debug: Files auto-loaded successfully');
-      } else {
-        console.log('Debug: One or both files not found');
+        
       }
     } catch (error) {
       console.error('Debug: Error auto-loading files:', error);
@@ -491,7 +480,6 @@
       const response = await fetch('http://localhost:8000/check_method_files');
       if (response.ok) {
         methodFileStatus = await response.json();
-        console.log("Updated method file status:", methodFileStatus);  // Debug log
       } else {
         console.error('Failed to check method file status');
       }
@@ -537,7 +525,6 @@
 
       if (response.ok) {
         const result = await response.json();
-        console.log(result.message);
         combinedResultsReady = true;
         await fetchStabilityPlot();  // Fetch the stability plot after generating combined results
       } else {
@@ -657,7 +644,6 @@
       const isSingleSelect = $singleSelectOperations['Stability Metric'] && $singleSelectOperations['Stability Metric'].includes(path[6]);
       if (isSingleSelect) {
         const existingSingleSelect = $singleSelectOperations['Stability Metric'].find(op => selections['Stability Metric'].includes(op));
-        console.log('existingSingleSelect:', existingSingleSelect);
         if (existingSingleSelect) {
           selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== existingSingleSelect);
         }
@@ -687,13 +673,11 @@
       path[5] = selectedMethod;
       return path;
     });
-    console.log("currentPath after update:", $currentPath);
     handlePathChangeFromSidebar($currentPath, true);
     highlightPoint($currentPath, "updateTreeandScatterplot");
   }
 
   function handlePathChangeFromSidebar(event, direct=false) {
-    console.log("【handlePathChangeFromSidebar】:", event);
     let data;
     let existingSingleSelect;
     if (direct) { data = event } else { 
@@ -713,7 +697,6 @@
       path[4] = data[steps[4]][0]
       path[5] = data[steps[5]][0]
       path[6] = data[steps[6]][0]
-      console.log("New path from sidebar:", path)
       // Update d3 tree
       currentPath.set(path);
       if (d3TreeComponent) {
@@ -761,12 +744,6 @@
     }
   }
 
-  $: {
-    console.log('Current step:', currentStep);
-    console.log('Selected operations:', JSON.stringify($selectedOperations, null, 2));
-    console.log("Tree data in main:", treeData);
-  }
-
   onMount(() => {
     autoLoadFiles();
     window.addEventListener('keydown', handleKeydown);
@@ -787,7 +764,6 @@
     fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
       .then(response => response.json())
       .then(data => {
-        console.log("Data loaded successfully:", data);
         treeData = data
       })
       .catch(error => console.error('Error loading or parsing data.json:', error));

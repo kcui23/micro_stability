@@ -1,5 +1,8 @@
 <script>
-    import { singleSelectOperations, selectedColorStep, scatterPlotColors } from '../store.js';
+    import { singleSelectOperations, 
+        selectedColorStep, 
+        scatterPlotColors,
+        colorStatus } from '../store.js';
     
     $: operations = $singleSelectOperations || {};
 
@@ -12,6 +15,22 @@
         return brightness > 128;
     }
 
+    function handleButtonClick(operation) {
+        let tmp = $colorStatus
+        if (tmp[$selectedColorStep].includes(operation)) {
+            colorStatus.update(d => {
+                d[$selectedColorStep] = d[$selectedColorStep].filter(op => op !== operation);
+                return d;
+            })
+        }
+        else {
+            colorStatus.update(d => {
+                d[$selectedColorStep] = [...d[$selectedColorStep], operation];
+                return d;
+            })
+        }
+        console.log("updated $colorStatus:", $colorStatus);
+    }
 </script>
 
 <h2>Color Panel</h2>
@@ -24,10 +43,13 @@
 <div class="color-options">
     {#each operations[$selectedColorStep] as operation, index}
         {@const bgColor = $scatterPlotColors[$selectedColorStep][index]}
-        <div class="color-item" 
-             style="background-color: {bgColor}; color: {isLightColor(bgColor) ? 'black' : 'white'}">
+        <button class="color-item" 
+                style="background-color: {bgColor}; 
+                color: {isLightColor(bgColor) ? 'black' : 'white'};
+                opacity: {$colorStatus[$selectedColorStep].includes(operation) ? 1 : 0.5}"
+                on:click={() => handleButtonClick(operation)}>
             {operation}
-        </div>
+        </button>
     {/each}
 </div>
 
@@ -48,6 +70,7 @@
     }
 
     .color-item {
+        height: 2rem;
         display: inline-block;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
@@ -55,5 +78,10 @@
         font-size: 0.9rem;
         text-align: center;
         margin-bottom: 0.25rem;
+        border: none;
+    }
+
+    .color-item:hover {
+        opacity: 0.8;
     }
 </style>

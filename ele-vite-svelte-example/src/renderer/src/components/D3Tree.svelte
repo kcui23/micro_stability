@@ -14,7 +14,6 @@
     let previousPath = [];
 
     $: if (treeData && d3TreeContainer) {
-        console.log("Tree data updated, rendering tree...");
         d3.select(d3TreeContainer).select("svg").remove(); // Clean up any existing SVG
         renderD3Tree(d3TreeContainer, treeData);
     }
@@ -110,22 +109,16 @@
                     .attr("data-name", d => d.data.name)
                     .on("click", (event, d) => {
                         let name = d.data.name;
-                        console.log('=====')
-                        console.log("Clicked node:", d);
-                        console.log("clicked node name:", d.data.name);
-                        console.log('=====')
                         // Check if name is in subOperations keys or values
                         subOperations.subscribe(operations => {
                             let found = false;
                             if (Object.keys(operations).includes(name)) {
-                                console.log("Node is a main operation:", name);
                                 setCurrentStep(name);
                                 toggleMenu_in_D3Tree(name);
                                 found = true;
                             } else {
                                 for (let [key, value] of Object.entries(operations)) {
                                     if (value.includes(name)) {
-                                        console.log("Node is a sub-operation of:", key);
                                         setCurrentStep(key);
                                         toggleMenu_in_D3Tree(key);
                                         found = true;
@@ -133,7 +126,6 @@
                                     }
                                 }
                                 if (!found) {
-                                    console.log("Node is from 'Model Perturbation'");
                                     setCurrentStep('Model Perturbation');
                                     toggleMenu_in_D3Tree('Model Perturbation');
                                 }

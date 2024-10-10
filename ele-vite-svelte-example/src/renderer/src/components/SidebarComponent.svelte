@@ -65,7 +65,6 @@
 	}
 
 	function selectStep(step) {
-		console.log('selectStep and stepStatus:', { step: step, status: $stepStatus[step] });
 		if ($stepStatus[step] === 'Enabled') {
 			setCurrentStep(step);
 			toggleMenu(step);

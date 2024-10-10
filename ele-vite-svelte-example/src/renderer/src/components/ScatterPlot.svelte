@@ -1,7 +1,10 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
-  import { singleSelectOperations, selectedColorStep, scatterPlotColors } from '../store.js'; // Assume scatterPlotColors is an object with color schemes
+  import { singleSelectOperations, 
+    selectedColorStep, 
+    scatterPlotColors,
+    colorStatus } from '../store.js';
 
   const dispatch = createEventDispatcher();
   let svg;
@@ -24,7 +27,6 @@
     highlightPoint(highlight_point_path);
   }
 
-  // Watch for selectedColorStep updates and refresh the scatter plot colors
   $: if ($selectedColorStep) {
     updatePointColors();
   }
