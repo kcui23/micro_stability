@@ -27,8 +27,8 @@
     highlightPoint(highlight_point_path);
   }
 
-  $: if ($selectedColorStep) {
-    updatePointColors();
+  $: if ($selectedColorStep || $colorStatus) {
+    updateScatterPlot();
   }
 
   async function fetchData(url) {
@@ -61,121 +61,142 @@
       data = dataResponse;
       leafIdDataPoints = leafIdDataPointsResponse;
 
-      const width = 300;
-      const height = 300;
-      const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+      initializeSVG();
+      updateScatterPlot();
+    } catch (error) {
+      console.error('Error fetching or processing data:', error);
+    }
+  }
 
-      const x = d3.scaleLinear().range([margin.left, width - margin.right]);
-      const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+  function initializeSVG() {
+    const width = 300;
+    const height = 300;
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
 
-      d3.select(svg).selectAll('*').remove();
+    d3.select(svg).selectAll('*').remove();
 
-      const svgElement = d3.select(svg)
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('viewBox', `0 0 ${width} ${height}`);
+    const svgElement = d3.select(svg)
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('viewBox', `0 0 ${width} ${height}`);
 
-      const defs = svgElement.append('defs');
-      gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
-      const gradient = defs.append('linearGradient')
-        .attr('id', gradientId)
-        .attr('x1', '0%')
-        .attr('y1', '0%')
-        .attr('x2', '100%')
-        .attr('y2', '100%');
+    // Initialize gradient
+    const defs = svgElement.append('defs');
+    gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
+    const gradient = defs.append('linearGradient')
+      .attr('id', gradientId)
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '100%');
+    
+    gradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', 'CornflowerBlue');
+
+    gradient.append('stop')
+      .attr('offset', '65%')
+      .attr('stop-color', 'DarkSalmon');
+    
+    gradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', 'MistyRose');
+
+    // Initialize axes
+    svgElement.append('g')
+      .attr('class', 'x-axis')
+      .attr('transform', `translate(0,${height - margin.bottom})`);
+
+    svgElement.append('g')
+      .attr('class', 'y-axis')
+      .attr('transform', `translate(${margin.left},0)`);
+
+    // Initialize axis labels
+    svgElement.append('text')
+      .attr('class', 'x-axis-label')
+      .attr('x', width / 2 + 10)
+      .attr('y', height - margin.bottom + 25)
+      .attr('fill', 'black')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '12px')
+      .text('Stability Metric 1');
+
+    svgElement.append('text')
+      .attr('class', 'y-axis-label')
+      .attr('transform', `rotate(-90)`)
+      .attr('x', -height / 2)
+      .attr('y', margin.left - 20)
+      .attr('fill', 'black')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '12px')
+      .text('Stability Metric 2');
+  }
+
+  function updateScatterPlot() {
+    if (!data) return;
+
+    const width = 300;
+    const height = 300;
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+
+    const x = d3.scaleLinear().range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+
+    const svgElement = d3.select(svg);
+
+    const points = extractDataPoints(data).filter(d => isPointVisible(d));
+
+    // Remove existing "No data available" text
+    svgElement.select('.no-data-text').remove();
+
+    const currentStepStatus = $colorStatus[$selectedColorStep];
+    if (points.length > 0 && currentStepStatus && currentStepStatus.length > 0) {
+      x.domain(d3.extent(points, d => d.x));
+      y.domain(d3.extent(points, d => d.y));
+
+      svgElement.selectAll('circle')
+        .data(points, d => d.id)
+        .join(
+          enter => enter.append('circle')
+            .attr('cx', d => x(d.x))
+            .attr('cy', d => y(d.y))
+            .attr('r', pointRadius)
+            .attr('fill', d => getColorForPoint(d))
+            .on('click', (event, d) => handlePointClick(d)),
+          update => update
+            .attr('cx', d => x(d.x))
+            .attr('cy', d => y(d.y))
+            .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d)),
+          exit => exit.remove()
+        )
+        .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
+        .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
+        .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0);
+
+      updatePointsOrder();
+
+      // Update axes
+      svgElement.select('.x-axis').call(d3.axisBottom(x));
+      svgElement.select('.y-axis').call(d3.axisLeft(y));
+    } else {
+      svgElement.selectAll('circle').remove();
       
-      gradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', 'CornflowerBlue');
-
-      gradient.append('stop')
-        .attr('offset', '65%')
-        .attr('stop-color', 'DarkSalmon');
-      
-      gradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', 'MistyRose');
-
-      if (svgElement.select('.x-axis').empty()) {
-        svgElement.append('g')
-          .attr('class', 'x-axis')
-          .attr('transform', `translate(0,${height - margin.bottom})`);
-      }
-      if (svgElement.select('.y-axis').empty()) {
-        svgElement.append('g')
-          .attr('class', 'y-axis')
-          .attr('transform', `translate(${margin.left},0)`);
-      }
-
-      const points = extractDataPoints(data);
-
-      if (points.length > 0) {
-        x.domain(d3.extent(points, d => d.x));
-        y.domain(d3.extent(points, d => d.y));
-
-        svgElement.selectAll('circle')
-          .data(points, d => d.id)
-          .join(
-            enter => enter.append('circle')
-              .attr('cx', d => x(d.x))
-              .attr('cy', d => y(d.y))
-              .attr('r', pointRadius)
-              .attr('fill', d => getColorForPoint(d)) // Update to use the color function
-              .on('click', (event, d) => handlePointClick(d)),
-            update => update
-              .attr('cx', d => x(d.x))
-              .attr('cy', d => y(d.y))
-          )
-          .attr('r', d => d.id === selectedPointId ? selectedPointRadius : pointRadius)
-          .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d)) // Use color based on step
-          .attr('stroke', d => d.id === selectedPointId ? 'black' : 'none')
-          .attr('stroke-width', d => d.id === selectedPointId ? 2 : 0);
-
-        updatePointsOrder();
-
-        // Update x-axis
-        svgElement.select('.x-axis')
-          .call(d3.axisBottom(x));
-
-        // Update y-axis
-        svgElement.select('.y-axis')
-          .call(d3.axisLeft(y));
-
-        // Add or update x-axis label
-        let xLabel = svgElement.select('.x-axis-label');
-        if (xLabel.empty()) {
-          xLabel = svgElement.append('text')
-            .attr('class', 'x-axis-label')
-            .attr('x', width / 2 + 10)
-            .attr('y', height - margin.bottom + 25)
-            .attr('fill', 'black')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
-            .text('Stability Metric 1');
-        }
-
-        // Add or update y-axis label
-        let yLabel = svgElement.select('.y-axis-label');
-        if (yLabel.empty()) {
-          yLabel = svgElement.append('text')
-            .attr('class', 'y-axis-label')
-            .attr('transform', `rotate(-90)`)
-            .attr('x', -height / 2)
-            .attr('y', margin.left - 20)
-            .attr('fill', 'black')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
-            .text('Stability Metric 2');
-        }
+      // Add the "No data available" text if there are no points to display
+      if (currentStepStatus && currentStepStatus.length === 0) {
+        svgElement.append('text')
+          .attr('class', 'no-data-text')
+          .attr('x', width / 2)
+          .attr('y', height / 2)
+          .attr('text-anchor', 'middle')
+          .text('No color tag selected');
       } else {
         svgElement.append('text')
+          .attr('class', 'no-data-text')
           .attr('x', width / 2)
           .attr('y', height / 2)
           .attr('text-anchor', 'middle')
           .text('No data points available');
       }
-    } catch (error) {
-      console.error('Error fetching or processing data:', error);
     }
   }
 
@@ -189,9 +210,10 @@
     return stepColors[index] || 'black';
   }
 
-  function updatePointColors() {
-    d3.select(svg).selectAll('circle')
-      .attr('fill', d => d.id === selectedPointId ? `url(#${gradientId})` : getColorForPoint(d));
+  function isPointVisible(d) {
+    const currentStepStatus = $colorStatus[$selectedColorStep];
+    if (!currentStepStatus || currentStepStatus.length === 0) return false;
+    return d.path.some(step => currentStepStatus.includes(step));
   }
 
   function handlePointClick(d) {
