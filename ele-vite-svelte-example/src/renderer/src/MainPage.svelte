@@ -21,8 +21,8 @@
   let startMethod = 'deseq2';
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
   let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
-  let abundance_threshold = 0.0;
-  let prevalence_threshold = 0.0;
+  let abundance_threshold = 5;
+  let prevalence_threshold = 10;
   let variance_threshold = 0.0;
   let pseudocount = 1;
   let knn = 5;
@@ -35,6 +35,8 @@
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
   });
+
+  $: console.log("selectedOperations:", $selectedOperations);
 
   const calculateStabilityMetric = async (method, missing_methods, destroy=false) => {
     try {
@@ -244,43 +246,38 @@
   }
 
   const handleFilter = async () => {
-    const file = asvFiles[0];
+    let filter_method = $selectedOperations['Filtering'][0];
+    let tmp_threshold;
+    if (filter_method === 'Low Abundance Filtering') {
+      tmp_threshold = abundance_threshold;
+    } else if (filter_method === 'Prevalence Filtering') {
+      tmp_threshold = prevalence_threshold;
+    } else if (filter_method === 'Variance Filtering') {
+      tmp_threshold = variance_threshold;
+    } else {
+      tmp_threshold = threshold;
+    }
+    try {
+      const response = await fetch(`http://localhost:8000/filter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filter_method: filter_method,
+          threshold: tmp_threshold
+        })
+      });
 
-    const asvReader = new FileReader();
-    asvReader.onload = async () => {
-      const asvContent = asvReader.result;
-
-      try {
-        const response = await fetch(`http://localhost:8000/filter`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            asv: asvContent,
-            threshold: threshold
-          })
-        });
-
-        // Parse the JSON response
-        const result = await response.json();
-        let filteredAsv = result.filteredAsv;
-
-        // Ensure filteredAsv is a string
-        if (typeof filteredAsv !== 'string') {
-          filteredAsv = String(filteredAsv);
-        }
-
-        filteredContent = previewFileContent(filteredAsv);
-        filteredDimensions = getFileDimensions(filteredAsv);
-        filteredAsvContent = filteredAsv;
-      } catch (error) {
-        console.error('Error in filtering:', error);
+      const result = await response.json();
+      if (result.success) {
+        console.log('Filtering applied successfully');
+      } else {
+        console.error('Filtering failed');
       }
-    };
-
-    asvReader.readAsText(file);
-    resetMethodStatus();
+    } catch (error) {
+      console.error('Error in filtering:', error);
+    }
   };
 
   const resetMethodStatus = () => {
@@ -951,6 +948,7 @@
     color: #4a4a4a;
     line-height: 1.6;
     margin-top: 10px;
+    margin-bottom: 10px;
     background-color: #f0f4f8;
     padding: 15px 20px;
     border-left: 4px solid #007BFF;
@@ -1092,8 +1090,11 @@
         {#if $selectedOperations['Filtering']?.includes('Low Abundance Filtering')}
           <!-- Threshold Application UI -->
             <div class="filters">
+              <p class="normalization-description">
+                <strong>Low Abundance Filtering:</strong> Set ASV abundance to zero if it is below the specified threshold.
+              </p>
               <label for="abundance_threshold">Low Abundance Filtering Threshold:</label>
-              <input type="range" id="abundance_threshold" bind:value={abundance_threshold} min="0" max="1" step="0.01" />
+              <input type="range" id="abundance_threshold" bind:value={abundance_threshold} min="0" max="100" step="1" />
               <span>{abundance_threshold}</span>
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
@@ -1101,8 +1102,11 @@
         {#if $selectedOperations['Filtering']?.includes('Prevalence Filtering')}
           <!-- Threshold Application UI -->
             <div class="filters">
-              <label for="prevalence_threshold">Prevalence Filtering Threshold:</label>
-              <input type="range" id="prevalence_threshold" bind:value={prevalence_threshold} min="0" max="1" step="0.01" />
+              <p class="normalization-description">
+                <strong>Prevalence Filtering:</strong> Remove ASVs with a prevalence below the specified threshold.
+              </p>
+              <label for="prevalence_threshold">Prevalence Filtering Threshold (%):</label>
+              <input type="range" id="prevalence_threshold" bind:value={prevalence_threshold} min="0" max="100" step="1" />
               <span>{prevalence_threshold}</span>
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
@@ -1110,6 +1114,9 @@
         {#if $selectedOperations['Filtering']?.includes('Variance Filtering')}
           <!-- Threshold Application UI -->
             <div class="filters">
+              <p class="normalization-description">
+                <strong>Variance Filtering:</strong> Remove ASVs with a variance below the specified threshold.
+              </p>
               <label for="variance_threshold">Variance Filtering Threshold:</label>
               <input type="range" id="variance_threshold" bind:value={variance_threshold} min="0" max="1" step="0.01" />
               <span>{variance_threshold}</span>

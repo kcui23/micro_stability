@@ -14,6 +14,9 @@ persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE
 uploaded_files_dir <- file.path(persistent_temp_dir, "uploaded_files")
 dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
 
+asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
+groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
+
 #* Store uploaded files
 #* @post /store_files
 #* @param asv The ASV file content
@@ -22,17 +25,12 @@ dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
-  groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
-  
   writeLines(as.character(body$asv), asv_file_path, sep = "\n")
   writeLines(as.character(body$groupings), groupings_file_path, sep = "\n")
 
   # add some log messages
   message("ASV file stored at: ", asv_file_path)
-  message("First lines of ASV file: ", readLines(asv_file_path, n = 5))
   message("Groupings file stored at: ", groupings_file_path)
-  message("First lines of groupings file: ", readLines(groupings_file_path, n = 5))
   
   list(
     message = "Files stored successfully",
@@ -108,18 +106,44 @@ function(req, method) {
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_data <- read_tsv(body$asv, col_types = cols(.default = "c"))
-  
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
+  filter_method <- body$filter_method
   threshold <- as.numeric(body$threshold)
-  filtered_data <- asv_data %>% filter_if(is.numeric, any_vars(. > 50 * threshold))
   
-  temp_filtered_file <- tempfile(fileext = ".tsv")
-  write_tsv(filtered_data, temp_filtered_file)
-  filtered_asv_content <- paste(readLines(temp_filtered_file), collapse = "\n")
+  low_abundance_filter <- function(data, threshold) {
+    data %>% mutate_if(is.numeric, ~ifelse(. < threshold, 0, .))
+  }
+
+  prevalence_filter <- function(data, threshold) {
+    total_samples <- ncol(data) - 1
+    data %>%
+      mutate(prevalence = rowSums(select(., -1) > 0) / total_samples) %>%
+      filter(prevalence >= threshold) %>%
+      select(-prevalence)
+  }
+
+  variance_filter <- function(data, threshold) {
+    data %>%
+      mutate(variance = apply(select(., -1), 1, var)) %>%
+      filter(variance > threshold) %>%
+      select(-variance)
+  }
+
+  # Use switch to call the appropriate function
+  filtered_data <- switch(filter_method,
+    "Low Abundance Filtering" = low_abundance_filter(asv_data, threshold),
+    "Prevalence Filtering" = prevalence_filter(asv_data, threshold),
+    "Variance Filtering" = variance_filter(asv_data, threshold),
+    stop("Invalid filter method")
+  )
   
-  list(filteredAsv = filtered_asv_content)
+  write_tsv(filtered_data, asv_file_path)
+  # add some log messages about the method and threshold used
+  message("Filtered ASV data with ", filter_method, " with a threshold of ", threshold)
+
+  list(success = TRUE)
 }
 
 #* Quick Explore subset of ASV data
