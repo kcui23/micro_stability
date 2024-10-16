@@ -689,7 +689,7 @@ function(req, res) {
 
     for (leaf in names(leaf_data)) {
       tmp_path <- find_path_from_id(leaf, tree_data)
-      if (tmp_path[5] %in% missing_methods) {
+      if (tmp_path[6] %in% missing_methods) {
         leaf_data[[leaf]]$data_point <- c(0, 0)
       }
     }
@@ -697,7 +697,7 @@ function(req, res) {
     stability_metric <- list()
     for (leaf in names(leaf_data)) {
       path <- find_path_from_id(leaf, tree_data)
-      if (path[5] == method) {
+      if (path[6] == method) {
         leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
       }
     }
@@ -740,7 +740,7 @@ find_path_from_id <- function(id, tree = tree_data) {
 
 calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
   if (test) {
-    Sys.sleep(0.1)
+    Sys.sleep(0.002)
     new_data_point <- generate_random_pair()
     json_data[[leaf]]$data_point <- new_data_point
     return(json_data)

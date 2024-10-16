@@ -70,6 +70,7 @@
 
       if (response.ok) {
         data_points_updated_counter += 1;
+        console.log("Data points updated counter in calculateStabilityMetric:", data_points_updated_counter);
         const result = await response.json();
       } else {
         const errorMessage = await response.json();
