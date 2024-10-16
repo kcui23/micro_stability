@@ -455,27 +455,6 @@
     }
   };
 
-  async function autoLoadFiles() {
-    const asvPath = '../../datasets/Blueberry/Blueberry_ASVs_table.tsv';
-    const groupingPath = '../../datasets/Blueberry/Blueberry_metadata.tsv';
-
-    try {
-      const asvResponse = await fetch(asvPath);
-      const groupingResponse = await fetch(groupingPath);
-
-      if (asvResponse.ok && groupingResponse.ok) {
-        const asvFile = new File([await asvResponse.blob()], 'Blueberry_ASVs_table.tsv');
-        const groupingFile = new File([await groupingResponse.blob()], 'Blueberry_metadata.tsv');
-
-        handleFileChange({ target: { files: [asvFile] } });
-        handleGroupingsChange({ target: { files: [groupingFile] } });
-        
-      }
-    } catch (error) {
-      console.error('Debug: Error auto-loading files:', error);
-    }
-  }
-
   const checkMethodFileStatus = async () => {
     try {
       const response = await fetch('http://localhost:8000/check_method_files');
@@ -746,7 +725,6 @@
   }
 
   onMount(() => {
-    autoLoadFiles();
     window.addEventListener('keydown', handleKeydown);
 
     ws = new WebSocket('ws://localhost:8000/ws');

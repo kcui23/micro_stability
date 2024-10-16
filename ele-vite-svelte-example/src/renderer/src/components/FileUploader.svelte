@@ -52,16 +52,57 @@
         if (response.ok) {
           const result = await response.json();
           console.log('Files stored successfully:', result);
+          return true;
         } else {
           console.error('Failed to store files');
+          return false;
         }
       } catch (error) {
         console.error('Error uploading files:', error);
+        return false;
       }
     } else {
       console.warn('Please select both ASV and groupings files before uploading');
+      return false;
     }
   }
+
+  async function autoLoadFiles() {
+    const asvPath = '../../datasets/Blueberry/Blueberry_ASVs_table.tsv';
+    const groupingPath = '../../datasets/Blueberry/Blueberry_metadata.tsv';
+
+    try {
+      const asvResponse = await fetch(asvPath);
+      const groupingResponse = await fetch(groupingPath);
+
+      if (asvResponse.ok && groupingResponse.ok) {
+        const asvFile = new File([await asvResponse.blob()], 'Blueberry_ASVs_table.tsv');
+        const groupingFile = new File([await groupingResponse.blob()], 'Blueberry_metadata.tsv');
+
+        asvFiles = [asvFile];
+        groupingsFile = groupingFile;
+
+        asvContent = await asvFile.text();
+        groupingsContent = await groupingFile.text();
+
+        handleFileChange({ target: { files: [asvFile] } });
+        handleGroupingsChange({ target: { files: [groupingFile] } });
+
+        const uploadSuccess = await uploadFiles();
+        if (uploadSuccess) {
+          console.log('Files auto-loaded and uploaded successfully');
+        } else {
+          console.error('Failed to upload auto-loaded files');
+        }
+      }
+    } catch (error) {
+      console.error('Error auto-loading files:', error);
+    }
+  }
+
+  onMount(() => {
+    autoLoadFiles();
+  });
 </script>
 
 <div class="upload-container">
