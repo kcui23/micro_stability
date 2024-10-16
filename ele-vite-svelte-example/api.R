@@ -47,7 +47,30 @@ safe_file_path <- function(...) {
   normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
 }
 
-#* @apiTitle ASV Data Processing API
+#* Preview ASV and grouping data
+#* @get /preview_data
+function() {
+  asv_data <- read_tsv(asv_file_path)
+  groupings_data <- read_tsv(groupings_file_path)
+  
+  asv_preview <- asv_data %>%
+    select(1:min(6, ncol(.))) %>%
+    slice(1:min(5, nrow(.)))
+  groupings_preview <- groupings_data %>%
+    slice(1:min(5, nrow(.)))
+
+  message("ASV preview: ", asv_preview)
+  message("Groupings preview: ", groupings_preview)
+  
+  response <- list(
+    asv_preview = asv_preview,
+    asv_dimensions = dim(asv_data),
+    groupings_preview = groupings_preview,
+    groupings_dimensions = dim(groupings_data)
+  )
+  
+  return(response)
+}
 
 #* Upload dataset and select processing method
 #* @post /process
@@ -741,20 +764,21 @@ function(req, res) {
     method <- body$method
     missing_methods <- body$missing_methods
 
-    for (leaf in names(leaf_data)) {
-      tmp_path <- find_path_from_id(leaf, tree_data)
-      if (tmp_path[6] %in% missing_methods) {
-        leaf_data[[leaf]]$data_point <- c(0, 0)
-      }
-    }
+    # for testing
+    # for (leaf in names(leaf_data)) {
+    #   tmp_path <- find_path_from_id(leaf, tree_data)
+    #   if (tmp_path[6] %in% missing_methods) {
+    #     leaf_data[[leaf]]$data_point <- c(0, 0)
+    #   }
+    # }
 
     stability_metric <- list()
-    for (leaf in names(leaf_data)) {
-      path <- find_path_from_id(leaf, tree_data)
-      if (path[6] == method) {
-        leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
-      }
-    }
+    # for (leaf in names(leaf_data)) {
+    #   path <- find_path_from_id(leaf, tree_data)
+    #   if (path[6] == method) {
+    #     leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
+    #   }
+    # }
 
     write_json(leaf_data, leaf_json_path, pretty = TRUE, auto_unbox = TRUE)
 

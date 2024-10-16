@@ -30,11 +30,47 @@
   let d3TreeContainer;
   let d3TreeComponent;
   let data_points_updated_counter = 0;
+  let preview_update_counter = 0;
   let highlight_point_path = [];
   let selectedPointsList = [];
   $: selectedPoints.subscribe(value => {
     selectedPointsList = value;
   });
+
+  $: if (preview_update_counter) {
+    console.log("preview_update_counter:", preview_update_counter);
+    updatePreVars();
+  }
+
+  let asvPreview = [];
+  let groupingsPreview = [];
+  let asvDimensions = [];
+  let groupingsDimensions = [];
+  let oldAsvDimensions = [];
+  let oldGroupingsDimensions = [];
+
+  async function updatePreVars() {
+    try {
+      const response = await fetch('http://localhost:8000/preview_data');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const previewData = await response.json();
+      
+      oldAsvDimensions = asvDimensions;
+      oldGroupingsDimensions = groupingsDimensions;
+      asvPreview = previewData.asv_preview;
+      asvDimensions = previewData.asv_dimensions;
+      groupingsPreview = previewData.groupings_preview;
+      groupingsDimensions = previewData.groupings_dimensions;
+      console.log("asvPreview:", asvPreview);
+      console.log("asvDimensions:", asvDimensions);
+      console.log("groupingsPreview:", groupingsPreview);
+      console.log("groupingsDimensions:", groupingsDimensions);
+    } catch (err) {
+      console.error('Error fetching preview data:', err);
+    }
+  }
 
   $: console.log("selectedOperations:", $selectedOperations);
 
@@ -108,7 +144,6 @@
   let previewContent = [];
   let groupingsContentPreview = [];
   let fileDimensions = { rows: 0, columns: 0 };
-  let groupingsDimensions = { rows: 0, columns: 0 };
   let threshold = 0.0;
   let filteredContent = [];
   let filteredDimensions = { rows: 0, columns: 0 };
@@ -272,6 +307,7 @@
       const result = await response.json();
       if (result.success) {
         console.log('Filtering applied successfully');
+        preview_update_counter += 1;
       } else {
         console.error('Filtering failed');
       }
@@ -979,6 +1015,7 @@
           <FileUploader 
             {handleFileChange} 
             {handleGroupingsChange} 
+            {updatePreVars}
             bind:asvFiles
             bind:groupingsFile
           />
@@ -1030,15 +1067,16 @@
         <FileUploader 
           {handleFileChange} 
           {handleGroupingsChange} 
+          {updatePreVars}
           bind:asvFiles
           bind:groupingsFile
         />
         
         {#if $selectedOperations['Raw data']?.includes('Preview')}
           <PreviewSection
-            {filteredContent}
-            {groupingsContentPreview}
-            {filteredDimensions}
+            {asvPreview}
+            {groupingsPreview}
+            {asvDimensions}
             {groupingsDimensions}
             {asvFiles}
             {groupingsFile}
@@ -1076,13 +1114,13 @@
             <tbody>
               <tr>
                 <td>Original</td>
-                <td>{fileDimensions.rows}</td>
-                <td>{fileDimensions.columns}</td>
+                <td>{oldAsvDimensions[0]}</td>
+                <td>{oldAsvDimensions[1]}</td>
               </tr>
               <tr>
                 <td>Filtered</td>
-                <td>...</td>
-                <td>...</td>
+                <td>{asvDimensions[0]}</td>
+                <td>{asvDimensions[1]}</td>
               </tr>
             </tbody>
           </table>

@@ -58,3 +58,4 @@ export const colorStatus = writable({
     'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'],
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
 })
+export const autoLoaded = writable(false);

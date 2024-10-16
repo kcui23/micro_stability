@@ -1,7 +1,7 @@
 <script>
-  export let filteredContent
-  export let groupingsContentPreview
-  export let filteredDimensions
+  export let asvPreview
+  export let groupingsPreview
+  export let asvDimensions
   export let groupingsDimensions
   export let asvFiles
   export let groupingsFile
@@ -11,20 +11,20 @@
   {#if asvFiles.length > 0}
     <div class="preview">
       <h2>Preview of ASV File</h2>
-      <p>Dimensions: {filteredDimensions.rows} rows, {filteredDimensions.columns} columns</p>
+      <p>Dimensions: {asvDimensions[0]} rows, {asvDimensions[1]} columns</p>
       <div class="tidy-table-container">
         <table class="tidy-table">
           <thead>
             <tr>
-              {#each filteredContent[0] as header}
+              {#each Object.keys(asvPreview[0]) as header}
                 <th>{header}</th>
               {/each}
             </tr>
           </thead>
           <tbody>
-            {#each filteredContent.slice(1) as row}
+            {#each asvPreview as row}
               <tr>
-                {#each row as cell}
+                {#each Object.values(row) as cell}
                   <td>{cell}</td>
                 {/each}
               </tr>
@@ -38,20 +38,20 @@
   {#if groupingsFile}
     <div class="preview">
       <h2>Preview of Groupings File</h2>
-      <p>Dimensions: {groupingsDimensions.rows} rows, {groupingsDimensions.columns} columns</p>
+      <p>Dimensions: {groupingsDimensions[0]} rows, {groupingsDimensions[1]} columns</p>
       <div class="tidy-table-container">
         <table class="tidy-table">
           <thead>
             <tr>
-              {#each groupingsContentPreview[0] as header}
+              {#each Object.keys(groupingsPreview[0]) as header}
                 <th>{header}</th>
               {/each}
             </tr>
           </thead>
           <tbody>
-            {#each groupingsContentPreview.slice(1) as row}
+            {#each groupingsPreview as row}
               <tr>
-                {#each row as cell}
+                {#each Object.values(row) as cell}
                   <td>{cell}</td>
                 {/each}
               </tr>

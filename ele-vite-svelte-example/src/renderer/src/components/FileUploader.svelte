@@ -1,8 +1,10 @@
 <script>
   import { onMount } from 'svelte';
+  import { autoLoaded } from '../store.js';
 
   export let handleFileChange;
   export let handleGroupingsChange;
+  export let updatePreVars;
   export let asvFiles = [];
   export let groupingsFile = null;
 
@@ -52,6 +54,7 @@
         if (response.ok) {
           const result = await response.json();
           console.log('Files stored successfully:', result);
+          updatePreVars()
           return true;
         } else {
           console.error('Failed to store files');
@@ -68,6 +71,9 @@
   }
 
   async function autoLoadFiles() {
+    if ($autoLoaded) {
+      return;
+    }
     const asvPath = '../../datasets/Blueberry/Blueberry_ASVs_table.tsv';
     const groupingPath = '../../datasets/Blueberry/Blueberry_metadata.tsv';
 
@@ -91,6 +97,8 @@
         const uploadSuccess = await uploadFiles();
         if (uploadSuccess) {
           console.log('Files auto-loaded and uploaded successfully');
+          autoLoaded.set(true);
+          updatePreVars();
         } else {
           console.error('Failed to upload auto-loaded files');
         }
