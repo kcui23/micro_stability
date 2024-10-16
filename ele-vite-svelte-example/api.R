@@ -10,6 +10,36 @@ library(scales)
 
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
+# Directory to store uploaded files
+uploaded_files_dir <- file.path(persistent_temp_dir, "uploaded_files")
+dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
+
+#* Store uploaded files
+#* @post /store_files
+#* @param asv The ASV file content
+#* @param groupings The groupings file content
+#* @parser json
+function(req) {
+  body <- fromJSON(req$postBody)
+  
+  asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
+  groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
+  
+  writeLines(as.character(body$asv), asv_file_path, sep = "\n")
+  writeLines(as.character(body$groupings), groupings_file_path, sep = "\n")
+
+  # add some log messages
+  message("ASV file stored at: ", asv_file_path)
+  message("First lines of ASV file: ", readLines(asv_file_path, n = 5))
+  message("Groupings file stored at: ", groupings_file_path)
+  message("First lines of groupings file: ", readLines(groupings_file_path, n = 5))
+  
+  list(
+    message = "Files stored successfully",
+    asv_file = asv_file_path,
+    groupings_file = groupings_file_path
+  )
+}
 
 # Global variable to store active WebSocket connections
 active_ws_connections <- new.env()
@@ -740,7 +770,7 @@ find_path_from_id <- function(id, tree = tree_data) {
 
 calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
   if (test) {
-    Sys.sleep(0.002)
+    # Sys.sleep(0.002)
     new_data_point <- generate_random_pair()
     json_data[[leaf]]$data_point <- new_data_point
     return(json_data)
