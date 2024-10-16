@@ -187,3 +187,4 @@ out
 plot*.png
 _test.Rmd
 ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json
+**/leaf_id_data_points.json
