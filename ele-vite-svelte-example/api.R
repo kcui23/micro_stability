@@ -8,6 +8,8 @@ library(tools)
 library(tidyverse)
 library(scales)
 library(impute)
+library(metagenomeSeq)
+library(edgeR)
 
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
@@ -254,6 +256,73 @@ function() {
   temp_file <- tempfile(fileext = ".png")
   ggsave(temp_file, p, width = 6, height = 2, dpi = 300)
   readBin(temp_file, "raw", n = file.info(temp_file)$size)
+}
+
+#* Normalize ASV data
+#* @post /normalization
+#* @parser json
+function(req) {
+  body <- fromJSON(req$postBody)
+  
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- asv_data %>% mutate(across(-1, as.numeric))
+  
+  norm_method <- body$norm_method
+
+  tss_normalization <- function(data) {
+    data <- data %>% mutate(across(-1, ~./sum(.)))
+    return(data)
+  }
+  
+  css_normalization <- function(data) {
+    tmp_data <- data %>% select(-asv)
+    MR_obj <- newMRexperiment(tmp_data)
+    MR_obj_normalized <- cumNorm(MR_obj)
+    normalized_counts <- MRcounts(MR_obj_normalized, norm = TRUE)
+    normalized_counts <- as.data.frame(normalized_counts) %>% 
+      mutate(asv = data$asv) %>% 
+      select(asv, everything())
+    return(normalized_counts)
+  }
+  
+  tmm_normalization <- function(data) {
+    tmp_data <- data %>% select(-asv)
+    dge <- DGEList(counts = tmp_data)
+    dge <- calcNormFactors(dge, method = "TMM")
+    tmm_normalized_counts <- cpm(dge, normalized.lib.sizes = TRUE)
+    tmm_normalized_counts <- as.data.frame(tmm_normalized_counts) %>% 
+      mutate(asv = data$asv) %>% 
+      select(asv, everything())
+    return(tmm_normalized_counts)
+  }
+  
+  clr_normalization <- function(data) {
+    tmp_data <- data %>% select(-asv)
+    count_matrix <- tmp_data + 1
+    geom_mean <- function(x) {
+      exp(mean(log(x)))
+    }
+    clr_manual <- t(apply(count_matrix, 1, function(row) {
+      log(row) - log(geom_mean(row))
+    }))
+    clr_manual <- as.data.frame(clr_manual) %>% 
+      mutate(asv = data$asv) %>% 
+      select(asv, everything())
+    return(clr_manual)
+  }
+
+  normalized_data <- switch(norm_method,
+    "TSS" = tss_normalization(asv_data),
+    "CSS" = css_normalization(asv_data),
+    "TMM" = tmm_normalization(asv_data),
+    "CLR" = clr_normalization(asv_data),
+    stop("Invalid normalization method")
+  )
+  
+  write_tsv(normalized_data, asv_file_path)
+  message("Applied normalization with ", norm_method)
+
+  list(success = TRUE)
 }
 
 #* Quick Explore subset of ASV data

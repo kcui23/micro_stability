@@ -368,6 +368,31 @@
     }
   };
   
+  const handleNormalization = async () => {
+    let norm_method = $selectedOperations['Normalization'][0];
+    try {
+      const response = await fetch(`http://localhost:8000/normalization`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }, 
+        body: JSON.stringify({
+          norm_method: norm_method
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('Normalization applied successfully'); 
+        preview_update_counter += 1;
+        fetchZeroDistributionPlot();
+      } else {
+        console.error('Normalization failed');
+      }
+    } catch (error) {
+      console.error('Error in normalization:', error);
+    }
+  };
 
   const resetMethodStatus = () => {
     previousMethodFileStatus = { ...methodFileStatus };
@@ -1256,10 +1281,10 @@
             </p>
             <label for="knn">k-NN Imputation number of neighbors:</label>
             <input type="range" id="knn" bind:value={knn} min="0" max="10" step="1" />
-            <span>{knn}</span>
+            <span>{knn}</span> <br>
             <label for="knn-bound">k-NN Imputation bound of missing values (%):</label>
             <input type="range" id="knn-bound" bind:value={knn_bound} min="0" max="100" step="1" />
-            <span>{knn_bound}</span>
+            <span>{knn_bound}</span> <br>
             <button on:click={handleZeroHandling}>Apply k-NN Imputation</button>
           </div>
         {/if}
@@ -1268,31 +1293,43 @@
     {:else if currentStep === 'Normalization'}
       <div key='normalization' in:fade class="step-content" class:active={currentStep === 'Normalization'}>
         <h2>Normalization</h2>
-        <p class="normalization-description">
           {#if $selectedOperations['Normalization']?.includes('TSS')}
-            <strong>TSS:</strong> Total Sum Scaling<br>
-            <strong>Description:</strong> Each value is divided by the total sum of all values in its group, converting data into relative proportions. <br>
-            <strong>Usually used when:</strong> Adjusting data to account for differences in total sums across groups or samples.
+            <p class="normalization-description">
+              <strong>TSS:</strong> Total Sum Scaling<br>
+              <strong>Description:</strong> Each value is divided by the total sum of all values in its group, converting data into relative proportions. <br>
+              <strong>Usually used when:</strong> Adjusting data to account for differences in total sums across groups or samples.
+            </p>
+            <button on:click={handleNormalization}>Apply TSS</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('CSS')}
-            <strong>CSS:</strong> Cumulative Sum Scaling<br>
-            <strong>Description:</strong> Values are scaled using a factor derived from cumulative distributions, reducing the influence of large values. <br>
-            <strong>Usually used when:</strong> Normalizing data with skewed distributions to lessen the impact of extreme values.
+            <p class="normalization-description">
+              <strong>CSS:</strong> Cumulative Sum Scaling<br>
+              <strong>Description:</strong> Values are scaled using a factor derived from cumulative distributions, reducing the influence of large values. <br>
+              <strong>Usually used when:</strong> Normalizing data with skewed distributions to lessen the impact of extreme values.
+            </p>
+            <button on:click={handleNormalization}>Apply CSS</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('TMM')}
-            <strong>TMM:</strong> Trimmed Mean of M-values<br>
-            <strong>Description:</strong> Computes scaling factors by averaging log ratios after trimming extreme values, adjusting for sample differences. <br>
-            <strong>Usually used when:</strong> Correcting data for composition differences while minimizing the effect of outliers.
+            <p class="normalization-description">
+              <strong>TMM:</strong> Trimmed Mean of M-values<br>
+              <strong>Description:</strong> Computes scaling factors by averaging log ratios after trimming extreme values, adjusting for sample differences. <br>
+              <strong>Usually used when:</strong> Correcting data for composition differences while minimizing the effect of outliers.
+            </p>
+            <button on:click={handleNormalization}>Apply TMM</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('CLR')}
-            <strong>CLR:</strong> Centered Log-Ratio<br>
-            <strong>Description:</strong> Transforms data by taking the logarithm of each value divided by the group's geometric mean, emphasizing relative differences. <br>
-            <strong>Usually used when:</strong> Analyzing data where only relative differences are meaningful.
+            <p class="normalization-description">
+              <strong>CLR:</strong> Centered Log-Ratio<br>
+              <strong>Description:</strong> Transforms data by taking the logarithm of each value divided by the group's geometric mean, emphasizing relative differences. <br>
+              <strong>Usually used when:</strong> Analyzing data where only relative differences are meaningful.
+            </p>
+            <button on:click={handleNormalization}>Apply CLR</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('No Normalization')}
-            <strong>No Normalization:</strong> Do not perform normalization.
+            <p class="normalization-description">
+              <strong>No Normalization:</strong> Do not perform normalization.
+            </p>
           {/if}
-        </p>
       </div>
 
     {:else if currentStep === 'Transformation'}
