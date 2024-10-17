@@ -987,23 +987,22 @@
     .tree-container-wrapper {
       width: 100%;
       height: 200px;
+      margin-top: 10px;
       margin-bottom: 20px;
-      border: 2px solid #9e34db;
     }
 
     .control-panel {
       width: 100%;
       height: 200px;
-      margin-bottom: 20px;
       padding: 10px;
-      border: 2px solid #76a418;
     }
 
-    .scatter-plot-container {
+    .scatter-plot-ctn {
       width: 100%;
       height: 400px;
+      padding: 10px;
       margin-bottom: 20px;
-      border: 2px solid #34db50;
+      overflow: hidden;
     }
 
     /* Start Page Styles */
@@ -1025,11 +1024,11 @@
     .start-page-content {
       background: rgba(255, 255, 255, 0.95);
       padding: 60px 40px;
-      border-radius: 10px;
+      border-radius: 8px;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      max-width: 700px;
-      width: 90%;
+      max-width: 900px;
+      width: 95%;
     }
 
     .start-page-content h2 {
@@ -1053,7 +1052,21 @@
     }
 
     .step-1-upload-section {
+      position: relative;
+      padding: 20px;
       margin-left: 20px;
+    }
+
+    .step-1-upload-section::before {
+      content: '';
+      position: absolute;
+      border-radius: 10px;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: calc(100% - 60px);
+      background-color: #636363;
+      z-index: -1;
     }
 
     .step-2 {
@@ -1114,6 +1127,17 @@
   .fix-height-img-container img {
   display: block;
   margin-bottom: 0;
+}
+
+.apply-button {
+  width: 200px;
+  height: 35px;
+  margin-top: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 </style>
@@ -1325,7 +1349,7 @@
               <strong>Description:</strong> Each value is divided by the total sum of all values in its group, converting data into relative proportions. <br>
               <strong>Usually used when:</strong> Adjusting data to account for differences in total sums across groups or samples.
             </p>
-            <button on:click={handleNormalization}>Apply TSS</button>
+            <button on:click={handleNormalization} class="apply-button">Apply TSS</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('CSS')}
             <p class="normalization-description">
@@ -1333,7 +1357,7 @@
               <strong>Description:</strong> Values are scaled using a factor derived from cumulative distributions, reducing the influence of large values. <br>
               <strong>Usually used when:</strong> Normalizing data with skewed distributions to lessen the impact of extreme values.
             </p>
-            <button on:click={handleNormalization}>Apply CSS</button>
+            <button on:click={handleNormalization} class="apply-button">Apply CSS</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('TMM')}
             <p class="normalization-description">
@@ -1341,7 +1365,7 @@
               <strong>Description:</strong> Computes scaling factors by averaging log ratios after trimming extreme values, adjusting for sample differences. <br>
               <strong>Usually used when:</strong> Correcting data for composition differences while minimizing the effect of outliers.
             </p>
-            <button on:click={handleNormalization}>Apply TMM</button>
+            <button on:click={handleNormalization} class="apply-button">Apply TMM</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('CLR')}
             <p class="normalization-description">
@@ -1349,7 +1373,7 @@
               <strong>Description:</strong> Transforms data by taking the logarithm of each value divided by the group's geometric mean, emphasizing relative differences. <br>
               <strong>Usually used when:</strong> Analyzing data where only relative differences are meaningful.
             </p>
-            <button on:click={handleNormalization}>Apply CLR</button>
+            <button on:click={handleNormalization} class="apply-button">Apply CLR</button>
           {/if}
           {#if $selectedOperations['Normalization']?.includes('No Normalization')}
             <p class="normalization-description">
@@ -1368,7 +1392,7 @@
               <strong>Description:</strong> Applies a logarithmic scale to data to reduce skewness and stabilize variance. <br>
               <strong>Usually used when:</strong> Dealing with data that spans multiple orders of magnitude and has a skewed distribution.
             </p>
-            <button on:click={handleTransformation}>Apply Log</button>
+            <button on:click={handleTransformation} class="apply-button">Apply Log</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('Logit')}
             <p class="normalization-description"> 
@@ -1376,7 +1400,7 @@
               <strong>Description:</strong> Converts proportion data to a log-odds scale, linearizing relationships. <br>
               <strong>Usually used when:</strong> Analyzing proportions or probabilities that are bounded between 0 and 1.
             </p>
-            <button on:click={handleTransformation}>Apply Logit</button>
+            <button on:click={handleTransformation} class="apply-button">Apply Logit</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('AST')}
             <p class="normalization-description">
@@ -1384,7 +1408,7 @@
               <strong>Description:</strong> Applies the arcsine square root transformation to each proportion, stabilizing variance for proportional data. <br>
               <strong>Usually used when:</strong> Dealing with proportional data, especially when proportions are near 0 or 1.
             </p>
-            <button on:click={handleTransformation}>Apply AST</button>
+            <button on:click={handleTransformation} class="apply-button">Apply AST</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('No Transformation')}
             <strong>No Transformation:</strong> Do not perform transformation.
@@ -1580,7 +1604,7 @@
       <ControlPanel />
     </div>
     <!-- Scatter Plot -->
-    <div class="scatter-plot-container">
+    <div class="scatter-plot-ctn">
       <ScatterPlot 
         on:pointClick={handleScatterPointClick} 
         {data_points_updated_counter}

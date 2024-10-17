@@ -139,7 +139,7 @@
   </div>
 </div>
 
-<button on:click={uploadFiles}>Upload Files</button>
+<button on:click={uploadFiles} class="upload-button">Upload Files</button>
 
 <style>
   .upload-container {
@@ -156,6 +156,11 @@
   .button-group {
     display: flex;
     align-items: center;
+  }
+
+  .upload-button {
+    margin-left: 40%;
+    margin-right: auto;
   }
 
   button {

@@ -32,10 +32,20 @@ body {
 
 .content-left {
   width: 60%;
-  padding: 10px 10px 20px 20px;
+  padding: 10px 20px 20px 20px;
   overflow-x: hidden;
   overflow-y: scroll;
-  border: 2px solid #3498db; /* Added blue border for clarity */
+  position: relative;
+}
+
+.content-left::after {
+  content: '';
+  position: absolute;
+  top: 20px; /* Space at the top */
+  bottom: 20px; /* Space at the bottom */
+  right: 0;
+  width: 1.5px;
+  background-color: #ccc;
 }
 
 .content-right {
@@ -43,7 +53,6 @@ body {
   padding: 10px 10px 20px 10px;
   overflow-x: hidden;
   overflow-y: scroll;
-  border: 2px solid #e74c3c; /* Added red border for clarity */
 }
 
 .loader {

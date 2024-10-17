@@ -331,7 +331,6 @@
     .d3-tree-container {
         flex: 0 0 80%;
         height: 100%;
-        border: 1px solid #ddd;
         background-color: #fff;
         overflow: auto; /* Allow scrolling if the tree content overflows */
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

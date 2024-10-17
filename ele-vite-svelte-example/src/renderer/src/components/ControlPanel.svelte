@@ -33,24 +33,26 @@
     }
 </script>
 
-<h2>Color Panel</h2>
-<select bind:value={$selectedColorStep}>
-    {#each Object.keys(operations) as step}
-        <option value={step}>{step}</option>
-    {/each}
-</select>
+<div class="panel-container">
+    <h2>Color Panel</h2>
+    <select bind:value={$selectedColorStep}>
+        {#each Object.keys(operations) as step}
+            <option value={step}>{step}</option>
+        {/each}
+    </select>
 
-<div class="color-options">
-    {#each operations[$selectedColorStep] as operation, index}
-        {@const bgColor = $scatterPlotColors[$selectedColorStep][index]}
-        <button class="color-item" 
-                style="background-color: {bgColor}; 
-                color: {isLightColor(bgColor) ? 'black' : 'white'};
-                opacity: {$colorStatus[$selectedColorStep].includes(operation) ? 1 : 0.5}"
-                on:click={() => handleButtonClick(operation)}>
-            {operation}
-        </button>
-    {/each}
+    <div class="color-options">
+        {#each operations[$selectedColorStep] as operation, index}
+            {@const bgColor = $scatterPlotColors[$selectedColorStep][index]}
+            <button class="color-item" 
+                    style="background-color: {bgColor}; 
+                    color: {isLightColor(bgColor) ? 'black' : 'white'};
+                    opacity: {$colorStatus[$selectedColorStep].includes(operation) ? 1 : 0.5}"
+                    on:click={() => handleButtonClick(operation)}>
+                {operation}
+            </button>
+        {/each}
+    </div>
 </div>
 
 <style>
@@ -83,5 +85,16 @@
 
     .color-item:hover {
         opacity: 0.8;
+    }
+
+    .panel-container {
+        flex: 0 0 80%;
+        height: 100%;
+        background-color: #fff;
+        overflow: auto; /* Allow scrolling if the tree content overflows */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        box-sizing: border-box;
     }
 </style>
