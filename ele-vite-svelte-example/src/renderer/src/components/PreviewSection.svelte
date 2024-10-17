@@ -25,7 +25,15 @@
             {#each asvPreview as row}
               <tr>
                 {#each Object.values(row) as cell}
-                  <td>{cell}</td>
+                  <td>
+                    {#if cell === null || cell === undefined || Number.isNaN(cell)}
+                      N/A
+                    {:else if typeof cell === 'number'}
+                      {cell.toFixed(4)}
+                    {:else}
+                      {cell}
+                    {/if}
+                  </td>
                 {/each}
               </tr>
             {/each}

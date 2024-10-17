@@ -62,8 +62,13 @@ function() {
   groupings_preview <- groupings_data %>%
     slice(1:min(5, nrow(.)))
 
-  message("ASV preview: ", asv_preview)
-  message("Groupings preview: ", groupings_preview)
+  asv_preview <- asv_preview %>%
+    mutate(across(everything(), ~ifelse(is.na(.), "NA", as.character(.))))
+  groupings_preview <- groupings_preview %>%
+    mutate(across(everything(), ~ifelse(is.na(.), "NA", as.character(.))))
+
+  message("ASV preview: ", toJSON(asv_preview))
+  message("Groupings preview: ", toJSON(groupings_preview))
   
   response <- list(
     asv_preview = asv_preview,
@@ -321,6 +326,48 @@ function(req) {
   
   write_tsv(normalized_data, asv_file_path)
   message("Applied normalization with ", norm_method)
+
+  list(success = TRUE)
+}
+
+#* Normalize ASV data
+#* @post /transformation
+#* @parser json
+function(req) {
+  body <- fromJSON(req$postBody)
+  
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- asv_data %>% mutate(across(-1, as.numeric))
+  
+  trans_method <- body$trans_method
+
+  log_transformation <- function(data) {
+    data <- data %>% mutate(across(-1, ~log(.)))
+    return(data)
+  }
+  
+  logit_transformation <- function(data) {
+    logit <- function(p) {
+      log(p / (1 - p))
+    }
+    data <- data %>% mutate(across(-1, ~logit(.)))
+    return(data)
+  }
+  
+  ast_transformation <- function(data) {
+    data <- data %>% mutate(across(-1, ~asin(sqrt(.))))
+    return(data)
+  }
+
+  transformed_data <- switch(trans_method,
+    "Log" = log_transformation(asv_data),
+    "Logit" = logit_transformation(asv_data),
+    "AST" = ast_transformation(asv_data),
+    stop("Invalid transformation method")
+  )
+  
+  write_tsv(transformed_data, asv_file_path)
+  message("Applied transformation with ", trans_method)
 
   list(success = TRUE)
 }

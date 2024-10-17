@@ -394,6 +394,32 @@
     }
   };
 
+  const handleTransformation = async () => {
+    let trans_method = $selectedOperations['Transformation'][0];
+    try {
+      const response = await fetch(`http://localhost:8000/transformation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }, 
+        body: JSON.stringify({
+          trans_method: trans_method
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('Transformation applied successfully'); 
+        preview_update_counter += 1;
+        fetchZeroDistributionPlot();
+      } else {
+        console.error('Transformation failed');
+      }
+    } catch (error) {
+      console.error('Error in transformation:', error);
+    }
+  };
+
   const resetMethodStatus = () => {
     previousMethodFileStatus = { ...methodFileStatus };
     methodFileStatus = {
@@ -1335,26 +1361,34 @@
     {:else if currentStep === 'Transformation'}
       <div key='transformation' in:fade class="step-content" class:active={currentStep === 'Transformation'}>
         <h2>Transformation</h2>
-        <p class="normalization-description">
+        
           {#if $selectedOperations['Transformation']?.includes('Log')}
-            <strong>Log</strong> <br>
-            <strong>Description:</strong> Applies a logarithmic scale to data to reduce skewness and stabilize variance. <br>
-            <strong>Usually used when:</strong> Dealing with data that spans multiple orders of magnitude and has a skewed distribution.
+            <p class="normalization-description">
+              <strong>Log</strong> <br>
+              <strong>Description:</strong> Applies a logarithmic scale to data to reduce skewness and stabilize variance. <br>
+              <strong>Usually used when:</strong> Dealing with data that spans multiple orders of magnitude and has a skewed distribution.
+            </p>
+            <button on:click={handleTransformation}>Apply Log</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('Logit')}
-            <strong>Logit</strong> <br>
-            <strong>Description:</strong> Converts proportion data to a log-odds scale, linearizing relationships. <br>
-            <strong>Usually used when:</strong> Analyzing proportions or probabilities that are bounded between 0 and 1.
+            <p class="normalization-description"> 
+              <strong>Logit</strong> <br>
+              <strong>Description:</strong> Converts proportion data to a log-odds scale, linearizing relationships. <br>
+              <strong>Usually used when:</strong> Analyzing proportions or probabilities that are bounded between 0 and 1.
+            </p>
+            <button on:click={handleTransformation}>Apply Logit</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('AST')}
-            <strong>AST:</strong> Arcsine Transformation<br>
-            <strong>Description:</strong> Applies the arcsine square root transformation to each proportion, stabilizing variance for proportional data. <br>
-            <strong>Usually used when:</strong> Dealing with proportional data, especially when proportions are near 0 or 1.
+            <p class="normalization-description">
+              <strong>AST:</strong> Arcsine Transformation<br>
+              <strong>Description:</strong> Applies the arcsine square root transformation to each proportion, stabilizing variance for proportional data. <br>
+              <strong>Usually used when:</strong> Dealing with proportional data, especially when proportions are near 0 or 1.
+            </p>
+            <button on:click={handleTransformation}>Apply AST</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('No Transformation')}
             <strong>No Transformation:</strong> Do not perform transformation.
           {/if}
-        </p>
       </div>
 
     {:else if currentStep === 'Model Perturbation'}
