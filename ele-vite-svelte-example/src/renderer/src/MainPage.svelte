@@ -26,6 +26,7 @@
   let variance_threshold = 0.0;
   let pseudocount = 1;
   let knn = 5;
+  let knn_bound = 50;
   let treeData;
   let d3TreeContainer;
   let d3TreeComponent;
@@ -123,6 +124,7 @@
   let groupingsFile = null;
   let isStatic = true;
   let zoomedImage = null;
+  let zero_distribution_plot = null;
   let visualizations = {
     deseq2_plot1: '', deseq2_plot2: '', deseq2_plot3: '',
     aldex2_plot1: '', aldex2_plot2: '', aldex2_plot3: '',
@@ -315,6 +317,57 @@
       console.error('Error in filtering:', error);
     }
   };
+
+  $: if (currentStep === 'Zero-Handling') {
+    fetchZeroDistributionPlot();
+  }
+
+  async function fetchZeroDistributionPlot() {
+    try {
+      const response = await fetch('http://localhost:8000/zero_distribution_plot');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const blob = await response.blob();
+      zero_distribution_plot = URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error fetching zero distribution plot:', error);
+    }
+  }
+
+  const handleZeroHandling = async () => {
+    let zero_handling_method = $selectedOperations['Zero-Handling'][0];
+    let zero_value;
+    if (zero_handling_method === 'Pseudocount Addition') {
+      zero_value = pseudocount;
+    } else if (zero_handling_method === 'k-NN Imputation') {
+      zero_value = [knn, knn_bound];
+    }
+    try {
+      const response = await fetch(`http://localhost:8000/zero_handling`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }, 
+        body: JSON.stringify({
+          zero_handling_method: zero_handling_method,
+          param_value: zero_value
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('Zero-handling applied successfully'); 
+        preview_update_counter += 1;
+        fetchZeroDistributionPlot();
+      } else {
+        console.error('Zero-handling failed');
+      }
+    } catch (error) {
+      console.error('Error in zero-handling:', error);
+    }
+  };
+  
 
   const resetMethodStatus = () => {
     previousMethodFileStatus = { ...methodFileStatus };
@@ -1002,6 +1055,16 @@
     font-weight: bold;
   }
 
+  .fix-height-img-container {
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+  }
+
+  .fix-height-img-container img {
+  display: block;
+  margin-bottom: 0;
+}
+
 </style>
 
 <div id="app" class="container">
@@ -1166,20 +1229,38 @@
       {:else if currentStep === 'Zero-Handling'}
       <div key='zero-handling' in:fade class="step-content" class:active={currentStep === 'Zero-Handling'}>
         <h2>Zero-Handling</h2>
+        {#if zero_distribution_plot}
+          <div class="fix-height-img-container">
+            <img src={zero_distribution_plot} alt="Zero Distribution Plot" />
+          </div>
+        {/if}
         {#if $selectedOperations['Zero-Handling']?.includes('Pseudocount Addition')}
           <div class="filters">
+            <p class="normalization-description">
+              <strong>Pseudocount Addition:</strong> Add a constant value to all values (including zeros).
+            </p>
             <label for="pseudocount">Pseudocount Addition:</label>
             <input type="range" id="pseudocount" bind:value={pseudocount} min="0" max="10" step="0.1" />
             <span>{pseudocount}</span>
-            <button on:click={handleFilter}>Apply Pseudocount Addition</button>
+            <button on:click={handleZeroHandling}>Apply Pseudocount Addition</button>
           </div>
         {/if}
         {#if $selectedOperations['Zero-Handling']?.includes('k-NN Imputation')}
           <div class="filters">
+            <p class="normalization-description">
+              <strong>k-NN Imputation:</strong> Impute missing values using k-nearest neighbors. <br>
+              <strong>Note:</strong> Only applied to ASVs with zero percentage less than {Math.min(knn_bound, 50)}%.
+              {#if knn_bound > 50}
+                For rows with more than 50% missing values, mean imputation is applied.
+              {/if}
+            </p>
             <label for="knn">k-NN Imputation number of neighbors:</label>
             <input type="range" id="knn" bind:value={knn} min="0" max="10" step="1" />
             <span>{knn}</span>
-            <button on:click={handleFilter}>Apply k-NN Imputation</button>
+            <label for="knn-bound">k-NN Imputation bound of missing values (%):</label>
+            <input type="range" id="knn-bound" bind:value={knn_bound} min="0" max="100" step="1" />
+            <span>{knn_bound}</span>
+            <button on:click={handleZeroHandling}>Apply k-NN Imputation</button>
           </div>
         {/if}
       </div>

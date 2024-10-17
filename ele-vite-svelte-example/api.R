@@ -7,6 +7,7 @@ library(dplyr)
 library(tools)
 library(tidyverse)
 library(scales)
+library(impute)
 
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
@@ -167,6 +168,92 @@ function(req) {
   message("Filtered ASV data with ", filter_method, " with a threshold of ", threshold)
 
   list(success = TRUE)
+}
+
+#* Zero handling for ASV data
+#* @post /zero_handling
+#* @parser json
+function(req) {
+  body <- fromJSON(req$postBody)
+  
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- asv_data %>% mutate(across(-1, as.numeric))
+  
+  zero_method <- body$zero_handling_method
+  param_value <- as.numeric(body$param_value)
+  
+  pseudocount_addition <- function(data, param_value) {
+    data %>% mutate(across(-1, ~. + param_value))
+  }
+
+  knn_imputation <- function(data, param_value) {
+    message("KNN Imputation with k = ", param_value[1], " and bound = ", param_value[2])
+    tmp_data <- data %>% select(-asv)
+    zero_percentages <- rowMeans(tmp_data == 0) * 100
+    asvs_to_impute <- zero_percentages < param_value[2]
+    
+    if (any(asvs_to_impute)) {
+      data_to_impute <- tmp_data[asvs_to_impute, ]
+      data_to_impute <- data_to_impute %>%
+        mutate(across(where(is.numeric), ~ifelse(. == 0, NA, .)))
+      tryCatch({
+        imputed_data <- impute.knn(as.matrix(data_to_impute), k = param_value[1], rowmax = 0.5)$data
+        tmp_data[asvs_to_impute, ] <- imputed_data
+      }, error = function(e) {
+        warning("Error in k-NN imputation: ", e$message)
+        # Fallback to mean imputation for rows with high missing values
+        high_missing <- rowMeans(is.na(data_to_impute)) > 0.5
+        data_to_impute[high_missing, ] <- apply(data_to_impute[high_missing, ], 1, function(x) {
+          x[is.na(x)] <- mean(x, na.rm = TRUE)
+          return(x)
+        })
+        tmp_data[asvs_to_impute, ] <- data_to_impute
+      })
+    }
+    tmp_data[is.na(tmp_data)] <- 0
+    tmp_data <- tmp_data %>% 
+      mutate(asv = data$asv) %>%
+      select(asv, everything())
+    
+    return(tmp_data)
+  }
+
+  # Use switch to call the appropriate function
+  zero_handled_data <- switch(zero_method,
+    "Pseudocount Addition" = pseudocount_addition(asv_data, param_value),
+    "k-NN Imputation" = knn_imputation(asv_data, param_value),
+    stop("Invalid zero handling method")
+  )
+  
+  write_tsv(zero_handled_data, asv_file_path)
+  message("Applied zero handling with ", zero_method, " with a parameter of ", param_value)
+
+  list(success = TRUE)
+}
+
+#* Generate a simple ggplot2 image
+#* @get /zero_distribution_plot
+#* @serializer contentType list(type="image/png")
+function() {
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- asv_data %>% mutate(across(-1, as.numeric))
+  
+  zero_percentages <- asv_data %>%
+    rowwise() %>%
+    mutate(ZeroPercentage = mean(c_across(-1) == 0) * 100) %>%
+    ungroup() %>%
+    select(1, ZeroPercentage)
+  
+  p <- ggplot(zero_percentages, aes(x = ZeroPercentage)) +
+    geom_histogram(bins = 20, fill = "skyblue", color = "black") +
+    theme_minimal() +
+    labs(x = "Percentage of Zeros",
+         y = "Count") +
+    theme_minimal()
+
+  temp_file <- tempfile(fileext = ".png")
+  ggsave(temp_file, p, width = 6, height = 2, dpi = 300)
+  readBin(temp_file, "raw", n = file.info(temp_file)$size)
 }
 
 #* Quick Explore subset of ASV data
