@@ -2,6 +2,7 @@ library(ALDEx2)
 library(tidyr)
 library(dplyr)
 library(readr)
+library(e1071)
 
 run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   set.seed(seed)
@@ -44,6 +45,7 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
     }
   }
 
+  conditions <- groupings[,2]
   unique_groups <- length(unique(conditions))
   
   if (unique_groups == 2) {
@@ -71,7 +73,7 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
   # Run ALDEx2 analysis
   results <- aldex(reads = ASV_table, 
-                   conditions = groupings[,2], 
+                   conditions = conditions, 
                    mc.samples = 128, 
                    test = test_type, 
                    effect = TRUE,

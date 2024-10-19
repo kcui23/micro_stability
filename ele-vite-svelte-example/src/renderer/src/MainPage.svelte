@@ -250,18 +250,7 @@
   const handleQuickExplore = async () => {
     showAllPlots = true;
     isCalculating = true;
-    const asvContent = filteredAsvContent || asvFiles[0];
-
-    if (typeof asvContent === 'string') {
-      await processQuickExplore(asvContent, groupingsFile);
-    } else {
-      const asvReader = new FileReader();
-      asvReader.onload = async () => {
-        const asvContentText = asvReader.result;
-        await processQuickExplore(asvContentText, groupingsFile);
-      };
-      asvReader.readAsText(asvContent);
-    }
+    await processQuickExplore();
   };
 
   const handleSubmit = async () => {
@@ -473,11 +462,7 @@
   };
 
   // API calls
-  const processQuickExplore = async (asvContentText, groupings) => {
-    const groupingsReader = new FileReader();
-    groupingsReader.onload = async () => {
-      const groupingsContent = groupingsReader.result;
-
+  const processQuickExplore = async () => {
       try {
         const response = await fetch(`http://localhost:8000/quick_explore`, {
           method: 'POST',
@@ -485,15 +470,12 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            asv: asvContentText,
-            groupings: groupingsContent,
-            method: selectedMethod,
             seed: randomSeed
           })
         });
 
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Network response was not ok in processQuickExplore()');
         }
 
         const result = await response.json();
@@ -518,9 +500,6 @@
         console.error('Fetch error:', error);
         isCalculating = false;
       }
-    };
-
-    groupingsReader.readAsText(groupings);
   };
 
   const processSubmit = async () => {

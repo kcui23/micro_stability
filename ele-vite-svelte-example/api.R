@@ -374,7 +374,6 @@ function(req) {
   seed <- if (!is.null(body$seed)) as.integer(body$seed) else 1234
 
   temp_asv_file <- tempfile(fileext = ".tsv")
-  temp_groupings_file <- tempfile(fileext = ".tsv")
   deseq2_output_file <- tempfile(fileext = ".tsv")
   aldex2_output_file <- tempfile(fileext = ".tsv")
   edgeR_output_file <- tempfile(fileext = ".tsv")
@@ -383,29 +382,27 @@ function(req) {
 
   dir.create(output_dir)
   
-  writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
-  writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
   
-  asv_data <- read_tsv(temp_asv_file, col_types = cols(.default = "c"))
   set.seed(seed)
   subset_asv_data <- asv_data %>% sample_frac(0.05)
   write_tsv(subset_asv_data, temp_asv_file)
 
   tryCatch({
     source(safe_file_path("DESeq2.R"))
-    deseq2_result <- run_deseq2(temp_asv_file, temp_groupings_file, deseq2_output_file, seed)
+    deseq2_result <- run_deseq2(temp_asv_file, groupings_file_path, deseq2_output_file, seed)
     deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
     
     source(safe_file_path("Aldex2.R"))
-    aldex2_result <- run_aldex2(temp_asv_file, temp_groupings_file, aldex2_output_file, seed)
+    aldex2_result <- run_aldex2(temp_asv_file, groupings_file_path, aldex2_output_file, seed)
     aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
 
     source(safe_file_path("edgeR.R"))
-    edgeR_result <- run_edgeR(temp_asv_file, temp_groupings_file, edgeR_output_file, seed)
+    edgeR_result <- run_edgeR(temp_asv_file, groupings_file_path, edgeR_output_file, seed)
     edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
 
     source(safe_file_path("Maaslin2.R"))
-    maaslin2_result <- run_maaslin2(temp_asv_file, temp_groupings_file, maaslin2_output_file, output_dir, seed)
+    maaslin2_result <- run_maaslin2(temp_asv_file, groupings_file_path, maaslin2_output_file, output_dir, seed)
     maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
     
     source(safe_file_path("overlap_plots.R"))
@@ -429,6 +426,8 @@ function(req) {
     )
   }, error = function(e) {
     message("Error in quick_explore: ", e$message)
+    print("Debug: Error details")
+    print(e)
     list(error = paste("Error in quick_explore:", e$message))
   })
 }
