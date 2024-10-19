@@ -141,6 +141,13 @@
   let previousMethodFileStatus = { ...methodFileStatus };
   let dataChanged = false;
   let selectedMethod = 'deseq2';
+  $: {
+    if ($selectedOperations['Model Perturbation'] && $selectedOperations['Model Perturbation'].length > 0) {
+      selectedMethod = $selectedOperations['Model Perturbation'][0].toLowerCase();
+      console.log("selectedMethod updated by /$selectedOperations['Model Perturbation'][0]:", selectedMethod);
+    }
+  }
+
   let currentStep = 'Raw data';
   let lastStep = 'Raw data';
   let previewContent = [];
@@ -262,22 +269,10 @@
     isSubmitted = true;
     showAllPlots = false;
     showDetailedPlots = false;
-    const asvContent = filteredAsvContent || asvFiles[0];
-
-    if (typeof asvContent === 'string') {
-      await processSubmit(asvContent, groupingsFile);
-      await checkMethodFileStatus();
-     } else {
-      const asvReader = new FileReader();
-      asvReader.onload = async () => {
-        const asvContentText = asvReader.result;
-        await processSubmit(asvContentText, groupingsFile);
-      };
-      asvReader.readAsText(asvContent);
-    }
+    await processSubmit();
+    await checkMethodFileStatus();
   };
 
-  // a reactive statement to check method file status when entering the Stability Metric step
   $: if (currentStep === 'Stability Metric')  {
     checkMethodFileStatus();
   }
@@ -528,44 +523,34 @@
     groupingsReader.readAsText(groupings);
   };
 
-  const processSubmit = async (asvContentText, groupings) => {
-    const groupingsReader = new FileReader();
-    groupingsReader.onload = async () => {
-      const groupingsContent = groupingsReader.result;
+  const processSubmit = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          seed: randomSeed
+        })
+      });
 
-      try {
-        const response = await fetch(`http://localhost:8000/process?method=${selectedMethod}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            asv: asvContentText,
-            groupings: groupingsContent,
-            threshold: threshold,
-            seed: randomSeed
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const result = await response.json();
-        visualizations = {
-          ...visualizations,
-          [`${selectedMethod}_plot1`]: `data:image/png;base64,${result.plot1}`,
-          [`${selectedMethod}_plot2`]: `data:image/png;base64,${result.plot2}`,
-          [`${selectedMethod}_plot3`]: `data:image/png;base64,${result.plot3}`
-        };
-        isCalculating = false;
-      } catch (error) {
-        console.error('Fetch error:', error);
-        isCalculating = false;
+      if (!response.ok) {
+        throw new Error('Network response was not ok in processSubmit()');
       }
-    };
 
-    groupingsReader.readAsText(groupings);
+      const result = await response.json();
+      visualizations = {
+        ...visualizations,
+        [`${selectedMethod}_plot1`]: `data:image/png;base64,${result.plot1}`,
+        [`${selectedMethod}_plot2`]: `data:image/png;base64,${result.plot2}`,
+        [`${selectedMethod}_plot3`]: `data:image/png;base64,${result.plot3}`
+      };
+      isCalculating = false;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      isCalculating = false;
+    }
   };
 
   const handleDownload = async () => {
@@ -1446,7 +1431,7 @@
 
         {#if $selectedOperations['Model Perturbation'].length > 0 && asvFiles.length > 0 && groupingsFile && selectedMethod}
           <button on:click={handleSubmit}>Submit</button>
-          <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted}>Download</button>
+          <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted || !isCalculating}>Download</button>
         {/if}
 
       </div>

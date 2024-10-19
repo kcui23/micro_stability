@@ -88,32 +88,26 @@ function(req, method) {
   body <- fromJSON(req$postBody)
   seed <- if (!is.null(body$seed)) as.integer(body$seed) else 1234
 
-  temp_asv_file <- tempfile(fileext = ".tsv")
-  temp_groupings_file <- tempfile(fileext = ".tsv")
   output_file <- tempfile(fileext = ".tsv")
   output_dir <- tempfile()
 
   dir.create(output_dir)
   
-  writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
-  writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
-  
   if (tolower(method) == "deseq2") {
     source(safe_file_path("DESeq2.R"))
-    result <- run_deseq2(temp_asv_file, temp_groupings_file, output_file, seed)
+    result <- run_deseq2(asv_file_path, groupings_file_path, output_file, seed)
     plots <- visualize_deseq2(output_file, output_dir)
   } else if (tolower(method) == "aldex2") {
     source(safe_file_path("Aldex2.R"))
-    result <- run_aldex2(temp_asv_file, temp_groupings_file, output_file, seed)
+    result <- run_aldex2(asv_file_path, groupings_file_path, output_file, seed)
     plots <- visualize_aldex2(output_file, output_dir)
   } else if (tolower(method) == "edger") {
     source(safe_file_path("edgeR.R"))
-    result <- run_edgeR(temp_asv_file, temp_groupings_file, output_file, seed)
+    result <- run_edgeR(asv_file_path, groupings_file_path, output_file, seed)
     plots <- visualize_edgeR(output_file, output_dir)
   } else if (tolower(method) == "maaslin2") {
     source(safe_file_path("Maaslin2.R"))
-    # This method is different, it requires a directory to store the output files
-    result <- run_maaslin2(temp_asv_file, temp_groupings_file, output_file, output_dir, seed)
+    result <- run_maaslin2(asv_file_path, groupings_file_path, output_file, output_dir, seed)
     plots <- visualize_maaslin2(output_file, output_dir)
   } else {
     stop("Invalid method selected. Please choose 'deseq2', 'aldex2', 'edger', or 'maaslin2'.")
