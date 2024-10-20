@@ -832,7 +832,9 @@
       'Prevalence Filtering': prevalence_threshold,
       'Variance Filtering': variance_threshold,
       'Pseudocount Addition': pseudocount,
-      'k-NN Imputation': knn
+      'knn': knn,
+      'knn_bound': knn_bound,
+      'Random Seed': randomSeed
     };
     console.log('Updated params:', updatedParams);
     return updatedParams;

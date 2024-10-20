@@ -95,7 +95,9 @@ visualize_maaslin2 <- function(results_file, output_dir) {
 
   # Visualization 2: MA-like scatter plot
   #use 'N.not.0' as a proxy for 'baseMean' and 'coef' for 'log2FoldChange'
-  p2 <- ggplot(maaslin2_results, aes(x = N.not.0, y = coef)) +
+  # Check if 'N.not.0' exists, otherwise use 'N.not.zero'
+  x_column <- if("N.not.0" %in% colnames(maaslin2_results)) "N.not.0" else "N.not.zero"
+  p2 <- ggplot(maaslin2_results, aes(x = .data[[x_column]], y = coef)) +
     geom_point(aes(color = qval < 0.05), alpha = 0.5) +
     scale_color_manual(values = c("gray", "#4C3BCF")) +
     theme_minimal() +
