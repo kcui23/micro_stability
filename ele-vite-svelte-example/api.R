@@ -31,10 +31,6 @@ function(req) {
   writeLines(as.character(body$asv), asv_file_path, sep = "\n")
   writeLines(as.character(body$groupings), groupings_file_path, sep = "\n")
 
-  # add some log messages
-  message("ASV file stored at: ", asv_file_path)
-  message("Groupings file stored at: ", groupings_file_path)
-  
   list(
     message = "Files stored successfully",
     asv_file = asv_file_path,
@@ -78,6 +74,24 @@ function() {
   )
   
   return(response)
+}
+
+#* Get overlap combined results
+#* @get /get_overlap_combined_results
+#* @serializer contentType list(type="text/tab-separated-values")
+function(req, res) {
+  file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
+  
+  if (!file.exists(file_path)) {
+    res$status <- 404
+    return(list(error = "Overlap combined results file not found"))
+  }
+
+  file_content <- readLines(file_path)
+  
+  res$body <- paste(file_content, collapse = "\n")
+  res$headers$`Content-Disposition` <- "attachment; filename=overlap_combined_results.tsv"
+  res
 }
 
 #* Upload dataset and select processing method

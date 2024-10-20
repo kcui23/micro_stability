@@ -10,9 +10,7 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
   }
   safe_read_and_process <- function(file, method_name, fc_col, p_col) {
     tryCatch({
-      message(paste("Reading", method_name, "file:", file))
       data <- read_tsv(file, col_types = cols(.default = "c"))
-      message(paste("Columns in", method_name, "results:", paste(names(data), collapse = ", ")))
       
       if (!all(c("asv_name", fc_col, p_col) %in% names(data))) {
         stop(paste("Missing required columns in", method_name, "results"))
@@ -27,8 +25,6 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
         dplyr::select(asv_name, log2FoldChange, pvalue) %>%
         mutate(method = method_name) %>%
         filter(!is.na(log2FoldChange) & !is.na(pvalue))
-      
-      message(paste("Successfully processed", method_name, "data. Rows:", nrow(processed_data)))
       return(processed_data)
     }, error = function(e) {
       message(paste("Error processing", method_name, "results:", e$message))

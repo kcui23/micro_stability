@@ -38,12 +38,12 @@ body {
   position: relative;
 }
 
-.content-left::after {
+.content-right::after {
   content: '';
   position: absolute;
   top: 20px; /* Space at the top */
   bottom: 20px; /* Space at the bottom */
-  right: 0;
+  left: 0;
   width: 1.5px;
   background-color: #ccc;
 }
@@ -53,6 +53,7 @@ body {
   padding: 10px 10px 20px 10px;
   overflow-x: hidden;
   overflow-y: scroll;
+  position: relative;
 }
 
 .loader {

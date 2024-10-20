@@ -6,29 +6,17 @@ library(ggplot2)
 
 run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed = 1234) {
   set.seed(seed)
-  print('======seed==========')
-  print(seed)
-  print(read_tsv(ASV_file))
-  print('======output_file==========')
-  print(output_file)
-
-  print('======output_dir==========')
-  print(output_dir)
 
   # Read ASV table
-  print("Reading ASV table...")
   ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
-  print("ASV table read successfully.")
 
   # Read groupings table
-  print("Reading groupings table...")
   groupings <- read_tsv(groupings_file, col_names = TRUE)
   groupings <- as.data.frame(groupings)
   row.names(groupings) <- groupings[,1]
-  print("Groupings table read successfully.")
 
   # Check if the same number of samples are being input
   sample_num <- ncol(ASV_table)
@@ -46,28 +34,12 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
     rows_to_keep <- intersect(colnames(ASV_table), rownames(groupings))
     groupings <- groupings[rows_to_keep,, drop=F]
     ASV_table <- ASV_table[, rows_to_keep]
-    if (identical(colnames(ASV_table), rownames(groupings))) {
-      message("Groupings table was re-arranged to be in the same order as the ASV table")
-      message("A total of ", sample_num - length(colnames(ASV_table)), " from the ASV_table")
-      message("A total of ", grouping_num - length(rownames(groupings)), " from the groupings table")
-    } else {
-      stop("Unable to match samples between the ASV table and groupings table")
-    }
   }
 
   # Transpose ASV_table for Maaslin2
-  print("Transposing ASV table...")
   ASV_table <- data.frame(t(ASV_table), check.rows = F, check.names = F, stringsAsFactors = F)
-  print("ASV table transposed successfully.")
-
-  print("'-'-'-'-'-'")
-  print(output_file)
-  print(output_dir)
-  print(seed)
-  print("'-'-'-'-'-'")
 
   # Run Maaslin2 analysis
-  print("Running Maaslin2 analysis...")
   fit_data <- Maaslin2(
     ASV_table, 
     groupings, 
@@ -78,9 +50,6 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
     plot_heatmap = FALSE, 
     plot_scatter = FALSE
   )
-  print("Maaslin2 analysis completed.")
-
-  message("Maaslin2 analysis completed and results saved to ", output_dir)
 
   # copy the 'all_results.tsv' to output_file
   file.copy(file.path(output_dir, "all_results.tsv"), output_file, overwrite = TRUE)
@@ -106,11 +75,7 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
 
 visualize_maaslin2 <- function(results_file, output_dir) {
   # Read Maaslin2 results
-  print("Reading Maaslin2 results...")
   maaslin2_results <- read_tsv(results_file)
-
-  print(colnames(maaslin2_results))
-  print('-=-=-=-=-=-=-=-==')
   
   # Visualization 1: Volcano plot of effect vs. -log10(pvalue)
   maaslin2_results <- maaslin2_results %>%

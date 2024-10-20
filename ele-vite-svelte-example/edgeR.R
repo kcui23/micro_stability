@@ -79,13 +79,6 @@ run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
     rows_to_keep <- intersect(colnames(ASV_table), rownames(groupings))
     groupings <- groupings[rows_to_keep,, drop=F]
     ASV_table <- ASV_table[, rows_to_keep]
-    if (identical(colnames(ASV_table), rownames(groupings))) {
-      message("Groupings table was re-arranged to be in the same order as the ASV table")
-      message("A total of ", sample_num - length(colnames(ASV_table)), " from the ASV_table")
-      message("A total of ", grouping_num - length(rownames(groupings)), " from the groupings table")
-    } else {
-      stop("Unable to match samples between the ASV table and groupings table")
-    }
   }
   
   OTU <- phyloseq::otu_table(ASV_table, taxa_are_rows = TRUE)
@@ -102,8 +95,6 @@ run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   res <- res[, c("asv_name", setdiff(colnames(res), "asv_name"))]
   
   write_tsv(as.data.frame(res), output_file)
-  
-  message("Results table saved to ", output_file)
   
   list(output_file = output_file)
 }

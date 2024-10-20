@@ -36,13 +36,6 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
     rows_to_keep <- intersect(colnames(ASV_table), rownames(groupings))
     groupings <- groupings[rows_to_keep,, drop=F]
     ASV_table <- ASV_table[, rows_to_keep]
-    if (identical(colnames(ASV_table), rownames(groupings))) {
-      message("Groupings table was re-arranged to be in the same order as the ASV table")
-      message("A total of ", sample_num - length(colnames(ASV_table)), " from the ASV_table")
-      message("A total of ", grouping_num - length(rownames(groupings)), " from the groupings table")
-    } else {
-      stop("Unable to match samples between the ASV table and groupings table")
-    }
   }
 
   # Run DESeq2 analysis
@@ -61,8 +54,6 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
   # Save results to output file
   write_tsv(as.data.frame(res), output_file)
-
-  message("Results written to ", output_file)
   
   # Return paths to the result files (for example, if there are plots)
   list(

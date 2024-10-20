@@ -8,7 +8,7 @@
 
   onMount(async () => {
     try {
-      const response = await fetch('/Users/kai/Downloads/overlap_combined_results.tsv');
+      const response = await fetch('http://localhost:8000/get_overlap_combined_results');
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }
