@@ -15,7 +15,9 @@ library(edgeR)
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
 # Directory to store uploaded files
 uploaded_files_dir <- file.path(persistent_temp_dir, "uploaded_files")
+code_dir <- file.path(persistent_temp_dir, "code")
 dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(code_dir, showWarnings = FALSE, recursive = TRUE)
 
 asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
 groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
