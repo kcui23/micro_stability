@@ -273,7 +273,7 @@
         flex: 0 0 80%;
         height: 100%;
         background-color: #fff;
-        overflow: auto; /* Allow scrolling if the tree content overflows */
+        overflow: hidden;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
         box-sizing: border-box;

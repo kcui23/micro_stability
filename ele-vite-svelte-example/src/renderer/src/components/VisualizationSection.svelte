@@ -139,7 +139,7 @@
             </div>
             <div class="card-content">
               {#if isStatic}
-                {#each [1, 2, 3] as plotNumber}
+                {#each [1, 2] as plotNumber}
                   <img
                     src={visualizations[`${method}_plot${plotNumber}`]}
                     alt={`${method.toUpperCase()} Plot ${plotNumber}`}

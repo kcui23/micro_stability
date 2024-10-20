@@ -53,10 +53,10 @@ function() {
   groupings_data <- read_tsv(groupings_file_path)
   
   asv_preview <- asv_data %>%
-    select(1:min(6, ncol(.))) %>%
-    slice(1:min(5, nrow(.)))
+    dplyr::select(1:min(6, ncol(.))) %>%
+    dplyr::slice(1:min(5, nrow(.)))
   groupings_preview <- groupings_data %>%
-    slice(1:min(5, nrow(.)))
+    dplyr::slice(1:min(5, nrow(.)))
 
   asv_preview <- asv_preview %>%
     mutate(across(everything(), ~ifelse(is.na(.), "NA", as.character(.))))
@@ -257,7 +257,7 @@ function() {
     rowwise() %>%
     mutate(ZeroPercentage = mean(c_across(-1) == 0) * 100) %>%
     ungroup() %>%
-    select(1, ZeroPercentage)
+    dplyr::select(1, ZeroPercentage)
   
   p <- ggplot(zero_percentages, aes(x = ZeroPercentage)) +
     geom_histogram(bins = 20, fill = "skyblue", color = "black") +
