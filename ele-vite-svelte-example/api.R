@@ -20,6 +20,43 @@ dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
 asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
 groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
 
+#* Download R code file
+#* @get /download_code
+#* @param type The type of code to download
+#* @serializer contentType list(type="text/plain")
+function(req, res, type) {
+  code <- switch(type,
+    "example" = '
+# This is an example R script
+data <- read.csv("your_data.csv")
+summary(data)
+plot(data$x, data$y, main="Scatter Plot", xlab="X", ylab="Y")
+',
+    "analysis" = '
+# This is a basic analysis R script
+library(tidyverse)
+
+# Load your data
+data <- read_csv("your_data.csv")
+
+# Perform some basic analysis
+summary_stats <- data %>%
+  summarise(across(where(is.numeric), list(mean = mean, sd = sd)))
+
+# Create a simple visualization
+ggplot(data, aes(x = variable1, y = variable2)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Scatter Plot", x = "Variable 1", y = "Variable 2")
+',
+    stop("Invalid code type")
+  )
+  
+  res$body <- code
+  res$headers$`Content-Disposition` <- paste0("attachment; filename=", type, "_code.R")
+  res
+}
+
 #* Store uploaded files
 #* @post /store_files
 #* @param asv The ASV file content
