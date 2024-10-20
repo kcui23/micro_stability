@@ -59,3 +59,4 @@ export const colorStatus = writable({
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
 })
 export const autoLoaded = writable(false);
+export const params = writable({});

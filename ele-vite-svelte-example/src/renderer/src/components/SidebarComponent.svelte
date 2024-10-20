@@ -2,6 +2,7 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import {
     stepStatus,
+    params,
     subOperations,
     selectedOperations,
     openMenus,
@@ -18,7 +19,16 @@
 
   async function downloadCodes() {
     try {
-      const response = await fetch('http://localhost:8000/download_code?type=analysis');
+      const response = await fetch('http://localhost:8000/download_code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          selectedOperations: $selectedOperations,
+          params: $params
+        })
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

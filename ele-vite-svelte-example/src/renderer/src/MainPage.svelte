@@ -5,7 +5,8 @@
     currentPath, 
     stepStatus, 
     selectedOperations,
-    singleSelectOperations 
+    singleSelectOperations,
+    params
   } from './store.js';
 
   import D3Tree from './components/D3Tree.svelte';
@@ -16,7 +17,6 @@
   import ASVSelector from './components/ASVSelector.svelte';
   import ScatterPlot from './components/ScatterPlot.svelte';
   import ControlPanel from './components/ControlPanel.svelte';
-
 
   let startMethod = 'deseq2';
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
@@ -824,6 +824,19 @@
       zoomImage(null);
     }
   }
+
+  $: params.update(currentParams => {
+    const updatedParams = {
+      ...currentParams,
+      'Low Abundance Filtering': abundance_threshold,
+      'Prevalence Filtering': prevalence_threshold,
+      'Variance Filtering': variance_threshold,
+      'Pseudocount Addition': pseudocount,
+      'k-NN Imputation': knn
+    };
+    console.log('Updated params:', updatedParams);
+    return updatedParams;
+  })
 
   onMount(() => {
     window.addEventListener('keydown', handleKeydown);
