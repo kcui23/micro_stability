@@ -22,6 +22,38 @@ dir.create(code_dir, showWarnings = FALSE, recursive = TRUE)
 asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
 groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
 
+#* Generate all R code files
+#* @post /generate_all_r_code
+#* @serializer json
+function(req, res) {
+  message("&&&&&&& Generating all R code files &&&&&&&")
+  tryCatch({
+    source(safe_file_path("generate_r_code.R"))
+    
+    params <- list(
+      "Low Abundance Filtering" = 5,
+      "Prevalence Filtering" = 10,
+      "Variance Filtering" = 0,
+      "Pseudocount Addition" = 1,
+      "knn" = 5,
+      "knn_bound" = 50,
+      "Random Seed" = 1234
+    )
+    tryCatch({
+      generate_all_r_code(params, code_dir)
+      message("Number of files in code_dir: ", length(list.files(code_dir)))
+    }, error = function(e) {
+      print(paste("Error generating R code:", e$message))
+    })
+    
+    res$status <- 200
+    return(list(message = "All R code files generated successfully", directory = code_dir))
+  }, error = function(e) {
+    res$status <- 500
+    return(list(error = paste("Error generating R code files:", e$message)))
+  })
+}
+
 #* Download R code file
 #* @post /download_code
 #* @param type The type of code to download
@@ -80,9 +112,6 @@ function() {
     mutate(across(everything(), ~ifelse(is.na(.), "NA", as.character(.))))
   groupings_preview <- groupings_preview %>%
     mutate(across(everything(), ~ifelse(is.na(.), "NA", as.character(.))))
-
-  message("ASV preview: ", toJSON(asv_preview))
-  message("Groupings preview: ", toJSON(groupings_preview))
   
   response <- list(
     asv_preview = asv_preview,

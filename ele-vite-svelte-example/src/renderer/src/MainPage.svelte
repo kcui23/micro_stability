@@ -77,30 +77,12 @@
 
   const calculateStabilityMetric = async (method, missing_methods, destroy=false) => {
     try {
-      // Read the ASV file as text
-      const asvContent = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("Failed to read ASV file"));
-        reader.readAsText(asvFiles[0]);
-      });
-
-      // Read the groupings file as text
-      const groupingsContent = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("Failed to read groupings file"));
-        reader.readAsText(groupingsFile);
-      });
-
       const response = await fetch('http://localhost:8000/calculate_stability_metric', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          asv: asvContent,
-          groupings: groupingsContent,
           method: method,
           missing_methods: missing_methods,
           destroy: destroy
@@ -840,6 +822,22 @@
     return updatedParams;
   })
 
+  async function start_generate_all_codes() {
+    try {
+      const response = await fetch('http://localhost:8000/generate_all_r_code', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate all codes');
+      }
+      const result = await response.json();
+      console.log('All codes generated successfully:', result);
+    } catch (error) {
+      console.error('Error generating all codes:', error);
+    }
+  }
+
   onMount(() => {
     window.addEventListener('keydown', handleKeydown);
 
@@ -862,6 +860,8 @@
         treeData = data
       })
       .catch(error => console.error('Error loading or parsing data.json:', error));
+
+    start_generate_all_codes();
 
 
   });
