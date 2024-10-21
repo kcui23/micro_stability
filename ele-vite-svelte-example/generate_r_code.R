@@ -1,4 +1,5 @@
 library(tidyr)
+library(jsonlite)
 
 start_lib <- "library(DESeq2)
 library(readr)
@@ -341,15 +342,31 @@ for (i in 1:length(result_plots)) {
 }"
 
 
-generate_all_r_code <- function(selectedOperations, params, code_dir) {
-    processed <- process_frontend_inputs(selectedOperations, params)
-    operations <- processed$operations
-    parameters <- processed$parameters
+json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
+data <- fromJSON(json_path, simplifyVector = FALSE)
 
-    cartesian_strings_tidyr <- generate_cartesian_product(operations)
-    for (i in 1:length(cartesian_strings_tidyr)) {
-        code <- generate_r_code_for_each_combination(cartesian_strings_tidyr[i], parameters)
-        writeLines(code, file.path(code_dir, paste0(cartesian_strings_tidyr[i], ".R")))
+paths_list <- list()
+ids_list <- character()
+
+traverse <- function(node, current_path) {
+    new_path <- c(current_path, node$name)
+    if (!is.null(node$children)) {
+        for (child in node$children) {
+        traverse(child, new_path)
+        }
+    } else {
+        paths_list[[length(paths_list) + 1]] <<- new_path
+        ids_list <<- c(ids_list, node$id)
+    }
+}
+traverse(data, c())
+
+generate_all_r_code <- function(params, code_dir) {
+    parameters <- unlist(params)
+    for (i in 1:length(paths_list)) {
+        cstr <- paste(paths_list[[i]][-1], collapse = "_")
+        code <- generate_r_code_for_each_combination(cstr, parameters)
+        writeLines(code, file.path(code_dir, paste0(cstr, "_", ids_list[i], ".R")))
     }
 }
 
@@ -403,11 +420,13 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
     threshold <- switch(filtering,
         'Low Abundance Filtering' = parameters[['Low Abundance Filtering']],
         'Prevalence Filtering' = parameters[['Prevalence Filtering']],
-        'Variance Filtering' = parameters[['Variance Filtering']]
+        'Variance Filtering' = parameters[['Variance Filtering']],
+        'No Filtering' = 0
     )
     param_value <- switch(zero_handling,
         'Pseudocount Addition' = parameters[['Pseudocount Addition']],
-        'k-NN Imputation' = c(parameters[['knn']], parameters[['knn_bound']])
+        'k-NN Imputation' = c(parameters[['knn']], parameters[['knn_bound']]),
+        'No Zero-Handling' = 0
     )
     seed <- parameters[['Random Seed']]
 
@@ -431,7 +450,7 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
     zero_code <- switch(zero_handling,
         'Pseudocount Addition' = zero_pseudocount,
         'k-NN Imputation' = zero_knn,
-        'No Zero Handling' = zero_no
+        'No Zero-Handling' = zero_no
     )
     normalization_code <- switch(normalization,
         'TSS' = norm_tss,
@@ -450,7 +469,8 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
         'deseq2' = method_deseq2,
         'aldex2' = method_aldex2,
         'edger' = method_edger,
-        'maaslin2' = method_maaslin2
+        'maaslin2' = method_maaslin2,
+        'method5' = '# ====method5===='
     )
     vis_code <- switch(model_perturbation,
         'deseq2' = vis_deseq2,

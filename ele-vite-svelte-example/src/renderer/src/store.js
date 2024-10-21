@@ -2,7 +2,7 @@
 import { readable, writable } from 'svelte/store';
 
 export const selectedPoints = writable([]);
-export const currentPath = writable(['Raw data', 'None', 'None', 'None', 'None', 'deseq2', 'Differences in ASVs']);
+export const currentPath = writable(['Raw data', 'Low Abundance Filtering', 'TSS', 'Log', 'deseq2', 'Differences in ASVs']);
 export const stepStatus = writable({});
 export const subOperations = readable({
     'Raw data': ['Set Random Seed', 'Preview', 'Quick Explore'],
