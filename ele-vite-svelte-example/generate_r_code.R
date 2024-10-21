@@ -133,7 +133,8 @@ method_deseq2 <- "
   # Ensure 'asv_name' is the first column
   res <- res[, c('asv_name', setdiff(colnames(res), 'asv_name'))]
   result_data <- as.data.frame(res)
-  deseq2_results <- result_data
+  "
+vis_deseq2 <- "deseq2_results <- result_data
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
 deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
@@ -193,9 +194,8 @@ method_aldex2 <-"conditions <- groupings[,2]
   # Add ASV names to the results
   results$asv_name <- rownames(ASV_table)
   results <- results[, c('asv_name', setdiff(colnames(results), 'asv_name'))]
-  result_data <- as.data.frame(results)
-  
-  aldex2_results <- result_data
+  result_data <- as.data.frame(results)"
+vis_aldex2 <- "aldex2_results <- result_data
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   alog <- aldex2_results %>%
     mutate(neg_log10_pvalue = -log10(we.eBH),
@@ -262,9 +262,8 @@ OTU <- phyloseq::otu_table(ASV_table, taxa_are_rows = TRUE)
   # Add ASV names to the results
   res$asv_name <- rownames(ASV_table)
   res <- res[, c('asv_name', setdiff(colnames(res), 'asv_name'))]
-  result_data <- as.data.frame(res)
-  
-  edgeR_results <- result_data
+  result_data <- as.data.frame(res)"
+vis_edger <- "edgeR_results <- result_data
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   edgeR_results <- edgeR_results %>%
     mutate(neg_log10_pvalue = -log10(PValue),
@@ -305,9 +304,8 @@ fit_data <- Maaslin2(
 
 all_results <- fit_data$results
 colnames(all_results)[colnames(all_results) == 'feature'] <- 'asv_name'
-result_data <- all_results[, c('asv_name', setdiff(colnames(all_results), 'asv_name'))]
-
-maaslin2_results <- result_data
+result_data <- all_results[, c('asv_name', setdiff(colnames(all_results), 'asv_name'))]"
+vis_maaslin2 <- "maaslin2_results <- result_data
 # Visualization 1: Volcano plot of effect vs. -log10(pvalue)
   maaslin2_results <- maaslin2_results %>%
     mutate(neg_log10_pvalue = -log10(pval),
@@ -393,7 +391,7 @@ generate_cartesian_product <- function(operations) {
     return(cartesian_strings_tidyr)
 }
 
-generate_r_code_for_each_combination <- function(cartesian_string, parameters) {
+generate_r_code_for_each_combination <- function(cartesian_string, parameters, complete_code = FALSE) {
     split_string <- strsplit(cartesian_string, "_")[[1]]
     filtering <- split_string[1]
     zero_handling <- split_string[2]
@@ -454,9 +452,21 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters) {
         'edger' = method_edger,
         'maaslin2' = method_maaslin2
     )
+    vis_code <- switch(model_perturbation,
+        'deseq2' = vis_deseq2,
+        'aldex2' = vis_aldex2,
+        'edger' = vis_edger,
+        'maaslin2' = vis_maaslin2
+    )
 
-
-    code <- paste(start_lib, param_set_up, start_read_files, 
-    filter_code, zero_code, normalization_code, trans_code, pre_method, model_code, end, sep = '\n')
+    if (complete_code) {
+      code <- paste(start_lib, param_set_up, start_read_files, 
+                    filter_code, zero_code, normalization_code, trans_code, 
+                    pre_method, model_code, vis_code, end, sep = '\n')
+    } else {
+      code <- paste(start_lib, param_set_up, start_read_files, 
+                    filter_code, zero_code, normalization_code, trans_code, 
+                    pre_method, model_code, sep = '\n')
+    }
     return(code)
 }

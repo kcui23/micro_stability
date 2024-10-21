@@ -31,7 +31,7 @@ function(req, res) {
   selectedOperations <- body$selectedOperations
   params <- body$params
   source(safe_file_path("generate_r_code.R"))
-  code <- generate_r_code(selectedOperations, params)
+  code <- generate_r_code(selectedOperations, params, complete_code = TRUE)
 
   res$body <- code
   res$headers$`Content-Disposition` <- paste0("attachment; filename=r_code.R")
