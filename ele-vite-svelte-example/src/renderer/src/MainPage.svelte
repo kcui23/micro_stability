@@ -19,8 +19,8 @@
   import ControlPanel from './components/ControlPanel.svelte';
 
   let startMethod = 'deseq2';
-  let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
-  let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'];
+  let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
+  let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let abundance_threshold = 5;
   let prevalence_threshold = 10;
   let variance_threshold = 0.0;
@@ -118,7 +118,8 @@
     deseq2: false,
     aldex2: false,
     edger: false,
-    maaslin2: false
+    maaslin2: false,
+    metagenomeseq: false
   };
   let previousMethodFileStatus = { ...methodFileStatus };
   let dataChanged = false;
@@ -474,6 +475,9 @@
           maaslin2_plot1: `data:image/png;base64,${result.maaslin2_plot1}`,
           maaslin2_plot2: `data:image/png;base64,${result.maaslin2_plot2}`,
           maaslin2_plot3: `data:image/png;base64,${result.maaslin2_plot3}`,
+          metagenomeseq_plot1: `data:image/png;base64,${result.metagenomeseq_plot1}`,
+          metagenomeseq_plot2: `data:image/png;base64,${result.metagenomeseq_plot2}`,
+          metagenomeseq_plot3: `data:image/png;base64,${result.metagenomeseq_plot3}`,
           overlap_volcano: `data:image/png;base64,${result.overlap_volcano}`,
           overlap_pvalue_distribution: `data:image/png;base64,${result.overlap_pvalue_distribution}`
         };
@@ -1409,8 +1413,8 @@
         {#if $selectedOperations['Model Perturbation']?.includes('aldex2')}
           <p>aldex2</p>
         {/if}
-        {#if $selectedOperations['Model Perturbation']?.includes('method5')}
-          <p>method5</p>
+        {#if $selectedOperations['Model Perturbation']?.includes('metagenomeseq')}
+          <p>metagenomeseq</p>
         {/if}
 
         <!-- Method Selection UI -->

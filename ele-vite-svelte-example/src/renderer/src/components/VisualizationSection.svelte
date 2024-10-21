@@ -132,7 +132,7 @@
       {/if}
 
       {#if showDetailedPlots}
-        {#each ['deseq2', 'aldex2', 'edger', 'maaslin2'] as method}
+        {#each ['deseq2', 'aldex2', 'edger', 'maaslin2', 'metagenomeseq'] as method}
           <div class="card">
             <div class="card-header">
               <h3>{method.toUpperCase()} Plots</h3>

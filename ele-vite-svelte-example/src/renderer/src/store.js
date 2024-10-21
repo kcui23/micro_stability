@@ -11,7 +11,7 @@ export const subOperations = readable({
     'Zero-Handling': ['Pseudocount Addition', 'k-NN Imputation', 'No Zero-Handling'],
     'Normalization': ['TSS', 'CSS', 'TMM', 'CLR', 'No Normalization'],
     'Transformation': ['Log', 'Logit', 'AST', 'No Transformation'],
-    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'],
+    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'],
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR', 'All methods calculation', 'View Stability Plot', 'Run Shuffled Analysis', 'ASV Selector', 'json interaction']
 });
 export const singleSelectOperations = readable({
@@ -20,7 +20,7 @@ export const singleSelectOperations = readable({
     'Zero-Handling': ['Pseudocount Addition', 'k-NN Imputation', 'No Zero-Handling'],
     'Normalization': ['TSS', 'CSS', 'TMM', 'CLR', 'No Normalization'],
     'Transformation': ['Log', 'Logit', 'AST', 'No Transformation'],
-    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'],
+    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'],
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
 })
 export const selectedOperations = writable({});
@@ -29,7 +29,7 @@ export const crossStepMutuallyExclusiveOptions = {
     'Normalization': {
         'CLR': { 'Transformation': ['Log', 'Logit'], 'Zero-Handling': ['No Zero-Handling'] },
         'TMM': { 'Transformation': ['Logit'] },
-        'CSS': { 'Transformation': ['Logit'] },
+        'CSS': { 'Transformation': ['Logit'], 'Model Perturbation': ['metagenomeseq'] },
         'No Normalization': { 'Transformation': ['AST'] }
     },
     'Transformation': {
@@ -39,6 +39,9 @@ export const crossStepMutuallyExclusiveOptions = {
     },
     'Zero-Handling': {
         'No Zero-Handling': { 'Transformation': ['Log', 'Logit'], 'Normalization': ['CLR'] }
+    },
+    'Model Perturbation': {
+        'metagenomeseq': { 'Normalization': ['CSS'] }
     }
 };
 export const selectedColorStep = writable('Filtering');
@@ -55,7 +58,7 @@ export const colorStatus = writable({
     'Zero-Handling': ['Pseudocount Addition', 'k-NN Imputation', 'No Zero-Handling'],
     'Normalization': ['TSS', 'CSS', 'TMM', 'CLR', 'No Normalization'],
     'Transformation': ['Log', 'Logit', 'AST', 'No Transformation'],
-    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'method5'],
+    'Model Perturbation': ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'],
     'Stability Metric': ['Differences in ASVs', 'AUROC', 'FDR']
 })
 export const autoLoaded = writable(false);

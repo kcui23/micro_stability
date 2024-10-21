@@ -37,14 +37,21 @@
           symbol: methods.map(method => {
             switch (method) {
               case 'DESeq2': return 'circle';
-              case 'ALDEx2': return 'diamond';
+              case 'ALDEx2': return 'triangle-up';
               case 'edgeR': return 'square';
-              case 'MaAsLin2': return 'triangle-up';
+              case 'MaAsLin2': return 'triangle-down';
+              case 'metagenomeSeq': return 'diamond';
               default: return 'circle';
             }
           }),
           opacity: 0.5
-        }
+        },
+        hoverinfo: 'text',
+        hovertext: asvNames.map((name, i) => 
+          `Coordinates: (${log2FoldChanges[i].toFixed(2)}, ${negLog10Pvalues[i].toFixed(2)})<br>` +
+          `Method: ${methods[i]}<br>` +
+          `ASV: ${name}`
+        )
       };
 
       const layout = {

@@ -79,7 +79,6 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   # Save results to output file
   write_tsv(as.data.frame(results), output_file)
   
-  # Return paths to the result files (for example, if there are plots)
   list(
     plot1 = "./plot1.png",
     plot2 = "./plot2.png",

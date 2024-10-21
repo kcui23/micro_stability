@@ -63,7 +63,7 @@ function(req, res) {
   selectedOperations <- body$selectedOperations
   params <- body$params
   source(safe_file_path("generate_r_code.R"))
-  code <- generate_r_code(selectedOperations, params, complete_code = TRUE)
+  code <- generate_r_code(selectedOperations, params)
 
   res$body <- code
   res$headers$`Content-Disposition` <- paste0("attachment; filename=r_code.R")
@@ -170,8 +170,12 @@ function(req, method) {
     source(safe_file_path("Maaslin2.R"))
     result <- run_maaslin2(asv_file_path, groupings_file_path, output_file, output_dir, seed)
     plots <- visualize_maaslin2(output_file, output_dir)
+  } else if (tolower(method) == "metagenomeseq") {
+    source(safe_file_path("metagenomeSeq.R"))
+    result <- run_metagenomeseq(asv_file_path, groupings_file_path, output_file, seed)
+    plots <- visualize_metagenomeseq(output_file, output_dir)
   } else {
-    stop("Invalid method selected. Please choose 'deseq2', 'aldex2', 'edger', or 'maaslin2'.")
+    stop("Invalid method selected. Please choose 'deseq2', 'aldex2', 'edger', 'maaslin2', or 'metagenomeseq'.")
   }
 
   # Save the output file to the persistent temp directory
@@ -439,6 +443,7 @@ function(req) {
   aldex2_output_file <- tempfile(fileext = ".tsv")
   edgeR_output_file <- tempfile(fileext = ".tsv")
   maaslin2_output_file <- tempfile(fileext = ".tsv")
+  metagenomeseq_output_file <- tempfile(fileext = ".tsv")
   output_dir <- tempfile()
 
   dir.create(output_dir)
@@ -465,9 +470,13 @@ function(req) {
     source(safe_file_path("Maaslin2.R"))
     maaslin2_result <- run_maaslin2(temp_asv_file, groupings_file_path, maaslin2_output_file, output_dir, seed)
     maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
-    
+
+    source(safe_file_path("metagenomeSeq.R"))
+    metagenomeseq_result <- run_metagenomeseq(temp_asv_file, groupings_file_path, metagenomeseq_output_file, seed)
+    metagenomeseq_plots <- visualize_metagenomeseq(metagenomeseq_output_file, output_dir)
+
     source(safe_file_path("overlap_plots.R"))
-    overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, output_dir, persistent_temp_dir)
+    overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, metagenomeseq_output_file, output_dir, persistent_temp_dir)
 
     list(
       deseq2_plot1 = base64enc::base64encode(deseq2_plots$plot1),
@@ -482,6 +491,9 @@ function(req) {
       maaslin2_plot1 = base64enc::base64encode(maaslin2_plots$plot1),
       maaslin2_plot2 = base64enc::base64encode(maaslin2_plots$plot2),
       maaslin2_plot3 = base64enc::base64encode(maaslin2_plots$plot3),
+      metagenomeseq_plot1 = base64enc::base64encode(metagenomeseq_plots$plot1),
+      metagenomeseq_plot2 = base64enc::base64encode(metagenomeseq_plots$plot2),
+      metagenomeseq_plot3 = base64enc::base64encode(metagenomeseq_plots$plot3),
       overlap_volcano = base64enc::base64encode(overlap_plots$overlap_volcano),
       overlap_pvalue_distribution = base64enc::base64encode(overlap_plots$overlap_pvalue_distribution)
     )
@@ -523,7 +535,7 @@ function() {
 #* Check the status of method files
 #* @get /check_method_files
 function() {
-  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq")
   status <- sapply(methods, function(method) {
     file_path <- safe_file_path(persistent_temp_dir, paste0(method, "_results.tsv"))
     file.exists(file_path)
@@ -536,7 +548,7 @@ function() {
 #* @param method The method to download the file for
 #* @serializer contentType list(type = "text/tab-separated-values")
 function(req, res, method) {
-  valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq")
   if (!(tolower(method) %in% valid_methods)) {
     res$status <- 400
     return(list(error = "Invalid method specified"))
@@ -557,7 +569,7 @@ function(req, res, method) {
 #* Generate combined results file
 #* @post /generate_combined_results
 function(req, res) {
-  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq")
   combined_results <- data.frame(feature = character())
 
   for (method in methods) {
@@ -570,7 +582,8 @@ function(req, res) {
                         "deseq2" = "padj",
                         "aldex2" = "we.eBH",
                         "edger" = "FDR",
-                        "maaslin2" = "qval")
+                        "maaslin2" = "qval",
+                        "metagenomeseq" = "pvalues")
       
       # Create a new column for this method's significance
       new_col <- paste0(method, "_significant")
@@ -780,6 +793,9 @@ function(req, iterations = 10, ws_id) {
       } else if (method == "maaslin2") {
         source("Maaslin2.R")
         run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, tempdir(), seed)
+      } else if (method == "metagenomeseq") {
+        source("metagenomeSeq.R")
+        run_metagenomeseq(temp_asv_file, temp_shuffled_groupings, output_file, tempdir(), seed)
       }
 
       # Read results and store significant ASVs
@@ -1105,6 +1121,9 @@ calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = N
     } else if (method == "maaslin2") {
       source(safe_file_path("Maaslin2.R"))
       run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, output_dir = tempfile(), seed = 1234)
+    } else if (method == "metagenomeseq") {
+      source(safe_file_path("metagenomeSeq.R"))
+      run_metagenomeseq(temp_asv_file, temp_shuffled_groupings, output_file, tempfile(), seed = 1234)
     } else {
       stop("Invalid method specified")
     }

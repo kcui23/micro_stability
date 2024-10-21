@@ -3,7 +3,7 @@ library(dplyr)
 library(readr)
 library(ggridges)
 
-create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_file, output_dir, persistent_temp_dir) {
+create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_file, metagenomeseq_file, output_dir, persistent_temp_dir) {
   # Helper function to safely read and process data
   safe_file_path <- function(...) {
     normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
@@ -48,9 +48,9 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
   aldex2_results <- safe_read_and_process(aldex2_file, "ALDEx2", "effect", "we.eBH")
   edger_results <- safe_read_and_process(edger_file, "edgeR", "logFC", "FDR")
   maaslin2_results <- safe_read_and_process(maaslin2_file, "MaAsLin2", "coef", "qval")
-
+  metagenomeseq_results <- safe_read_and_process(metagenomeseq_file, "metagenomeSeq", "logFC", "pvalues")
   # Combine results, removing any NULL entries
-  combined_results <- bind_rows(list(deseq2_results, aldex2_results, edger_results, maaslin2_results) %>% 
+  combined_results <- bind_rows(list(deseq2_results, aldex2_results, edger_results, maaslin2_results, metagenomeseq_results) %>% 
                                   keep(~!is.null(.)))
 
   if (nrow(combined_results) == 0) {
@@ -67,7 +67,7 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
   p1 <- ggplot(combined_results, aes(x = log2FoldChange, y = neg_log10_pvalue, color = significant, shape = method)) +
     geom_point(alpha = 0.5, size = 3) +
     scale_color_manual(values = c("Significant" = "#0000FF", "Not Significant" = "#808080")) +
-    scale_shape_manual(values = c("DESeq2" = 21, "ALDEx2" = 24, "edgeR" = 22, "MaAsLin2" = 25)) +
+    scale_shape_manual(values = c("DESeq2" = 21, "ALDEx2" = 24, "edgeR" = 22, "MaAsLin2" = 25, "metagenomeSeq" = 23)) +
     theme_minimal() +
     labs(title = "Volcano plot overlap", x = "log2FoldChange", y = "-log10(pvalue)") +
     guides(color = guide_legend(override.aes = list(size = 5)),

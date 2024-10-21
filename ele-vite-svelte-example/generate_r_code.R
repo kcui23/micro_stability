@@ -1,16 +1,13 @@
 library(tidyr)
 library(jsonlite)
 
-start_lib <- "library(DESeq2)
-library(readr)
-library(ALDEx2)
+start_lib <- "library(readr)
 library(tidyr)
 library(dplyr)
 library(readr)
 library(e1071)
-library(edgeR)
 library(phyloseq)
-library(Maaslin2)"
+library(ggplot2)"
 
 start_read_files <- "data <- read_tsv(ASV_file_path, comment = '', col_names = TRUE, skip = ifelse(grepl('Constructed from biom file', readLines(ASV_file_path, n=1)), 1, 0))
 groupings <- read_tsv(groupings_file_path, col_names = TRUE)"
@@ -120,7 +117,8 @@ pre_method <- "set.seed(seed)
     ASV_table <- ASV_table[, rows_to_keep]
   }"
 
-method_deseq2 <- "
+method_deseq2 <- "library(DESeq2)
+
   groupings <- groupings[,-1, drop=FALSE]
   # Run DESeq2 analysis
   dds <- DESeq2::DESeqDataSetFromMatrix(countData = ASV_table,
@@ -156,7 +154,9 @@ p2 <- ggplot(deseq2_results, aes(x = baseMean, y = log2FoldChange)) +
     scale_x_log10() +
     labs(title = 'MA plot', x = 'baseMean', y = 'log2FoldChange')"
 
-method_aldex2 <-"conditions <- groupings[,2]
+method_aldex2 <-"library(ALDEx2)
+
+  conditions <- groupings[,2]
   unique_groups <- length(unique(conditions))
   
   if (unique_groups == 2) {
@@ -220,7 +220,8 @@ vis_aldex2 <- "aldex2_results <- result_data
     scale_x_log10() +
     labs(title = 'MA-like plot', x = 'Mean Abundance', y = 'Effect Size')"
 
-method_edger <- "phyloseq_to_edgeR <- function(physeq, group, method='RLE', ...){
+method_edger <- "library(edgeR)
+phyloseq_to_edgeR <- function(physeq, group, method='RLE', ...){
   require('edgeR')
   require('phyloseq')
   if(!taxa_are_rows(physeq)) { physeq <- t(physeq) }
@@ -288,7 +289,8 @@ vis_edger <- "edgeR_results <- result_data
          x = 'logCPM',
          y = 'logFC')"
 
-method_maaslin2 <- "ASV_table <- data.frame(t(ASV_table), check.rows = F, check.names = F, stringsAsFactors = F)
+method_maaslin2 <- "library(Maaslin2)
+ASV_table <- data.frame(t(ASV_table), check.rows = F, check.names = F, stringsAsFactors = F)
 temp_dir <- tempfile()
 dir.create(temp_dir)
 # Run Maaslin2 analysis
@@ -333,6 +335,49 @@ vis_maaslin2 <- "maaslin2_results <- result_data
     labs(title = 'MA-like plot',
          x = 'Number of Non-Zero Samples',
          y = 'Coefficient (Effect Size)')"
+
+method_metagenomeseq <- "library(metagenomeSeq)
+# Create a MRexperiment object
+  count_matrix <- as.matrix(ASV_table)
+  groupings_meta <- AnnotatedDataFrame(groupings)
+
+  # Create MRexperiment object
+  MRexp <- metagenomeSeq::newMRexperiment(counts = count_matrix, phenoData = groupings_meta)
+  MRexp_norm <- metagenomeSeq::cumNorm(MRexp)
+  comparison_variable <- colnames(groupings)[2]
+
+  # Fit the feature model
+  model <- model.matrix(~ groupings[, comparison_variable])
+  fit <- metagenomeSeq::fitFeatureModel(MRexp_norm, model)
+
+  # Get differential abundance results
+  result <- metagenomeSeq::MRfulltable(fit, number = nrow(fit))
+  result <- result %>%
+    arrange(pvalues) %>%
+    mutate(asv_name = rownames(.)) %>%
+    dplyr::select(asv_name, everything())
+    result_data <- as.data.frame(result)"
+vis_metagenomeseq <- "metagenomeSeq_results <- result_data
+# Visualization 1: Volcano plot of logFC vs. -log10(pvalue)
+  metagenomeSeq_results$log10pvalue <- -log10(metagenomeSeq_results$pvalues)
+  metagenomeSeq_results$point_size <- ifelse(metagenomeSeq_results$pvalues < 0.05, 2, 1)
+  
+  p1 <- ggplot(metagenomeSeq_results, aes(x = logFC, y = log10pvalue)) +
+    geom_point(aes(color = pvalues < 0.05, size = point_size)) +
+    scale_color_manual(values = c('gray', '#4C3BCF')) +
+    scale_size_continuous(range = c(1, 3), guide = 'none') +
+    theme_minimal() +
+    labs(title = 'Volcano Plot', x = 'log2 Fold Change', y = '-log10(p-value)')
+  
+  # Visualization 2: MA plot of baseMean vs. log2 Fold Change
+  metagenomeSeq_results$baseMean <- rowMeans(as.matrix(metagenomeSeq_results[, -c(1:4)]))  # Assuming baseMean is not directly in the file
+  
+  p2 <- ggplot(metagenomeSeq_results, aes(x = baseMean, y = logFC)) +
+    geom_point(aes(color = pvalues < 0.05), alpha = 0.5) +
+    scale_color_manual(values = c('gray', '#4C3BCF'), name = 'Significant') +
+    theme_minimal() +
+    scale_x_log10() +
+    labs(title = 'MA Plot', x = 'baseMean', y = 'log2 Fold Change')"
   
 end <- "result_plots <- list(p1, p2)
 
@@ -376,7 +421,7 @@ generate_r_code <- function(selectedOperations, params) {
     parameters <- processed$parameters
 
     cartesian_strings_tidyr <- generate_cartesian_product(operations)
-    code <- generate_r_code_for_each_combination(cartesian_strings_tidyr[1], parameters)
+    code <- generate_r_code_for_each_combination(cartesian_strings_tidyr[1], parameters, complete_code = TRUE)
     return(code)
 }
 
@@ -470,13 +515,14 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
         'aldex2' = method_aldex2,
         'edger' = method_edger,
         'maaslin2' = method_maaslin2,
-        'method5' = '# ====method5===='
+        'metagenomeseq' = method_metagenomeseq
     )
     vis_code <- switch(model_perturbation,
         'deseq2' = vis_deseq2,
         'aldex2' = vis_aldex2,
         'edger' = vis_edger,
-        'maaslin2' = vis_maaslin2
+        'maaslin2' = vis_maaslin2,
+        'metagenomeseq' = vis_metagenomeseq
     )
 
     if (complete_code) {
