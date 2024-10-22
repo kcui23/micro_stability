@@ -293,7 +293,8 @@
 
   .card-header {
     background-color: #f5f5f5;
-    padding: 1rem;
+    padding: 0.5rem;
+    padding-left: 1rem;
     border-bottom: 1px solid #ddd;
   }
 
@@ -321,14 +322,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-.image-button img {
+  .image-button img {
     max-width: 100%;
     height: 100%;
     width: 100%;
     display: block;
     object-fit: contain;
+  }
+  .image-button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .floating-card {
