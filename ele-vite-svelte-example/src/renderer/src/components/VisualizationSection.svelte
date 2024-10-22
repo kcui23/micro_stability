@@ -95,16 +95,26 @@
         </div>
         <div class="card-content">
           {#if isStatic}
-            <img
-              src={visualizations.overlap_volcano}
-              alt="Overlap Volcano Plot"
+            <button
+              type="button"
+              class="image-button"
               on:click={() => zoomImage('overlap_volcano')}
-            />
-            <img
-              src={visualizations.overlap_pvalue_distribution}
-              alt="Overlap P-value Distribution"
+            >
+              <img
+                src={visualizations.overlap_volcano}
+                alt="Overlap Volcano Plot"
+              />
+            </button>
+            <button
+              type="button"
+              class="image-button"
               on:click={() => zoomImage('overlap_pvalue_distribution')}
-            />
+            >
+              <img
+                src={visualizations.overlap_pvalue_distribution}
+                alt="Overlap P-value Distribution"
+              />
+            </button>
           {:else}
             <InteractiveValcano 
               {specific_interact}
@@ -143,11 +153,16 @@
             </div>
             <div class="card-content">
               {#each [1, 2] as plotNumber}
-                <img
+                <button
+                  type="button"
+                  class="image-button"
+                  on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
+                >
+                  <img
                     src={visualizations[`${method}_plot${plotNumber}`]}
                     alt={`${method.toUpperCase()} Plot ${plotNumber}`}
-                    on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
-                />
+                  />
+                </button>
               {/each}
             </div>
           </div>
@@ -169,11 +184,16 @@
       <div class="card-content">
         {#if isStatic}
           {#each [1, 2, 3] as plotNumber}
-            <img
-              src={visualizations[`${selectedMethod}_plot${plotNumber}`]}
-              alt={`${selectedMethod.toUpperCase()} Plot ${plotNumber}`}
+            <button
+              type="button"
+              class="image-button"
               on:click={() => zoomImage(`${selectedMethod}_plot${plotNumber}`)}
-            />
+            >
+              <img
+                src={visualizations[`${selectedMethod}_plot${plotNumber}`]}
+                alt={`${selectedMethod.toUpperCase()} Plot ${plotNumber}`}
+              />
+            </button>
           {/each}
         {:else}
           <InteractiveValcano 
@@ -186,8 +206,25 @@
   {/if}
 
   {#if zoomedImage}
-    <div class="zoomed-image-container" on:click={() => zoomImage(null)} transition:fade>
-      <div class="zoomed-image-content" on:click|stopPropagation transition:scale>
+    <div
+      class="zoomed-image-container"
+      on:click={() => zoomImage(null)}
+      transition:fade
+      role="button"
+      tabindex="0"
+      on:keydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          zoomImage(null);
+        }
+      }}
+    >
+      <div
+        class="zoomed-image-content"
+        on:click|stopPropagation
+        transition:scale
+        role="presentation"
+      >
+        <!-- svelte-ignore a11y-img-redundant-alt -->
         <img src={visualizations[zoomedImage]} alt="Zoomed Image" class="bounded-image" />
         <button
           class="download-button"
@@ -268,14 +305,30 @@
   .card-content {
     padding: 1rem;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 1rem;
   }
 
-  .card-content img {
-    max-width: calc(50% - 0.5rem);
-    height: auto;
+  .image-button {
+    padding: 0;
+    border: none;
+    background: none;
     cursor: pointer;
+    max-width: calc(50% - 0.5rem);
+    transition: transform 0.2s ease;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+.image-button img {
+    max-width: 100%;
+    height: 100%;
+    width: 100%;
+    display: block;
+    object-fit: contain;
   }
 
   .floating-card {
@@ -360,10 +413,19 @@
     left: 50%;
     transform: translateX(-50%);
   }
+
   .loader {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 200px;
+  }
+
+  .zoomed-image-container:focus {
+    outline: none;
+  }
+
+  [role="presentation"] {
+    outline: none;
   }
 </style>
