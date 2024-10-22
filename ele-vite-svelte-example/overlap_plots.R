@@ -78,8 +78,9 @@ create_overlap_plots <- function(deseq2_file, aldex2_file, edger_file, maaslin2_
 
   # Overlap p-value distribution (ridge plot)
   p2 <- ggplot(combined_results, aes(x = pvalue, y = method, fill = method)) +
-    geom_density_ridges(alpha = 0.7, scale = 2) +
+    geom_density_ridges(alpha = 0.7, scale = 2, from = 0, to = 1) +
     scale_fill_brewer(palette = "Set2") +
+    scale_x_continuous(limits = c(0, 1)) +
     theme_minimal() +
     labs(title = "P-value distribution overlap", x = "p-value", y = "Method") +
     theme(legend.position = "none")
