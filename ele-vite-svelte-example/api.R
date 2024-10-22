@@ -100,8 +100,8 @@ safe_file_path <- function(...) {
 #* Preview ASV and grouping data
 #* @get /preview_data
 function() {
-  asv_data <- read_tsv(asv_file_path)
-  groupings_data <- read_tsv(groupings_file_path)
+  asv_data <- read_tsv(asv_file_path, show_col_types = FALSE)
+  groupings_data <- read_tsv(groupings_file_path, show_col_types = FALSE)
   
   asv_preview <- asv_data %>%
     dplyr::select(1:min(6, ncol(.))) %>%
@@ -199,7 +199,7 @@ function(req, method) {
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
   filter_method <- body$filter_method
@@ -245,7 +245,7 @@ function(req) {
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
   zero_method <- body$zero_handling_method
@@ -304,7 +304,7 @@ function(req) {
 #* @get /zero_distribution_plot
 #* @serializer contentType list(type="image/png")
 function() {
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
   zero_percentages <- asv_data %>%
@@ -331,7 +331,7 @@ function() {
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
   norm_method <- body$norm_method
@@ -398,7 +398,7 @@ function(req) {
 function(req) {
   body <- fromJSON(req$postBody)
   
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   asv_data <- asv_data %>% mutate(across(-1, as.numeric))
   
   trans_method <- body$trans_method
@@ -451,7 +451,7 @@ function(req) {
 
   dir.create(output_dir)
   
-  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"))
+  asv_data <- read_tsv(asv_file_path, col_types = cols(.default = "c"), show_col_types = FALSE)
   
   set.seed(seed)
   subset_asv_data <- asv_data %>% sample_frac(0.05)
@@ -578,7 +578,7 @@ function(req, res) {
   for (method in methods) {
     file_path <- safe_file_path(persistent_temp_dir, paste0(method, "_results.tsv"))
     if (file.exists(file_path)) {
-      results <- read_tsv(file_path)
+      results <- read_tsv(file_path, show_col_types = FALSE)
       
       # Determine the significance column based on the method
       sig_col <- switch(method,
@@ -636,7 +636,7 @@ function() {
     return(list(error = "Combined results file not found"))
   }
   
-  combined_results <- read_tsv(combined_results_file)
+  combined_results <- read_tsv(combined_results_file, show_col_types = FALSE)
   asv_list <- combined_results$asv_name
   
   return(asv_list)
@@ -650,7 +650,7 @@ function() {
     return(list(error = "Combined results file not found"))
   }
   
-  combined_results <- read_tsv(combined_results_file)
+  combined_results <- read_tsv(combined_results_file, show_col_types = FALSE)
   
   return(combined_results)
 }
@@ -660,7 +660,7 @@ function() {
 #* @serializer contentType list(type="image/png")
 function(res) {
   # Read the data
-  data <- read_tsv(safe_file_path(persistent_temp_dir, "combined_results.tsv"))
+  data <- read_tsv(safe_file_path(persistent_temp_dir, "combined_results.tsv"), show_col_types = FALSE)
   
   # Data processing
   tools <- names(data)[stringr::str_detect(names(data), "_significant$")]
@@ -758,8 +758,8 @@ function(req, iterations = 10, ws_id) {
   writeLines(as.character(body$asv), temp_asv_file, sep = "\n")
   writeLines(as.character(body$groupings), temp_groupings_file, sep = "\n")
 
-  asv_data <- read_tsv(temp_asv_file)
-  groupings_data <- read_tsv(temp_groupings_file)
+  asv_data <- read_tsv(temp_asv_file, show_col_types = FALSE)
+  groupings_data <- read_tsv(temp_groupings_file, show_col_types = FALSE)
 
   methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq")
   results <- list()
@@ -802,7 +802,7 @@ function(req, iterations = 10, ws_id) {
       }
 
       # Read results and store significant ASVs
-      result <- read_tsv(output_file)
+      result <- read_tsv(output_file, show_col_types = FALSE)
       significant_asvs <- get_significant_asvs(result, method)
       
       if (is.null(results[[method]])) {
@@ -1026,8 +1026,8 @@ function(req, res) {
     print(destroy)
     leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
     tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
-    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
-    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
+    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE) # simplifyVector = TRUE -> data.frame
+    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE) # simplifyVector = FALSE -> list like [[1]] $key [1] value [[2]]...
     if (destroy) {
       print("=====destroy is true=====")
       for (leaf in names(leaf_data)) {
@@ -1102,8 +1102,8 @@ calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = N
     return(json_data)
   }
   else {
-    asv_df <- read_tsv(asv)
-    groupings_df <- read_tsv(groupings)
+    asv_df <- read_tsv(asv, show_col_types = FALSE)
+    groupings_df <- read_tsv(groupings, show_col_types = FALSE)
     shuffled_groupings <- groupings_df %>%
       mutate(!!names(groupings_df)[2] := sample(!!sym(names(groupings_df)[2])))
 
@@ -1133,7 +1133,7 @@ calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = N
       stop("Invalid method specified")
     }
 
-    result <- read_tsv(output_file)
+    result <- read_tsv(output_file, show_col_types = FALSE)
     significant_asvs <- get_significant_asvs(result, method)
 
     stability_metric <- list(

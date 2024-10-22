@@ -1,64 +1,74 @@
-library(metagenomeSeq)
-library(tidyverse)
+options(
+  warn = -1,            
+  verbose = FALSE  
+)
+suppressPackageStartupMessages({
+  library(metagenomeSeq)
+  library(tidyverse)
+})
 
 
 run_metagenomeseq <- function(ASV_file, groupings_file, output_file, seed = 1234) {
-  set.seed(seed)
-  print('======seed==========')
-  print(seed)
+  suppressWarnings({
+    set.seed(seed)
+    print('======seed==========')
+    print(seed)
 
-  # Read ASV table
-  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
-  ASV_table <- as.data.frame(ASV_table)
-  row.names(ASV_table) <- ASV_table[,1]
-  ASV_table <- ASV_table[,-1]
-  print('======dim in metagenomeSeq==========')
-  print(dim(ASV_table))
+    # Read ASV table
+    ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, 
+                          skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0),
+                          show_col_types = FALSE)
+    ASV_table <- as.data.frame(ASV_table)
+    row.names(ASV_table) <- ASV_table[,1]
+    ASV_table <- ASV_table[,-1]
+    print('======dim in metagenomeSeq==========')
+    print(dim(ASV_table))
 
-  # Read groupings table
-  groupings <- read_tsv(groupings_file, col_names = TRUE)
-  groupings <- as.data.frame(groupings)
-  row.names(groupings) <- groupings[,1]
+    # Read groupings table
+    groupings <- read_tsv(groupings_file, col_names = TRUE, show_col_types = FALSE)
+    groupings <- as.data.frame(groupings)
+    row.names(groupings) <- groupings[,1]
 
-  # Check for matching samples
-  sample_num <- ncol(ASV_table)
-  grouping_num <- nrow(groupings)
+    # Check for matching samples
+    sample_num <- ncol(ASV_table)
+    grouping_num <- nrow(groupings)
 
-  if (sample_num != grouping_num) {
-    message("The number of samples in the ASV table and the groupings table are unequal")
-    message("Removing samples not found in both ASV table and groupings")
-  }
+    if (sample_num != grouping_num) {
+      message("The number of samples in the ASV table and the groupings table are unequal")
+      message("Removing samples not found in both ASV table and groupings")
+    }
 
-  # Align ASV table and metadata
-  if (identical(colnames(ASV_table), rownames(groupings))) {
-    message("Groupings and ASV table are in the same order")
-  } else {
-    rows_to_keep <- intersect(colnames(ASV_table), rownames(groupings))
-    groupings <- groupings[rows_to_keep,, drop=F]
-    ASV_table <- ASV_table[, rows_to_keep]
-  }
+    # Align ASV table and metadata
+    if (identical(colnames(ASV_table), rownames(groupings))) {
+      message("Groupings and ASV table are in the same order")
+    } else {
+      rows_to_keep <- intersect(colnames(ASV_table), rownames(groupings))
+      groupings <- groupings[rows_to_keep,, drop=F]
+      ASV_table <- ASV_table[, rows_to_keep]
+    }
 
-  # Create a MRexperiment object
-  count_matrix <- as.matrix(ASV_table)
-  groupings_meta <- AnnotatedDataFrame(groupings)
+    # Create a MRexperiment object
+    count_matrix <- as.matrix(ASV_table)
+    groupings_meta <- AnnotatedDataFrame(groupings)
 
-  # Create MRexperiment object
-  MRexp <- metagenomeSeq::newMRexperiment(counts = count_matrix, phenoData = groupings_meta)
-  MRexp_norm <- metagenomeSeq::cumNorm(MRexp)
-  comparison_variable <- colnames(groupings)[2]
+    # Create MRexperiment object
+    MRexp <- metagenomeSeq::newMRexperiment(counts = count_matrix, phenoData = groupings_meta)
+    MRexp_norm <- metagenomeSeq::cumNorm(MRexp)
+    comparison_variable <- colnames(groupings)[2]
 
-  # Fit the feature model
-  model <- model.matrix(~ groupings[, comparison_variable])
-  fit <- metagenomeSeq::fitFeatureModel(MRexp_norm, model)
+    # Fit the feature model
+    model <- model.matrix(~ groupings[, comparison_variable])
+    fit <- metagenomeSeq::fitFeatureModel(MRexp_norm, model)
 
-  # Get differential abundance results
-  result <- metagenomeSeq::MRfulltable(fit, number = nrow(fit))
-  result <- result %>%
-    arrange(pvalues) %>%
-    mutate(asv_name = rownames(.)) %>%
-    dplyr::select(asv_name, everything())
+    # Get differential abundance results
+    result <- metagenomeSeq::MRfulltable(fit, number = nrow(fit))
+    result <- result %>%
+      arrange(pvalues) %>%
+      mutate(asv_name = rownames(.)) %>%
+      dplyr::select(asv_name, everything())
 
-  write_tsv(as.data.frame(result), output_file)
+    write_tsv(as.data.frame(result), output_file)
+  })
 
   return(result)
 }
@@ -67,7 +77,7 @@ run_metagenomeseq <- function(ASV_file, groupings_file, output_file, seed = 1234
 
 visualize_metagenomeseq <- function(input_file, output_dir, persistent_temp_dir) {
   # Read metagenomeSeq results
-  metagenomeSeq_results <- read_tsv(input_file)
+  metagenomeSeq_results <- read_tsv(input_file, show_col_types = FALSE)
   
   # Visualization 1: Volcano plot of logFC vs. -log10(pvalue)
   metagenomeSeq_results$log10pvalue <- -log10(metagenomeSeq_results$pvalues)
@@ -107,6 +117,8 @@ visualize_metagenomeseq <- function(input_file, output_dir, persistent_temp_dir)
     labs(title = "Histogram of p-value Distribution", x = "p-value", y = "Frequency")
   
   ggsave(file.path(output_dir, "metagenomeseq_plot3.png"), plot = p3)
+
+  print('finished metagenomeseq visualization')
   
   # Return the paths to the saved plots
   list(

@@ -1,14 +1,18 @@
-library(edgeR)
-library(phyloseq)
-library(tidyr)
-library(dplyr)
-library(readr)
-library(ggplot2)
+options(
+  warn = -1,            
+  verbose = FALSE  
+)
+suppressPackageStartupMessages({
+  library(edgeR)
+  library(phyloseq)
+  library(tidyr)
+  library(dplyr)
+  library(readr)
+  library(ggplot2)
+})
 
 # Define the function to convert phyloseq object to edgeR DGEList
 phyloseq_to_edgeR <- function(physeq, group, method="RLE", ...){
-  require("edgeR")
-  require("phyloseq")
   # Enforce orientation
   if(!taxa_are_rows(physeq)) { physeq <- t(physeq) }
   x <- as(otu_table(physeq), "matrix")
@@ -51,15 +55,20 @@ phyloseq_to_edgeR <- function(physeq, group, method="RLE", ...){
 # Define the main function to run edgeR analysis
 run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   set.seed(seed)
+  print('======seed==========')
+  print(seed)
   
-  # Read ASV table
-  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
+  # Read ASV table - suppress messages from read_tsv
+  ASV_table <- suppressMessages(read_tsv(ASV_file, comment = "", col_names = TRUE, 
+    skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0)))
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
+  print('======dim in edgeR==========')
+  print(dim(ASV_table))
   
-  # Read groupings table
-  groupings <- read_tsv(groupings_file, col_names = TRUE)
+  # Read groupings table - suppress messages
+  groupings <- suppressMessages(read_tsv(groupings_file, col_names = TRUE))
   groupings <- as.data.frame(groupings)
   row.names(groupings) <- groupings[,1]
   
@@ -101,8 +110,8 @@ run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
 # Define the function to visualize edgeR results
 visualize_edgeR <- function(input_file, output_dir, persistent_temp_dir) {
-  # Read edgeR results
-  edgeR_results <- read_tsv(input_file)
+  # Read edgeR results - suppress messages
+  edgeR_results <- suppressMessages(read_tsv(input_file))
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   edgeR_results <- edgeR_results %>%
@@ -134,7 +143,7 @@ visualize_edgeR <- function(input_file, output_dir, persistent_temp_dir) {
     labs(title = "Scatter plot of logCPM vs. logFC", x = "logCPM", y = "logFC")
   
   ggsave(file.path(output_dir, "edgeR_plot2.png"), plot = p2)
-
+  
   # Visualization 3: Histogram of p-value distribution
   p3 <- ggplot(edgeR_results, aes(x = PValue)) +
     geom_histogram(binwidth = 0.1) +
@@ -142,6 +151,8 @@ visualize_edgeR <- function(input_file, output_dir, persistent_temp_dir) {
     labs(title = "Histogram of p-value distribution", x = "pvalue", y = "Frequency")
 
   ggsave(file.path(output_dir, "edgeR_plot3.png"), plot = p3)
+
+  print('finished edgeR visualization')
   
   list(
     plot1 = file.path(output_dir, "edger_plot1.png"),

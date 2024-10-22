@@ -1,13 +1,23 @@
-library(DESeq2)
-library(readr)
-
+options(
+  warn = -1,            
+  message = FALSE,      
+  verbose = FALSE,      
+  dplyr.summarise.inform = FALSE,  
+  readr.show_progress = FALSE      
+)
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library(readr)
+})
 run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   set.seed(seed)
   print('======seed==========')
   print(seed)
 
   # Read ASV table
-  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
+  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, 
+                        skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0),
+                        show_col_types = FALSE)
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
@@ -15,7 +25,7 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   print(dim(ASV_table))
 
   # Read groupings table
-  groupings <- read_tsv(groupings_file, col_names = TRUE)
+  groupings <- read_tsv(groupings_file, col_names = TRUE, show_col_types = FALSE)
   groupings <- as.data.frame(groupings)
   row.names(groupings) <- groupings[,1]
   groupings <- groupings[,-1, drop=FALSE]
@@ -42,7 +52,7 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   dds <- DESeq2::DESeqDataSetFromMatrix(countData = ASV_table,
                                         colData = groupings,
                                         design = ~ comparison)
-  dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
+  dds_res <- DESeq2::DESeq(dds, sfType = "poscounts", quiet = TRUE)
 
   res <- DESeq2::results(dds_res, tidy = TRUE, format = "DataFrame")
 
@@ -65,7 +75,7 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
 visualize_deseq2 <- function(input_file, output_dir, persistent_temp_dir) {
   # Read DESeq2 results
-  deseq2_results <- read_tsv(input_file)
+  deseq2_results <- read_tsv(input_file, show_col_types = FALSE)
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
@@ -103,6 +113,8 @@ visualize_deseq2 <- function(input_file, output_dir, persistent_temp_dir) {
     labs(title = "Histogram of p-value distribution", x = "p-value", y = "Frequency")
   
   ggsave(file.path(output_dir, "deseq2_plot3.png"), plot = p3)
+
+  print('finished deseq2 visualization')
   
   list(
     plot1 = file.path(output_dir, "deseq2_plot1.png"),
