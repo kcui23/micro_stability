@@ -63,13 +63,19 @@ run_deseq2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   )
 }
 
-visualize_deseq2 <- function(input_file, output_dir) {
+visualize_deseq2 <- function(input_file, output_dir, persistent_temp_dir) {
   # Read DESeq2 results
   deseq2_results <- read_tsv(input_file)
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
   deseq2_results$point_size <- ifelse(deseq2_results$pvalue < 0.05, 2, 1)
+  
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- deseq2_results %>%
+    dplyr::select(asv_name, log2FoldChange, pvalue) %>%
+    mutate(method = "DESeq2")
+  write_tsv(volcano_plot_data, file.path(persistent_temp_dir, "deseq2_volcano_plot_data.tsv"))
   
   p1 <- ggplot(deseq2_results, aes(x = log2FoldChange, y = log10pvalue)) +
     geom_point(aes(color = pvalue < 0.05, size=point_size)) +

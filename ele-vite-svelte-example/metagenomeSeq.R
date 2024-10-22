@@ -65,13 +65,19 @@ run_metagenomeseq <- function(ASV_file, groupings_file, output_file, seed = 1234
 
 
 
-visualize_metagenomeseq <- function(input_file, output_dir) {
+visualize_metagenomeseq <- function(input_file, output_dir, persistent_temp_dir) {
   # Read metagenomeSeq results
   metagenomeSeq_results <- read_tsv(input_file)
   
   # Visualization 1: Volcano plot of logFC vs. -log10(pvalue)
   metagenomeSeq_results$log10pvalue <- -log10(metagenomeSeq_results$pvalues)
   metagenomeSeq_results$point_size <- ifelse(metagenomeSeq_results$pvalues < 0.05, 2, 1)
+
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- metagenomeSeq_results %>%
+    dplyr::select(asv_name, logFC, pvalues) %>%
+    mutate(method = "metagenomeSeq", log2FoldChange = logFC, pvalue = pvalues)
+  write_tsv(volcano_plot_data, file.path(persistent_temp_dir, "metagenomeseq_volcano_plot_data.tsv"))
   
   p1 <- ggplot(metagenomeSeq_results, aes(x = logFC, y = log10pvalue)) +
     geom_point(aes(color = pvalues < 0.05, size = point_size)) +
@@ -83,7 +89,7 @@ visualize_metagenomeseq <- function(input_file, output_dir) {
   ggsave(file.path(output_dir, "metagenomeseq_plot1.png"), plot = p1)
   
   # Visualization 2: MA plot of baseMean vs. log2 Fold Change
-  metagenomeSeq_results$baseMean <- rowMeans(as.matrix(metagenomeSeq_results[, -c(1:4)]))  # Assuming baseMean is not directly in the file
+  metagenomeSeq_results$baseMean <- rowMeans(as.matrix(metagenomeSeq_results[, -c(1:4)]))
   
   p2 <- ggplot(metagenomeSeq_results, aes(x = baseMean, y = logFC)) +
     geom_point(aes(color = pvalues < 0.05), alpha = 0.5) +

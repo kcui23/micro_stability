@@ -73,7 +73,7 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
   )
 }
 
-visualize_maaslin2 <- function(results_file, output_dir) {
+visualize_maaslin2 <- function(results_file, output_dir, persistent_temp_dir) {
   # Read Maaslin2 results
   maaslin2_results <- read_tsv(results_file)
   
@@ -81,6 +81,12 @@ visualize_maaslin2 <- function(results_file, output_dir) {
   maaslin2_results <- maaslin2_results %>%
     mutate(neg_log10_pvalue = -log10(pval),
            point_size = ifelse(qval < 0.05, 3, 1))
+
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- maaslin2_results %>%
+    dplyr::select(asv_name, coef, pval) %>%
+    mutate(method = "Maaslin2", log2FoldChange = coef, pvalue = pval)
+  write_tsv(volcano_plot_data, file.path(persistent_temp_dir, "maaslin2_volcano_plot_data.tsv"))
   
   p1 <- ggplot(maaslin2_results, aes(x = coef, y = neg_log10_pvalue)) +
     geom_point(aes(color = qval < 0.05, size=point_size)) +

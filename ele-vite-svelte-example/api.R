@@ -15,9 +15,10 @@ library(edgeR)
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
 # Directory to store uploaded files
 uploaded_files_dir <- file.path(persistent_temp_dir, "uploaded_files")
-code_dir <- file.path(persistent_temp_dir, "code")
 dir.create(uploaded_files_dir, showWarnings = FALSE, recursive = TRUE)
+code_dir <- file.path(persistent_temp_dir, "code")
 dir.create(code_dir, showWarnings = FALSE, recursive = TRUE)
+
 
 asv_file_path <- file.path(uploaded_files_dir, "asv_data.tsv")
 groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
@@ -126,14 +127,16 @@ function() {
 #* Get overlap combined results
 #* @get /get_overlap_combined_results
 #* @serializer contentType list(type="text/tab-separated-values")
-function(req, res) {
-  file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
-  
+function(req, res, specific_interact, selectedMethod) {
+  if (specific_interact) {
+    file_path <- safe_file_path(persistent_temp_dir, paste0(selectedMethod, "_volcano_plot_data.tsv"))
+  } else {
+    file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
+  }
   if (!file.exists(file_path)) {
     res$status <- 404
     return(list(error = "Overlap combined results file not found"))
   }
-
   file_content <- readLines(file_path)
   
   res$body <- paste(file_content, collapse = "\n")
@@ -157,23 +160,23 @@ function(req, method) {
   if (tolower(method) == "deseq2") {
     source(safe_file_path("DESeq2.R"))
     result <- run_deseq2(asv_file_path, groupings_file_path, output_file, seed)
-    plots <- visualize_deseq2(output_file, output_dir)
+    plots <- visualize_deseq2(output_file, output_dir, persistent_temp_dir)
   } else if (tolower(method) == "aldex2") {
     source(safe_file_path("Aldex2.R"))
     result <- run_aldex2(asv_file_path, groupings_file_path, output_file, seed)
-    plots <- visualize_aldex2(output_file, output_dir)
+    plots <- visualize_aldex2(output_file, output_dir, persistent_temp_dir)
   } else if (tolower(method) == "edger") {
     source(safe_file_path("edgeR.R"))
     result <- run_edgeR(asv_file_path, groupings_file_path, output_file, seed)
-    plots <- visualize_edgeR(output_file, output_dir)
+    plots <- visualize_edgeR(output_file, output_dir, persistent_temp_dir)
   } else if (tolower(method) == "maaslin2") {
     source(safe_file_path("Maaslin2.R"))
     result <- run_maaslin2(asv_file_path, groupings_file_path, output_file, output_dir, seed)
-    plots <- visualize_maaslin2(output_file, output_dir)
+    plots <- visualize_maaslin2(output_file, output_dir, persistent_temp_dir)
   } else if (tolower(method) == "metagenomeseq") {
     source(safe_file_path("metagenomeSeq.R"))
     result <- run_metagenomeseq(asv_file_path, groupings_file_path, output_file, seed)
-    plots <- visualize_metagenomeseq(output_file, output_dir)
+    plots <- visualize_metagenomeseq(output_file, output_dir, persistent_temp_dir)
   } else {
     stop("Invalid method selected. Please choose 'deseq2', 'aldex2', 'edger', 'maaslin2', or 'metagenomeseq'.")
   }
@@ -211,14 +214,14 @@ function(req) {
     data %>%
       mutate(prevalence = rowSums(select(., -1) > 0) / total_samples) %>%
       filter(prevalence >= threshold) %>%
-      select(-prevalence)
+      dplyr::select(-prevalence)
   }
 
   variance_filter <- function(data, threshold) {
     data %>%
       mutate(variance = apply(select(., -1), 1, var)) %>%
       filter(variance > threshold) %>%
-      select(-variance)
+      dplyr::select(-variance)
   }
 
   # Use switch to call the appropriate function
@@ -279,7 +282,7 @@ function(req) {
     tmp_data[is.na(tmp_data)] <- 0
     tmp_data <- tmp_data %>% 
       mutate(asv = data$asv) %>%
-      select(asv, everything())
+      dplyr::select(asv, everything())
     
     return(tmp_data)
   }
@@ -345,7 +348,7 @@ function(req) {
     normalized_counts <- MRcounts(MR_obj_normalized, norm = TRUE)
     normalized_counts <- as.data.frame(normalized_counts) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     return(normalized_counts)
   }
   
@@ -356,7 +359,7 @@ function(req) {
     tmm_normalized_counts <- cpm(dge, normalized.lib.sizes = TRUE)
     tmm_normalized_counts <- as.data.frame(tmm_normalized_counts) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     return(tmm_normalized_counts)
   }
   
@@ -371,7 +374,7 @@ function(req) {
     }))
     clr_manual <- as.data.frame(clr_manual) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     return(clr_manual)
   }
 
@@ -457,23 +460,23 @@ function(req) {
   tryCatch({
     source(safe_file_path("DESeq2.R"))
     deseq2_result <- run_deseq2(temp_asv_file, groupings_file_path, deseq2_output_file, seed)
-    deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir)
+    deseq2_plots <- visualize_deseq2(deseq2_output_file, output_dir, persistent_temp_dir)
     
     source(safe_file_path("Aldex2.R"))
     aldex2_result <- run_aldex2(temp_asv_file, groupings_file_path, aldex2_output_file, seed)
-    aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir)
+    aldex2_plots <- visualize_aldex2(aldex2_output_file, output_dir, persistent_temp_dir)
 
     source(safe_file_path("edgeR.R"))
     edgeR_result <- run_edgeR(temp_asv_file, groupings_file_path, edgeR_output_file, seed)
-    edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir)
+    edgeR_plots <- visualize_edgeR(edgeR_output_file, output_dir, persistent_temp_dir)
 
     source(safe_file_path("Maaslin2.R"))
     maaslin2_result <- run_maaslin2(temp_asv_file, groupings_file_path, maaslin2_output_file, output_dir, seed)
-    maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir)
+    maaslin2_plots <- visualize_maaslin2(maaslin2_output_file, output_dir, persistent_temp_dir)
 
     source(safe_file_path("metagenomeSeq.R"))
     metagenomeseq_result <- run_metagenomeseq(temp_asv_file, groupings_file_path, metagenomeseq_output_file, seed)
-    metagenomeseq_plots <- visualize_metagenomeseq(metagenomeseq_output_file, output_dir)
+    metagenomeseq_plots <- visualize_metagenomeseq(metagenomeseq_output_file, output_dir, persistent_temp_dir)
 
     source(safe_file_path("overlap_plots.R"))
     overlap_plots <- create_overlap_plots(deseq2_output_file, aldex2_output_file, edgeR_output_file, maaslin2_output_file, metagenomeseq_output_file, output_dir, persistent_temp_dir)
@@ -758,7 +761,7 @@ function(req, iterations = 10, ws_id) {
   asv_data <- read_tsv(temp_asv_file)
   groupings_data <- read_tsv(temp_groupings_file)
 
-  methods <- c("deseq2", "aldex2", "edger", "maaslin2")
+  methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq")
   results <- list()
 
   for (i in 1:iterations) {
@@ -831,6 +834,8 @@ get_significant_asvs <- function(result, method) {
     return(result$asv_name[result$FDR < 0.05])
   } else if (method == "maaslin2") {
     return(result$asv_name[result$qval < 0.05])
+  } else if (method == "metagenomeseq") {
+    return(result$asv_name[result$pvalues < 0.05])
   }
 }
 
@@ -910,7 +915,7 @@ generate_stability_plot <- function(processed_results) {
 #* @serializer contentType list(type="image/png")
 function(req, res, method, plot) {
   tryCatch({
-    valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2", "overlap")
+    valid_methods <- c("deseq2", "aldex2", "edger", "maaslin2", "metagenomeseq", "overlap")
     if (!(tolower(method) %in% valid_methods)) {
       res$status <- 400
       return(list(error = "Invalid method specified"))

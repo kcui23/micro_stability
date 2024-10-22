@@ -100,7 +100,7 @@ run_edgeR <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 }
 
 # Define the function to visualize edgeR results
-visualize_edgeR <- function(input_file, output_dir) {
+visualize_edgeR <- function(input_file, output_dir, persistent_temp_dir) {
   # Read edgeR results
   edgeR_results <- read_tsv(input_file)
   
@@ -108,6 +108,12 @@ visualize_edgeR <- function(input_file, output_dir) {
   edgeR_results <- edgeR_results %>%
     mutate(neg_log10_pvalue = -log10(PValue),
            point_size = ifelse(FDR < 0.05, 3, 1))
+  
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- edgeR_results %>%
+    dplyr::select(asv_name, logFC, PValue) %>%
+    mutate(method = "edgeR", log2FoldChange = logFC, pvalue = PValue)
+  write_tsv(volcano_plot_data, file.path(persistent_temp_dir, "edger_volcano_plot_data.tsv"))
   
   p1 <- ggplot(edgeR_results, aes(x = logFC, y = neg_log10_pvalue)) +
     geom_point(aes(color = FDR < 0.05, size=point_size)) +  # Coloring significant points

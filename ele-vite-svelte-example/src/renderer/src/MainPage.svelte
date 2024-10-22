@@ -19,6 +19,7 @@
   import ControlPanel from './components/ControlPanel.svelte';
 
   let startMethod = 'deseq2';
+  let specific_interact = false;
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let abundance_threshold = 5;
@@ -112,6 +113,7 @@
     aldex2_plot1: '', aldex2_plot2: '', aldex2_plot3: '',
     edger_plot1: '', edger_plot2: '', edger_plot3: '',
     maaslin2_plot1: '', maaslin2_plot2: '', maaslin2_plot3: '',
+    metagenomeseq_plot1: '', metagenomeseq_plot2: '', metagenomeseq_plot3: '',
     overlap_volcano: '', overlap_pvalue_distribution: ''
   };
   let methodFileStatus = {
@@ -233,12 +235,14 @@
   const handleQuickExplore = async () => {
     showAllPlots = true;
     isCalculating = true;
+    specific_interact = false;
     await processQuickExplore();
   };
 
   const handleSubmit = async () => {
     isCalculating = true;
     isSubmitted = true;
+    specific_interact = true;
     showAllPlots = false;
     showDetailedPlots = false;
     await processSubmit();
@@ -393,7 +397,8 @@
       deseq2: [false],
       aldex2: [false],
       edger: [false],
-      maaslin2: [false]
+      maaslin2: [false],
+      metagenomeseq: [false]
     };
     dataChanged = true;
   };
@@ -1577,6 +1582,7 @@
       {isSubmitted}
       {downloadImage}
       {zoomedImage}
+      {specific_interact}
     />
 
   </div>

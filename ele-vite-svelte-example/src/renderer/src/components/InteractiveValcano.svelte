@@ -3,12 +3,13 @@
   import Plotly from 'plotly.js-dist-min';
   import { selectedPoints } from '../store.js';
 
-
+  export let specific_interact
+  export let selectedMethod
   let plotDiv;
 
   onMount(async () => {
     try {
-      const response = await fetch('http://localhost:8000/get_overlap_combined_results');
+      const response = await fetch(`http://localhost:8000/get_overlap_combined_results?specific_interact=${specific_interact}&selectedMethod=${selectedMethod}`);
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }

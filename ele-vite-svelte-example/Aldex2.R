@@ -86,7 +86,7 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   )
 }
 
-visualize_aldex2 <- function(input_file, output_dir) {
+visualize_aldex2 <- function(input_file, output_dir, persistent_temp_dir) {
   # Read ALDEx2 results
   aldex2_results <- read_tsv(input_file)
   
@@ -94,6 +94,12 @@ visualize_aldex2 <- function(input_file, output_dir) {
   alog <- aldex2_results %>%
     mutate(neg_log10_pvalue = -log10(we.eBH),
            point_size = ifelse(we.eBH < 0.05, 3, 1))
+
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- alog %>%
+    dplyr::select(asv_name, effect, we.eBH) %>%
+    mutate(method = "ALDEx2", log2FoldChange = effect, pvalue = we.eBH)
+  write_tsv(volcano_plot_data, file.path(persistent_temp_dir, "aldex2_volcano_plot_data.tsv"))
   
   p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
     geom_point(aes(color = we.eBH < 0.05, size=point_size)) +  # Coloring significant points

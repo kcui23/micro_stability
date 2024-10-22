@@ -13,6 +13,7 @@
   export let selectedMethod
   export let isSubmitted
   export let zoomedImage
+  export let specific_interact
 
   const saveImage = (imageData, name) => {
     const canvas = document.createElement('canvas');
@@ -105,7 +106,10 @@
               on:click={() => zoomImage('overlap_pvalue_distribution')}
             />
           {:else}
-            <InteractiveValcano />
+            <InteractiveValcano 
+              {specific_interact}
+              {selectedMethod}
+            />
           {/if}
         </div>
       </div>
@@ -131,26 +135,20 @@
         </div>
       {/if}
 
-      {#if showDetailedPlots}
+      {#if showDetailedPlots && isStatic}
         {#each ['deseq2', 'aldex2', 'edger', 'maaslin2', 'metagenomeseq'] as method}
           <div class="card">
             <div class="card-header">
               <h3>{method.toUpperCase()} Plots</h3>
             </div>
             <div class="card-content">
-              {#if isStatic}
-                {#each [1, 2] as plotNumber}
-                  <img
+              {#each [1, 2] as plotNumber}
+                <img
                     src={visualizations[`${method}_plot${plotNumber}`]}
                     alt={`${method.toUpperCase()} Plot ${plotNumber}`}
                     on:click={() => zoomImage(`${method}_plot${plotNumber}`)}
-                  />
-                {/each}
-              {:else}
-                <div class="interactive-placeholder">
-                  Interactive {method.toUpperCase()} Plots coming soon...
-                </div>
-              {/if}
+                />
+              {/each}
             </div>
           </div>
         {/each}
@@ -158,8 +156,8 @@
     </div>
 
     <button
-      class="expand-collapse-button"
       on:click={() => showDetailedPlots = !showDetailedPlots}
+      disabled={!isStatic}
     >
       {showDetailedPlots ? 'Collapse Details' : 'Show More Details'}
     </button>
@@ -178,9 +176,10 @@
             />
           {/each}
         {:else}
-          <div class="interactive-placeholder">
-            Interactive {selectedMethod.toUpperCase()} Plots coming soon...
-          </div>
+          <InteractiveValcano 
+            {specific_interact}
+            {selectedMethod}
+          />
         {/if}
       </div>
     </div>
@@ -317,31 +316,10 @@
     padding: 0.2rem 0.5rem;
   }
 
-  .expand-collapse-button {
+  button {
     display: block;
     margin: 1rem auto;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .expand-collapse-button:hover {
-    background-color: #0056b3;
-  }
-
-  .interactive-placeholder {
-    width: 100%;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f0f0;
-    border-radius: 4px;
-    font-style: italic;
-    color: #666;
+    width: 125px;
   }
 
   .zoomed-image-container {
