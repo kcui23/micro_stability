@@ -1,20 +1,28 @@
-library(ALDEx2)
-library(tidyr)
-library(dplyr)
-library(readr)
-library(e1071)
+suppressPackageStartupMessages({
+  library(ALDEx2)
+  library(tidyr)
+  library(dplyr)
+  library(readr)
+  library(e1071)
+})
 
 run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
   set.seed(seed)
+  print('======seed==========')
+  print(seed)
 
   # Read ASV table
-  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
+  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, 
+                        skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0),
+                        show_col_types = FALSE)
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
+  print('======dim in aldex2==========')
+  print(dim(ASV_table))
 
   # Read groupings table
-  groupings <- read_tsv(groupings_file, col_names = TRUE)
+  groupings <- read_tsv(groupings_file, col_names = TRUE, show_col_types = FALSE)
   groupings <- as.data.frame(groupings)
   row.names(groupings) <- groupings[,1]
 
@@ -88,7 +96,7 @@ run_aldex2 <- function(ASV_file, groupings_file, output_file, seed = 1234) {
 
 visualize_aldex2 <- function(input_file, output_dir, persistent_temp_dir) {
   # Read ALDEx2 results
-  aldex2_results <- read_tsv(input_file)
+  aldex2_results <- read_tsv(input_file, show_col_types = FALSE)
   
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
   alog <- aldex2_results %>%
@@ -131,6 +139,8 @@ visualize_aldex2 <- function(input_file, output_dir, persistent_temp_dir) {
     labs(title = "Histogram of p-value distribution", x = "pvalue", y = "Frequency")
 
   ggsave(file.path(output_dir, "aldex2_plot3.png"), plot = p3)
+
+  print('finished aldex2 visualization')
   
   list(
     plot1 = file.path(output_dir, "aldex2_plot1.png"),

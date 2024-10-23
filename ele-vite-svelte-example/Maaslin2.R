@@ -1,20 +1,28 @@
-library(Maaslin2)
-library(tidyr)
-library(dplyr)
-library(readr)
-library(ggplot2)
+suppressPackageStartupMessages({
+  library(Maaslin2)
+  library(tidyr)
+  library(dplyr)
+  library(readr)
+  library(ggplot2)
+})
 
 run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed = 1234) {
   set.seed(seed)
+  print('======seed==========')
+  print(seed)
 
   # Read ASV table
-  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0))
+  ASV_table <- read_tsv(ASV_file, comment = "", col_names = TRUE, 
+                        skip = ifelse(grepl("Constructed from biom file", readLines(ASV_file, n=1)), 1, 0),
+                        show_col_types = FALSE)
   ASV_table <- as.data.frame(ASV_table)
   row.names(ASV_table) <- ASV_table[,1]
   ASV_table <- ASV_table[,-1]
+  print('======dim in maaslin2==========')
+  print(dim(ASV_table))
 
   # Read groupings table
-  groupings <- read_tsv(groupings_file, col_names = TRUE)
+  groupings <- read_tsv(groupings_file, col_names = TRUE, show_col_types = FALSE)
   groupings <- as.data.frame(groupings)
   row.names(groupings) <- groupings[,1]
 
@@ -40,6 +48,7 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
   ASV_table <- data.frame(t(ASV_table), check.rows = F, check.names = F, stringsAsFactors = F)
 
   # Run Maaslin2 analysis
+  sink(file.path(tempdir(), "maaslin2_output.txt"), append = TRUE)
   fit_data <- Maaslin2(
     ASV_table, 
     groupings, 
@@ -50,12 +59,13 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
     plot_heatmap = FALSE, 
     plot_scatter = FALSE
   )
+  sink()
 
   # copy the 'all_results.tsv' to output_file
   file.copy(file.path(output_dir, "all_results.tsv"), output_file, overwrite = TRUE)
   
   # Read the all_results.tsv file
-  all_results <- read_tsv(file.path(output_dir, "all_results.tsv"))
+  all_results <- read_tsv(file.path(output_dir, "all_results.tsv"), show_col_types = FALSE)
   
   # Rename the 'feature' column to 'asv_name'
   colnames(all_results)[colnames(all_results) == "feature"] <- "asv_name"
@@ -75,7 +85,7 @@ run_maaslin2 <- function(ASV_file, groupings_file, output_file, output_dir, seed
 
 visualize_maaslin2 <- function(results_file, output_dir, persistent_temp_dir) {
   # Read Maaslin2 results
-  maaslin2_results <- read_tsv(results_file)
+  maaslin2_results <- read_tsv(results_file, show_col_types = FALSE)
   
   # Visualization 1: Volcano plot of effect vs. -log10(pvalue)
   maaslin2_results <- maaslin2_results %>%
@@ -121,6 +131,8 @@ visualize_maaslin2 <- function(results_file, output_dir, persistent_temp_dir) {
     labs(title = "Histogram of p-value distribution", x = "pvalue", y = "Frequency")
 
   ggsave(file.path(output_dir, "maaslin2_plot3.png"), plot = p3)
+
+  print('finished maaslin2 visualization')
   
   list(
     plot1 = file.path(output_dir, "maaslin2_plot1.png"),
