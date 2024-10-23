@@ -24,7 +24,9 @@ filter_variance <- "data %>%
 filter_no <- ""
 
 zero_pseudocount <- "data %>% mutate(across(-1, ~. + param_value))"
-zero_knn <- "tmp_data <- data %>% select(-asv)
+zero_knn <- "library(edgeR)
+library(impute)
+tmp_data <- data %>% select(-asv)
     zero_percentages <- rowMeans(tmp_data == 0) * 100
     asvs_to_impute <- zero_percentages < param_value[2]
     
@@ -411,7 +413,7 @@ generate_all_r_code <- function(params, code_dir) {
     for (i in 1:length(paths_list)) {
         cstr <- paste(paths_list[[i]][-1], collapse = "_")
         code <- generate_r_code_for_each_combination(cstr, parameters)
-        writeLines(code, file.path(code_dir, paste0(cstr, "_", ids_list[i], ".R")))
+        writeLines(code, file.path(code_dir, paste0("Raw data_", cstr, "_", ids_list[i], ".R")))
     }
 }
 

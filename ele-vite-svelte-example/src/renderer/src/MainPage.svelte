@@ -65,10 +65,10 @@
       asvDimensions = previewData.asv_dimensions;
       groupingsPreview = previewData.groupings_preview;
       groupingsDimensions = previewData.groupings_dimensions;
-      console.log("asvPreview:", asvPreview);
-      console.log("asvDimensions:", asvDimensions);
-      console.log("groupingsPreview:", groupingsPreview);
-      console.log("groupingsDimensions:", groupingsDimensions);
+      // console.log("asvPreview:", asvPreview);
+      // console.log("asvDimensions:", asvDimensions);
+      // console.log("groupingsPreview:", groupingsPreview);
+      // console.log("groupingsDimensions:", groupingsDimensions);
     } catch (err) {
       console.error('Error fetching preview data:', err);
     }
@@ -94,14 +94,17 @@
         data_points_updated_counter += 1;
         console.log("Data points updated counter in calculateStabilityMetric:", data_points_updated_counter);
         const result = await response.json();
+        return result.message; // Return the success message from the API
       } else {
         const errorMessage = await response.json();
         console.error('Failed to calculate stability metric:', errorMessage.error);
+        throw new Error(errorMessage.error);
       }
     } catch (error) {
       console.error('Error calculating stability metric:', error);
+      throw error;
     }
-  }
+  };
 
   let asvFiles = [];
   let groupingsFile = null;

@@ -11,6 +11,7 @@ suppressPackageStartupMessages({
   library(impute)
   library(metagenomeSeq)
   library(edgeR)
+  library(uwot)
 })
 
 # Create a persistent temp directory to save the output files
@@ -45,9 +46,42 @@ function(req, res) {
     tryCatch({
       generate_all_r_code(params, code_dir)
       message("Number of files in code_dir: ", length(list.files(code_dir)))
+      # zip the code_dir
+      zip_file <- file.path(persistent_temp_dir, "code.zip")
+      files_to_zip <- list.files(code_dir, full.names = TRUE)
+      zip(zip_file, files_to_zip)
+      message("Code directory zipped to: ", zip_file)
+      local_path <- file.path("~/Downloads", basename(zip_file))
+      file.copy(zip_file, local_path)
+      message(paste("Downloaded file to:", local_path))
     }, error = function(e) {
       print(paste("Error generating R code:", e$message))
     })
+
+    # generate the path data
+    leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+    tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
+    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
+    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
+
+    path_df <- data.frame(
+      leaf_id = character(),
+      path = I(list()),
+      stringsAsFactors = FALSE
+    )
+
+    for (leaf in names(leaf_data)) {
+      tmp_path <- find_path_from_id(leaf, tree_data)
+      path_df <- rbind(path_df, data.frame(
+        leaf_id = leaf,
+        path = I(list(tmp_path)),
+        stringsAsFactors = FALSE
+      ))
+    }
+
+    message("path data.frame saved.")
+    saveRDS(path_df, file.path(persistent_temp_dir, "path_df.rds"))
+
     
     res$status <- 200
     return(list(message = "All R code files generated successfully", directory = code_dir))
@@ -828,17 +862,29 @@ function(req, iterations = 10, ws_id) {
 
 # Helper function to get significant ASVs based on method
 get_significant_asvs <- function(result, method) {
-  if (method == "deseq2") {
-    return(result$asv_name[result$padj < 0.05])
-  } else if (method == "aldex2") {
-    return(result$asv_name[result$we.eBH < 0.05])
-  } else if (method == "edger") {
-    return(result$asv_name[result$FDR < 0.05])
-  } else if (method == "maaslin2") {
-    return(result$asv_name[result$qval < 0.05])
-  } else if (method == "metagenomeseq") {
-    return(result$asv_name[result$pvalues < 0.05])
+  if (!("asv_name" %in% colnames(result))) {
+    warning("No asv_name column found in results")
+    return(character(0))
   }
+
+  significant <- character(0)
+  
+  if (method == "deseq2" && "padj" %in% colnames(result)) {
+    significant <- result$asv_name[!is.na(result$padj) & result$padj < 0.05]
+  } else if (method == "aldex2" && "we.eBH" %in% colnames(result)) {
+    significant <- result$asv_name[!is.na(result$we.eBH) & result$we.eBH < 0.05]
+  } else if (method == "edger" && "FDR" %in% colnames(result)) {
+    significant <- result$asv_name[!is.na(result$FDR) & result$FDR < 0.05]
+  } else if (method == "maaslin2" && "qval" %in% colnames(result)) {
+    significant <- result$asv_name[!is.na(result$qval) & result$qval < 0.05]
+  } else if (method == "metagenomeseq" && "pvalues" %in% colnames(result)) {
+    significant <- result$asv_name[!is.na(result$pvalues) & result$pvalues < 0.05]
+  } else {
+    warning(paste("Required p-value column not found for method:", method))
+    return(character(0))
+  }
+  
+  return(unique(significant[!is.na(significant)]))
 }
 
 # Helper function to process shuffled results
@@ -1026,10 +1072,14 @@ function(req, res) {
     destroy <- body$destroy
     print("=====destroy=====")
     print(destroy)
+
+    message("Starting stability metric calculation...")
+
     leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
     tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
     leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE) # simplifyVector = TRUE -> data.frame
     tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE) # simplifyVector = FALSE -> list like [[1]] $key [1] value [[2]]...
+    message("After reading JSON files...")
     if (destroy) {
       print("=====destroy is true=====")
       for (leaf in names(leaf_data)) {
@@ -1039,31 +1089,103 @@ function(req, res) {
       res$status <- 200
       return(list(message = "Bye."))
     }
-    asv <- body$asv
-    groupings <- body$groupings
     method <- body$method
     missing_methods <- body$missing_methods
 
-    # for testing
-    # for (leaf in names(leaf_data)) {
-    #   tmp_path <- find_path_from_id(leaf, tree_data)
-    #   if (tmp_path[6] %in% missing_methods) {
-    #     leaf_data[[leaf]]$data_point <- c(0, 0)
-    #   }
-    # }
+    message("Reading path_df.rds...")
+    path_df <- readRDS(file.path(persistent_temp_dir, "path_df.rds"))
+    all_asvs <- read_tsv(asv_file_path, show_col_types = FALSE)$asv
 
-    stability_metric <- list()
-    # for (leaf in names(leaf_data)) {
-    #   path <- find_path_from_id(leaf, tree_data)
-    #   if (path[6] == method) {
-    #     leaf_data <- calculate_stability_metric(asv, groupings, path, leaf, leaf_data, leaf_json_path, test = TRUE)
-    #   }
-    # }
+    message("Filtering paths...")
+    filtered_df <- path_df[sapply(path_df$path, function(x) x[6] == method), ]
+    connected_paths <- sapply(filtered_df$path, function(x) paste(x, collapse = "_"))
+    names(connected_paths) <- filtered_df$leaf_id # has length of all paths that have deseq2 in their path
+    print("length of connected_paths:")
+    print(length(connected_paths))
+
+    message("Checking if methods_sig_vectors.rds exists...")
+    if (file.exists(file.path(persistent_temp_dir, "methods_sig_vectors.rds"))) {
+      methods_sig_vectors <- read_rds(file.path(persistent_temp_dir, "methods_sig_vectors.rds"))
+    } else {
+      message("methods_sig_vectors.rds does not exist, creating new data frame...")
+      methods_sig_vectors <- data.frame(
+        leaf_id = character(),
+        is_significant = I(list()),
+        stringsAsFactors = FALSE
+      )
+    }
+
+    bad_paths <- c()
+
+    for (i in 1:length(connected_paths)) {
+      path <- connected_paths[[i]]
+      id <- names(connected_paths[i])
+      matching_files <- list.files(code_dir, pattern = paste0("^", gsub("_", "_", path)), full.names = TRUE)
+      
+      if (length(matching_files) == 1) {
+        r_path <- matching_files[1]
+        print("r_path:")
+        print(r_path)
+        # Download the R script file to user's Downloads directory
+        download_path <- file.path("~/Downloads/cal_codes", basename(r_path))
+        file.copy(r_path, download_path)
+      } else if (length(matching_files) > 1) {
+        message("length(matching_files) > 1")
+        r_path <- matching_files[1]
+      } else {
+        message("length(matching_files) == 0")
+        r_path <- NULL
+      }
+      tryCatch({
+        env <- new.env()
+        env$ASV_file_path <- asv_file_path
+        env$groupings_file_path <- groupings_file_path
+        source(r_path, local = env)
+        message("source(r_path) done")
+        sig_asvs <- get_significant_asvs(env$result_data, method)
+        is_significant <- as.numeric(all_asvs %in% sig_asvs) # convert to 0-1 vector, length = length(all_asvs)
+        methods_sig_vectors <- rbind(methods_sig_vectors, data.frame(
+          leaf_id = id,
+          is_significant = I(list(is_significant)),
+            stringsAsFactors = FALSE
+          ))
+      }, error = function(e) {
+        bad_paths <- c(bad_paths, id) # just in case
+        print(e$message)
+      })
+    }
+
+    saveRDS(methods_sig_vectors, file.path(persistent_temp_dir, "methods_sig_vectors.rds"))
+
+    sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
+    umap_result <- umap(sig_matrix,
+                      n_neighbors = 15,     # Due to large data size, use more neighbors
+                      min_dist = 0.1,
+                      metric = "hamming",
+                      n_components = 2,
+                      n_epochs = 500,       # Due to large data size, increase training epochs
+                      init = "spectral",    # For large datasets, use spectral initialization
+                      verbose = TRUE)       # Show progress
+
+    plot_data <- data.frame(
+      x = umap_result[,1],
+      y = umap_result[,2],
+      leaf_id = methods_sig_vectors$leaf_id
+    )
+
+    # Update leaf_data with UMAP coordinates for each leaf_id
+    for (i in 1:nrow(plot_data)) {
+      leaf_id <- plot_data$leaf_id[i]
+      leaf_data[[leaf_id]]$data_point <- c(
+        plot_data$x[i],
+        plot_data$y[i]
+      )
+    }
 
     write_json(leaf_data, leaf_json_path, pretty = TRUE, auto_unbox = TRUE)
 
     res$status <- 200
-    return(list(message = "Stability metric calculated successfully", stability_metric = stability_metric))
+    return(list(message = "Stability metric calculated successfully"))
   }, error = function(e) {
     res$status <- 500
     return(list(error = paste("Error calculating stability metric:", e$message)))
@@ -1094,55 +1216,4 @@ find_path_from_id <- function(id, tree = tree_data) {
         stop(paste("ID", id, "not found in the tree data."))
     }
     return(path)
-}
-
-calculate_stability_metric <- function(asv, groupings, path, leaf, json_data = NULL, json_file_path = NULL, test = FALSE) {
-  if (test) {
-    # Sys.sleep(0.002)
-    new_data_point <- generate_random_pair()
-    json_data[[leaf]]$data_point <- new_data_point
-    return(json_data)
-  }
-  else {
-    asv_df <- read_tsv(asv, show_col_types = FALSE)
-    groupings_df <- read_tsv(groupings, show_col_types = FALSE)
-    shuffled_groupings <- groupings_df %>%
-      mutate(!!names(groupings_df)[2] := sample(!!sym(names(groupings_df)[2])))
-
-    temp_asv_file <- tempfile(fileext = ".tsv")
-    temp_shuffled_groupings <- tempfile(fileext = ".tsv")
-    write_tsv(asv_df, temp_asv_file)
-    write_tsv(shuffled_groupings, temp_shuffled_groupings)
-
-    output_file <- tempfile(fileext = ".tsv")
-
-    if (method == "deseq2") {
-      source(safe_file_path("DESeq2.R"))
-      run_deseq2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-    } else if (method == "aldex2") {
-      source(safe_file_path("Aldex2.R"))
-      run_aldex2(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-    } else if (method == "edger") {
-      source(safe_file_path("edgeR.R"))
-      run_edgeR(temp_asv_file, temp_shuffled_groupings, output_file, seed = 1234)
-    } else if (method == "maaslin2") {
-      source(safe_file_path("Maaslin2.R"))
-      run_maaslin2(temp_asv_file, temp_shuffled_groupings, output_file, output_dir = tempfile(), seed = 1234)
-    } else if (method == "metagenomeseq") {
-      source(safe_file_path("metagenomeSeq.R"))
-      run_metagenomeseq(temp_asv_file, temp_shuffled_groupings, output_file, tempfile(), seed = 1234)
-    } else {
-      stop("Invalid method specified")
-    }
-
-    result <- read_tsv(output_file, show_col_types = FALSE)
-    significant_asvs <- get_significant_asvs(result, method)
-
-    stability_metric <- list(
-      significant_asvs = significant_asvs,
-      count = length(significant_asvs)
-    )
-
-    return(stability_metric)
-  }
 }
