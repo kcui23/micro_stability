@@ -71,6 +71,7 @@
 </script>
 
 <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
+  <hr>
   <div class="visualization-header">
     <h2>Visualizations</h2>
     <div class="view-toggle">
@@ -433,5 +434,11 @@
 
   [role="presentation"] {
     outline: none;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 10px 0;
   }
 </style>

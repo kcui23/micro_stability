@@ -17,6 +17,24 @@
 
   const dispatch = createEventDispatcher();
 
+  // Add operation name mapping
+  const operationDisplayNames = {
+    'Model Perturbation': {
+      'deseq2': 'DESeq2',
+      'edger': 'edgeR',
+      'maaslin2': 'MaAsLin2',
+      'aldex2': 'ALDEx2',
+      'metagenomeseq': 'metagenomeSeq'
+    }
+  };
+
+  function getDisplayName(step, operation) {
+    if (operationDisplayNames[step] && operationDisplayNames[step][operation]) {
+      return operationDisplayNames[step][operation];
+    }
+    return operation;
+  }
+
   async function downloadCodes() {
     try {
       const response = await fetch('http://localhost:8000/download_code', {
@@ -213,7 +231,7 @@
                     on:change={() => toggleOperation(step, operation)}
                     disabled={isOptionDisabled(step, operation)}
                   />
-                  {operation}
+                  {getDisplayName(step, operation)}
                 </label>
               {/each}
               {#if $subOperations[step].length > $singleSelectOperations[step].length}
@@ -231,7 +249,7 @@
                     on:change={() => toggleOperation(step, operation)}
                     disabled={isOptionDisabled(step, operation)}
                   />
-                  {operation}
+                  {getDisplayName(step, operation)}
                 </label>
               {/if}
             {/each}

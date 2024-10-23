@@ -1128,6 +1128,15 @@
   margin-right: auto;
 }
 
+div[key='model-perturbation'] p {
+  margin: 5px;
+  font-size: 1.1rem;
+}
+
+div[key='model-perturbation'] button {
+  margin-left: 5px;
+}
+
 </style>
 
 <div id="app" class="container">
@@ -1407,19 +1416,19 @@
       <div key='model-perturbation' in:fade class="step-content" class:active={currentStep === 'Model Perturbation'}>
         <h2>Model Perturbation</h2>
         {#if $selectedOperations['Model Perturbation']?.includes('deseq2')}
-          <p>deseq2</p>
+          <p>DESeq2</p>
         {/if}
         {#if $selectedOperations['Model Perturbation']?.includes('edger')}
-          <p>edger</p>
+          <p>edgeR</p>
         {/if}
         {#if $selectedOperations['Model Perturbation']?.includes('maaslin2')}
-          <p>maaslin2</p>
+          <p>MaAsLin2</p>
         {/if}
         {#if $selectedOperations['Model Perturbation']?.includes('aldex2')}
-          <p>aldex2</p>
+          <p>ALDEx2</p>
         {/if}
         {#if $selectedOperations['Model Perturbation']?.includes('metagenomeseq')}
-          <p>metagenomeseq</p>
+          <p>metagenomeSeq</p>
         {/if}
 
         <!-- Method Selection UI -->
@@ -1434,7 +1443,7 @@
 
         {#if $selectedOperations['Model Perturbation'].length > 0 && asvFiles.length > 0 && groupingsFile && selectedMethod}
           <button on:click={handleSubmit}>Submit</button>
-          <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted || !isCalculating}>Download</button>
+          <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted || isCalculating}>Download</button>
         {/if}
 
       </div>
