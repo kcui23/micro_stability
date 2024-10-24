@@ -119,7 +119,7 @@
       .attr('fill', 'black')
       .attr('text-anchor', 'middle')
       .attr('font-size', '12px')
-      .text('Stability Metric 1');
+      .text('UMAP Dimension 1');
 
     svgElement.append('text')
       .attr('class', 'y-axis-label')
@@ -129,7 +129,7 @@
       .attr('fill', 'black')
       .attr('text-anchor', 'middle')
       .attr('font-size', '12px')
-      .text('Stability Metric 2');
+      .text('UMAP Dimension 2');
   }
 
   function updateScatterPlot() {

@@ -30,7 +30,11 @@ groupings_file_path <- file.path(uploaded_files_dir, "groupings_data.tsv")
 #* @post /generate_all_r_code
 #* @serializer json
 function(req, res) {
-  message("&&&&&&& Generating all R code files &&&&&&&")
+  message(("Generating all R code files"))
+  # check if methods_sig_vectors.rds already exists, if so, delete it
+  if (file.exists(file.path(persistent_temp_dir, "methods_sig_vectors.rds"))) {
+    file.remove(file.path(persistent_temp_dir, "methods_sig_vectors.rds"))
+  }
   tryCatch({
     source(safe_file_path("generate_r_code.R"))
     
@@ -45,14 +49,15 @@ function(req, res) {
     )
     tryCatch({
       generate_all_r_code(params, code_dir)
-      message("Number of files in code_dir: ", length(list.files(code_dir)))
-      # zip the code_dir
+      message("Number of files in code_dir: ", crayon::green$bold(length(list.files(code_dir))))
+      # zip the code_dir with quiet flag
       zip_file <- file.path(persistent_temp_dir, "code.zip")
       files_to_zip <- list.files(code_dir, full.names = TRUE)
-      zip(zip_file, files_to_zip)
+      utils::zip(zip_file, files_to_zip, flags="-q")
+      
       message("Code directory zipped to: ", zip_file)
       local_path <- file.path("~/Downloads", basename(zip_file))
-      file.copy(zip_file, local_path)
+      file.copy(zip_file, local_path, overwrite = TRUE)
       message(paste("Downloaded file to:", local_path))
     }, error = function(e) {
       print(paste("Error generating R code:", e$message))
@@ -1116,6 +1121,7 @@ function(req, res) {
     }
 
     bad_paths <- c()
+    current_method_count <- 0
 
     for (i in 1:length(connected_paths)) {
       path <- connected_paths[[i]]
@@ -1128,7 +1134,7 @@ function(req, res) {
         print(r_path)
         # Download the R script file to user's Downloads directory
         download_path <- file.path("~/Downloads/cal_codes", basename(r_path))
-        file.copy(r_path, download_path)
+        file.copy(r_path, download_path, overwrite = TRUE)
       } else if (length(matching_files) > 1) {
         message("length(matching_files) > 1")
         r_path <- matching_files[1]
@@ -1140,8 +1146,18 @@ function(req, res) {
         env <- new.env()
         env$ASV_file_path <- asv_file_path
         env$groupings_file_path <- groupings_file_path
-        source(r_path, local = env)
+        suppressWarnings(suppressMessages(source(r_path, local = env)))
         message("source(r_path) done")
+
+        # save the result data
+        tmp_file_name <- basename(r_path) # e.g. "Raw data_Low Abundance Filtering_No Zero-Handling_No Normalization_No Transformation_aldex2_FDR_leaf-528.R"
+        tmp_file_name <- substr(tmp_file_name, 1, nchar(tmp_file_name) - 2) # remove .R
+        tmp_file_name <- paste0(tmp_file_name, ".rds")
+        saveRDS(env$result_data, file.path(persistent_temp_dir, tmp_file_name))
+        file.copy(file.path(persistent_temp_dir, tmp_file_name),
+                  file.path("~/Downloads/cal_codes", tmp_file_name),
+                  overwrite = TRUE)
+
         sig_asvs <- get_significant_asvs(env$result_data, method)
         is_significant <- as.numeric(all_asvs %in% sig_asvs) # convert to 0-1 vector, length = length(all_asvs)
         methods_sig_vectors <- rbind(methods_sig_vectors, data.frame(
@@ -1149,6 +1165,11 @@ function(req, res) {
           is_significant = I(list(is_significant)),
             stringsAsFactors = FALSE
           ))
+        current_method_count <- current_method_count + 1
+        message(crayon::green$bold(paste("Current method ", method, " count: ", current_method_count)))
+        if (current_method_count > 5) {
+          break
+        }
       }, error = function(e) {
         bad_paths <- c(bad_paths, id) # just in case
         print(e$message)
@@ -1156,16 +1177,20 @@ function(req, res) {
     }
 
     saveRDS(methods_sig_vectors, file.path(persistent_temp_dir, "methods_sig_vectors.rds"))
+    file.copy(file.path(persistent_temp_dir, "methods_sig_vectors.rds"),
+              file.path("~/Downloads", "methods_sig_vectors.rds"),
+              overwrite = TRUE)
 
     sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
+    n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
     umap_result <- umap(sig_matrix,
-                      n_neighbors = 15,     # Due to large data size, use more neighbors
+                      n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
                       min_dist = 0.1,
                       metric = "hamming",
                       n_components = 2,
-                      n_epochs = 500,       # Due to large data size, increase training epochs
+                      n_epochs = 200,       # Due to large data size, increase training epochs
                       init = "spectral",    # For large datasets, use spectral initialization
-                      verbose = TRUE)       # Show progress
+                      verbose = FALSE)       # Show progress
 
     plot_data <- data.frame(
       x = umap_result[,1],

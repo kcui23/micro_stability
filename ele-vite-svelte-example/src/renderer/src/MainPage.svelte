@@ -20,6 +20,7 @@
 
   let startMethod = 'deseq2';
   let specific_interact = false;
+  let scatterPlotClicked = false;
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let DataPerturbationMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let abundance_threshold = 5;
@@ -687,6 +688,8 @@
     };
 
   function handleScatterPointClick(event) {
+    scatterPlotClicked = true;
+    showAllPlots = false;
     const { path } = event.detail;
 
     // Update d3 tree
@@ -733,9 +736,6 @@
 
       return selections;
     });
-
-    // // Update selected methods
-    // selectedMethod = path[5];
   }
 
   function highlightPoint(path, parent_func='') {
@@ -1595,6 +1595,7 @@ div[key='model-perturbation'] button {
       {downloadImage}
       {zoomedImage}
       {specific_interact}
+      {scatterPlotClicked}
     />
 
   </div>

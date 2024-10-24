@@ -26,7 +26,7 @@ filter_no <- ""
 zero_pseudocount <- "data %>% mutate(across(-1, ~. + param_value))"
 zero_knn <- "library(edgeR)
 library(impute)
-tmp_data <- data %>% select(-asv)
+tmp_data <- data %>% dplyr::select(-asv)
     zero_percentages <- rowMeans(tmp_data == 0) * 100
     asvs_to_impute <- zero_percentages < param_value[2]
     
@@ -51,28 +51,28 @@ tmp_data <- data %>% select(-asv)
     tmp_data[is.na(tmp_data)] <- 0
     tmp_data <- tmp_data %>% 
       mutate(asv = data$asv) %>%
-      select(asv, everything())
+      dplyr::select(asv, everything())
     data <- tmp_data"
 zero_no <- ""
 
 norm_tss <- "data <- data %>% mutate(across(-1, ~./sum(.)))"
-norm_css <- "tmp_data <- data %>% select(-asv)
+norm_css <- "tmp_data <- data %>% dplyr::select(-asv)
     MR_obj <- newMRexperiment(tmp_data)
     MR_obj_normalized <- cumNorm(MR_obj)
     normalized_counts <- MRcounts(MR_obj_normalized, norm = TRUE)
     normalized_counts <- as.data.frame(normalized_counts) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     data <- normalized_counts"
-norm_tmm <- "tmp_data <- data %>% select(-asv)
+norm_tmm <- "tmp_data <- data %>% dplyr::select(-asv)
     dge <- DGEList(counts = tmp_data)
     dge <- calcNormFactors(dge, method = 'TMM')
     tmm_normalized_counts <- cpm(dge, normalized.lib.sizes = TRUE)
     tmm_normalized_counts <- as.data.frame(tmm_normalized_counts) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     data <- tmm_normalized_counts"
-norm_clr <- "tmp_data <- data %>% select(-asv)
+norm_clr <- "tmp_data <- data %>% dplyr::select(-asv)
     count_matrix <- tmp_data + 1
     geom_mean <- function(x) {
       exp(mean(log(x)))
@@ -82,7 +82,7 @@ norm_clr <- "tmp_data <- data %>% select(-asv)
     }))
     clr_manual <- as.data.frame(clr_manual) %>% 
       mutate(asv = data$asv) %>% 
-      select(asv, everything())
+      dplyr::select(asv, everything())
     data <- clr_manual"
 norm_no <- ""
 

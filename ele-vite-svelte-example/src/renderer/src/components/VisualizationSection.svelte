@@ -2,6 +2,7 @@
   import InteractiveValcano from './InteractiveValcano.svelte'
   import { fade, scale } from 'svelte/transition'
 
+  let isRefreshing = false;
   export let visualizations
   export let zoomImage
   export let isCalculating
@@ -14,6 +15,11 @@
   export let isSubmitted
   export let zoomedImage
   export let specific_interact
+  export let scatterPlotClicked
+
+  const refreshSingleVis = () => {
+    // ...
+  }
 
   const saveImage = (imageData, name) => {
     const canvas = document.createElement('canvas');
@@ -70,7 +76,7 @@
   };
 </script>
 
-<div class="visualizations-section" hidden={!showAllPlots && !isSubmitted}>
+<div class="visualizations-section" hidden={!showAllPlots && !isSubmitted && !scatterPlotClicked}>
   <hr>
   <div class="visualization-header">
     <h2>Visualizations</h2>
@@ -181,6 +187,21 @@
     <div class="card">
       <div class="card-header">
         <h3>{selectedMethod.toUpperCase()} Plots</h3>
+        <button 
+          class="refresh-button" 
+          on:click|preventDefault={() => {
+            isRefreshing = true;
+            setTimeout(() => isRefreshing = false, 2000);
+          }}
+          on:click={refreshSingleVis}
+          disabled={isRefreshing}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 4v6h-6M1 20v-6h6" stroke-width="2"></path>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
       </div>
       <div class="card-content">
         {#if isStatic}
@@ -297,6 +318,9 @@
     padding: 0.5rem;
     padding-left: 1rem;
     border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .card-header h3 {
@@ -441,4 +465,33 @@
     border-top: 1px solid #e0e0e0;
     margin: 10px 0;
   }
+
+  .refresh-button {
+    margin: 0;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.9rem;
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .refresh-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .refresh-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+  .refresh-button:disabled svg {
+    animation: spin 1s linear infinite;
+}
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 </style>
