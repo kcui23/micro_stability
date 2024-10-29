@@ -1167,9 +1167,9 @@ function(req, res) {
           ))
         current_method_count <- current_method_count + 1
         message(crayon::green$bold(paste("Current method ", method, " count: ", current_method_count)))
-        if (current_method_count > 5) {
-          break
-        }
+        # if (current_method_count > 2) {
+        #   break
+        # }
       }, error = function(e) {
         bad_paths <- c(bad_paths, id) # just in case
         print(e$message)
@@ -1241,4 +1241,71 @@ find_path_from_id <- function(id, tree = tree_data) {
         stop(paste("ID", id, "not found in the tree data."))
     }
     return(path)
+}
+
+#* Check path and visualize results
+#* @post /check_path_and_visualize
+#* @parser json
+function(req, res) {
+  tryCatch({
+    body <- fromJSON(req$postBody)
+    path_array <- body$path
+    # print the list of files all ends with png
+    png_files <- list.files(persistent_temp_dir, pattern = "\\.png$", full.names = TRUE)
+    message("PNG files found:")
+    for (file in png_files) {
+      message(basename(file))
+    }
+
+    # Join path elements with underscores
+    path_string <- paste(path_array, collapse = "_")
+    # Look for matching RDS files in persistent_temp_dir
+    pattern <- paste0("^", path_string)
+    matching_files <- list.files(persistent_temp_dir, pattern = pattern, full.names = TRUE)
+    
+    if (length(matching_files) == 0) {
+      res$status <- 404
+      return(list(error = "No matching RDS file found"))
+    }
+    
+    # Create output directory for visualizations
+    output_dir <- tempfile()
+    dir.create(output_dir)
+    
+    # Source the appropriate R file
+    method <- switch(path_array[6],
+      "deseq2" = "DESeq2",
+      "aldex2" = "ALDEx2",
+      "edger" = "edgeR",
+      "maaslin2" = "MaAsLin2",
+      "metagenomeseq" = "metagenomeSeq"
+    )
+    source(safe_file_path(paste0(method, ".R")))
+
+    # Load RDS data
+    result_data <- readRDS(matching_files[1])
+    print("result_data:")
+    print(head(result_data))
+    
+    # Call visualization function based on method
+    plots <- switch(method,
+      "DESeq2" = visualize_deseq2(result_data, output_dir, persistent_temp_dir),
+      "ALDEx2" = visualize_aldex2(result_data, output_dir, persistent_temp_dir),
+      "edgeR" = visualize_edgeR(result_data, output_dir, persistent_temp_dir),
+      "MaAsLin2" = visualize_maaslin2(result_data, output_dir, persistent_temp_dir),
+      "metagenomeSeq" = visualize_metagenomeseq(result_data, output_dir, persistent_temp_dir),
+      stop("Invalid method")
+    )
+    
+    # Return both result data and plots
+    list(
+      result_data = result_data,
+      plot1 = base64enc::base64encode(plots$plot1),
+      plot2 = base64enc::base64encode(plots$plot2),
+      plot3 = base64enc::base64encode(plots$plot3)
+    )
+  }, error = function(e) {
+    res$status <- 500
+    list(error = paste("Error processing request:", e$message))
+  })
 }

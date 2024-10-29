@@ -900,6 +900,9 @@
       missingMethods = missingMethods.filter(m => m !== method);
     }
   }
+  function startAppSkip() {
+    showStartPage = false;
+  }
 </script>
 
 <style>
@@ -1140,6 +1143,35 @@ div[key='model-perturbation'] button {
   margin-left: 5px;
 }
 
+.start-page-content button {
+  width: 120px;
+  height: 40px;
+  font-size: 1.1rem;
+  margin-top: 30px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.start-page-content button:first-of-type {
+  background-color: #b7f3b7;
+}
+
+.start-page-content button:first-of-type:hover {
+  background-color: #90ee90;
+}
+
+.start-page-content button:last-of-type {
+  background-color: #ffb6b6;
+}
+
+.start-page-content button:last-of-type:hover {
+  background-color: #ff9999;
+}
+
 </style>
 
 <div id="app" class="container">
@@ -1168,6 +1200,7 @@ div[key='model-perturbation'] button {
           </select>
         </div>
         <button on:click={startApp}>Start</button>
+        <button on:click={startAppSkip}>Skip</button>
       </div>
     </div>
   {/if}

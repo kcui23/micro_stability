@@ -1,6 +1,7 @@
 <script>
   import InteractiveValcano from './InteractiveValcano.svelte'
   import { fade, scale } from 'svelte/transition'
+  import { currentPath } from '../store.js'
 
   let isRefreshing = false;
   export let visualizations
@@ -17,9 +18,37 @@
   export let specific_interact
   export let scatterPlotClicked
 
-  const refreshSingleVis = () => {
-    // ...
-  }
+  const refreshSingleVis = async () => {
+    isCalculating = true;
+    try {
+      const response = await fetch('http://localhost:8000/check_path_and_visualize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: $currentPath })
+      });
+
+      if (response.status === 404) {
+        console.log('No visualization data found for this path');
+      } else if (response.ok) {
+        const data = await response.json();
+        // Update visualizations with new plot data
+        visualizations = {
+          ...visualizations,
+          [`${selectedMethod}_plot1`]: data.plot1,
+          [`${selectedMethod}_plot2`]: data.plot2,
+          [`${selectedMethod}_plot3`]: data.plot3
+        };
+      } else {
+        console.error('Error refreshing visualization:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error refreshing visualization:', error);
+    } finally {
+      isCalculating = false;
+    }
+  };
 
   const saveImage = (imageData, name) => {
     const canvas = document.createElement('canvas');
