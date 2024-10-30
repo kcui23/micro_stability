@@ -1147,6 +1147,15 @@ function(req, res) {
         env$ASV_file_path <- asv_file_path
         env$groupings_file_path <- groupings_file_path
         suppressWarnings(suppressMessages(source(r_path, local = env)))
+        tmp_file_name <- substr(basename(r_path), 1, nchar(basename(r_path)) - 2)
+        tmp_tsv_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_results.tsv'))
+        write_tsv(env$result_data, tmp_tsv_path)
+        result_plots <- list(env$p1, env$p2, env$p3)
+        for (i in 1:length(result_plots)) {
+          tmp_png_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_plot', i, '.png'))
+          ggsave(tmp_png_path, plot = result_plots[[i]])
+        }
+
         message("source(r_path) done")
 
         # save the result data

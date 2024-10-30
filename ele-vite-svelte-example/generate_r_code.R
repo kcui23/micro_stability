@@ -154,7 +154,13 @@ p2 <- ggplot(deseq2_results, aes(x = baseMean, y = log2FoldChange)) +
     scale_color_manual(values = c('gray', '#4C3BCF'), name = 'Significant') +
     theme_minimal() +
     scale_x_log10() +
-    labs(title = 'MA plot', x = 'baseMean', y = 'log2FoldChange')"
+    labs(title = 'MA plot', x = 'baseMean', y = 'log2FoldChange')
+    
+# Visualization 3: Histogram of p-value distribution
+p3 <- ggplot(deseq2_results, aes(x = pvalue)) +
+    geom_histogram(binwidth = 0.05) +
+    theme_minimal() +
+    labs(title = 'Histogram of p-value distribution', x = 'p-value', y = 'Frequency')"
 
 method_aldex2 <-"library(ALDEx2)
 
@@ -220,7 +226,13 @@ vis_aldex2 <- "aldex2_results <- result_data
     scale_size_continuous(range = c(1, 3), guide = 'none') +
     theme_minimal() +
     scale_x_log10() +
-    labs(title = 'MA-like plot', x = 'Mean Abundance', y = 'Effect Size')"
+    labs(title = 'MA-like plot', x = 'Mean Abundance', y = 'Effect Size')
+    
+  # Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(aldex2_results, aes(x = we.eBH)) +
+    geom_histogram(binwidth = 0.1) +
+    theme_minimal() +
+    labs(title = 'Histogram of p-value distribution', x = 'pvalue', y = 'Frequency')"
 
 method_edger <- "library(edgeR)
 phyloseq_to_edgeR <- function(physeq, group, method='RLE', ...){
@@ -289,7 +301,13 @@ vis_edger <- "edgeR_results <- result_data
     theme_minimal() +
     labs(title = 'Scatter plot of logCPM vs. logFC',
          x = 'logCPM',
-         y = 'logFC')"
+         y = 'logFC')
+         
+  # Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(edgeR_results, aes(x = PValue)) +
+    geom_histogram(binwidth = 0.1) +
+    theme_minimal() +
+    labs(title = 'Histogram of p-value distribution', x = 'pvalue', y = 'Frequency')"
 
 method_maaslin2 <- "library(Maaslin2)
 ASV_table <- data.frame(t(ASV_table), check.rows = F, check.names = F, stringsAsFactors = F)
@@ -336,7 +354,13 @@ vis_maaslin2 <- "maaslin2_results <- result_data
     scale_x_log10() +
     labs(title = 'MA-like plot',
          x = 'Number of Non-Zero Samples',
-         y = 'Coefficient (Effect Size)')"
+         y = 'Coefficient (Effect Size)')
+         
+  # Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(maaslin2_results, aes(x = pval)) +
+    geom_histogram(binwidth = 0.1) +
+    theme_minimal() +
+    labs(title = 'Histogram of p-value distribution', x = 'pvalue', y = 'Frequency')"
 
 method_metagenomeseq <- "library(metagenomeSeq)
 # Create a MRexperiment object
@@ -379,9 +403,15 @@ vis_metagenomeseq <- "metagenomeSeq_results <- result_data
     scale_color_manual(values = c('gray', '#4C3BCF'), name = 'Significant') +
     theme_minimal() +
     scale_x_log10() +
-    labs(title = 'MA Plot', x = 'baseMean', y = 'log2 Fold Change')"
+    labs(title = 'MA Plot', x = 'baseMean', y = 'log2 Fold Change')
+    
+  # Visualization 3: Histogram of p-value distribution
+  p3 <- ggplot(metagenomeSeq_results, aes(x = pvalues)) +
+    geom_histogram(binwidth = 0.05) +
+    theme_minimal() +
+    labs(title = 'Histogram of p-value Distribution', x = 'p-value', y = 'Frequency')"
   
-end <- "result_plots <- list(p1, p2)
+end <- "result_plots <- list(p1, p2, p3)
 
 write_tsv(result_data, paste0(method, '_results.tsv'))
 for (i in 1:length(result_plots)) {
@@ -534,7 +564,7 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
     } else {
       code <- paste(start_lib, param_set_up, start_read_files, 
                     filter_code, zero_code, normalization_code, trans_code, 
-                    pre_method, model_code, sep = '\n')
+                    pre_method, model_code, vis_code, sep = '\n')
     }
     return(code)
 }
