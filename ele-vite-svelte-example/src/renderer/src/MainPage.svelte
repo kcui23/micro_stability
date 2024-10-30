@@ -895,10 +895,11 @@
     calculateStabilityMetric(startMethod, missingMethods); // start with the first method selected from start page
     missingMethods = missingMethods.filter(m => m !== startMethod);
     tmp_missingMethods = missingMethods;
-    for (let method of tmp_missingMethods) {
-      calculateStabilityMetric(method, missingMethods);
-      missingMethods = missingMethods.filter(m => m !== method);
-    }
+    // for test
+    // for (let method of tmp_missingMethods) {
+    //   calculateStabilityMetric(method, missingMethods);
+    //   missingMethods = missingMethods.filter(m => m !== method);
+    // }
   }
   function startAppSkip() {
     showStartPage = false;

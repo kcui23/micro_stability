@@ -1,7 +1,7 @@
 <script>
   import InteractiveValcano from './InteractiveValcano.svelte'
   import { fade, scale } from 'svelte/transition'
-  import { currentPath } from '../store.js'
+  import { currentPath, currentHighlightedPath } from '../store.js'
 
   let isRefreshing = false;
   export let visualizations
@@ -26,13 +26,14 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ path: $currentPath })
+        body: JSON.stringify({ path: $currentHighlightedPath })
       });
 
       if (response.status === 404) {
         console.log('No visualization data found for this path');
       } else if (response.ok) {
         const data = await response.json();
+        console.log(data);
         // Update visualizations with new plot data
         visualizations = {
           ...visualizations,
@@ -41,7 +42,7 @@
           [`${selectedMethod}_plot3`]: data.plot3
         };
       } else {
-        console.error('Error refreshing visualization:', response.statusText);
+        console.error('Error refreshing visualization:', response);
       }
     } catch (error) {
       console.error('Error refreshing visualization:', error);

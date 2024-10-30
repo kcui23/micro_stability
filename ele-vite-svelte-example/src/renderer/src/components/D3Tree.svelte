@@ -1,7 +1,7 @@
 <script>
     import { onDestroy } from 'svelte';
     import * as d3 from 'd3';
-    import { subOperations, openMenus, stepStatus } from '../store.js';
+    import { subOperations, openMenus, stepStatus, currentHighlightedPath } from '../store.js';
 
     export let treeData;
     export let setCurrentStep;
@@ -201,7 +201,7 @@
     export async function highlightPath(path) {
         console.log("=====Begin of *highlightPath()*=====");
         console.log("Highlighting path in D3tree:", path);
-
+        currentHighlightedPath.set(path);
         if (!treeRoot || !updateTree) {
             console.error("Tree root or update function not available");
             return;

@@ -1150,12 +1150,12 @@ function(req, res) {
         tmp_file_name <- substr(basename(r_path), 1, nchar(basename(r_path)) - 2)
         tmp_tsv_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_results.tsv'))
         write_tsv(env$result_data, tmp_tsv_path)
+
         result_plots <- list(env$p1, env$p2, env$p3)
         for (i in 1:length(result_plots)) {
           tmp_png_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_plot', i, '.png'))
           ggsave(tmp_png_path, plot = result_plots[[i]])
         }
-
         message("source(r_path) done")
 
         # save the result data
@@ -1179,6 +1179,8 @@ function(req, res) {
         # if (current_method_count > 2) {
         #   break
         # }
+        # for test
+        break
       }, error = function(e) {
         bad_paths <- c(bad_paths, id) # just in case
         print(e$message)
@@ -1190,20 +1192,26 @@ function(req, res) {
               file.path("~/Downloads", "methods_sig_vectors.rds"),
               overwrite = TRUE)
 
-    sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
-    n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
-    umap_result <- umap(sig_matrix,
-                      n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
-                      min_dist = 0.1,
-                      metric = "hamming",
-                      n_components = 2,
-                      n_epochs = 200,       # Due to large data size, increase training epochs
-                      init = "spectral",    # For large datasets, use spectral initialization
-                      verbose = FALSE)       # Show progress
+    # for test
+    # sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
+    # n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
+    # umap_result <- umap(sig_matrix,
+    #                   n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
+    #                   min_dist = 0.1,
+    #                   metric = "hamming",
+    #                   n_components = 2,
+    #                   n_epochs = 200,       # Due to large data size, increase training epochs
+    #                   init = "spectral",    # For large datasets, use spectral initialization
+    #                   verbose = FALSE)       # Show progress
 
+    # plot_data <- data.frame(
+    #   x = umap_result[,1],
+    #   y = umap_result[,2],
+    #   leaf_id = methods_sig_vectors$leaf_id
+    # )
     plot_data <- data.frame(
-      x = umap_result[,1],
-      y = umap_result[,2],
+      x = 1,
+      y = 1,
       leaf_id = methods_sig_vectors$leaf_id
     )
 
@@ -1259,62 +1267,46 @@ function(req, res) {
   tryCatch({
     body <- fromJSON(req$postBody)
     path_array <- body$path
-    # print the list of files all ends with png
-    png_files <- list.files(persistent_temp_dir, pattern = "\\.png$", full.names = TRUE)
-    message("PNG files found:")
-    for (file in png_files) {
-      message(basename(file))
-    }
-
     # Join path elements with underscores
     path_string <- paste(path_array, collapse = "_")
-    # Look for matching RDS files in persistent_temp_dir
-    pattern <- paste0("^", path_string)
-    matching_files <- list.files(persistent_temp_dir, pattern = pattern, full.names = TRUE)
+    message(crayon::blue$bold("path_string:"))
+    message(path_string)
     
-    if (length(matching_files) == 0) {
-      res$status <- 404
-      return(list(error = "No matching RDS file found"))
+    # Find all plot files for this path
+    plot_files <- list()
+    for (i in 1:3) {
+      pattern <- paste0("^", path_string, ".*_plot", i, "\\.png$")
+      matching_files <- list.files(persistent_temp_dir, pattern = pattern, full.names = TRUE)
+      if (length(matching_files) > 0) {
+        plot_files[[i]] <- matching_files[1]  # Take the first match if multiple exist
+      }
     }
     
-    # Create output directory for visualizations
-    output_dir <- tempfile()
-    dir.create(output_dir)
+    if (length(plot_files) == 0) {
+      res$status <- 404
+      return(list(error = "No matching plot files found"))
+    }
     
-    # Source the appropriate R file
-    method <- switch(path_array[6],
-      "deseq2" = "DESeq2",
-      "aldex2" = "ALDEx2",
-      "edger" = "edgeR",
-      "maaslin2" = "MaAsLin2",
-      "metagenomeseq" = "metagenomeSeq"
-    )
-    source(safe_file_path(paste0(method, ".R")))
-
-    # Load RDS data
-    result_data <- readRDS(matching_files[1])
-    print("result_data:")
-    print(head(result_data))
+    # Read and encode each plot file
+    plots <- list()
+    for (i in 1:3) {
+      if (!is.null(plot_files[[i]]) && file.exists(plot_files[[i]])) {
+        # Read the binary content of the PNG file
+        png_data <- readBin(plot_files[[i]], "raw", n = file.info(plot_files[[i]])$size)
+        # Encode it as base64 and create a data URL
+        plots[[paste0("plot", i)]] <- paste0("data:image/png;base64,", base64enc::base64encode(png_data))
+      } else {
+        plots[[paste0("plot", i)]] <- NULL
+      }
+    }
     
-    # Call visualization function based on method
-    plots <- switch(method,
-      "DESeq2" = visualize_deseq2(result_data, output_dir, persistent_temp_dir),
-      "ALDEx2" = visualize_aldex2(result_data, output_dir, persistent_temp_dir),
-      "edgeR" = visualize_edgeR(result_data, output_dir, persistent_temp_dir),
-      "MaAsLin2" = visualize_maaslin2(result_data, output_dir, persistent_temp_dir),
-      "metagenomeSeq" = visualize_metagenomeseq(result_data, output_dir, persistent_temp_dir),
-      stop("Invalid method")
-    )
+    # Return the encoded plots
+    return(plots)
     
-    # Return both result data and plots
-    list(
-      result_data = result_data,
-      plot1 = base64enc::base64encode(plots$plot1),
-      plot2 = base64enc::base64encode(plots$plot2),
-      plot3 = base64enc::base64encode(plots$plot3)
-    )
   }, error = function(e) {
+    message(crayon::red$bold("Error processing request:"))
+    message(e$message)
     res$status <- 500
-    list(error = paste("Error processing request:", e$message))
+    return(list(error = paste("Error processing request:", e$message)))
   })
 }
