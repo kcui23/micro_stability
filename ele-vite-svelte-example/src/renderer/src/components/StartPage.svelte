@@ -118,22 +118,36 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border: 1px solid #c668d9;
   }
 
   .start-page-content {
     background: #ffffff;
     padding: 50px 30px;
-    text-align: center;
-    max-width: 900px;
-    width: 95%;
-    border: 1px solid #68d9d1;
+    width: 80%;
   }
 
   .start-page-content h2 {
     margin-bottom: 15px;
     font-size: 2.2rem;
     color: #333;
+    text-align: center;
+  }
+
+  .columns-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .left-column {
+    flex: 0 0 70%;
+  }
+
+  .right-column {
+    flex: 0 0 30%;
+    max-height: 400px;
+    overflow-y: hidden;
   }
 
   .start-page-content p {
@@ -143,7 +157,7 @@
     color: #555;
   }
 
-  .start-page-content button {
+  .submit-button {
     width: 120px;
     height: 40px;
     font-size: 1.1rem;
@@ -152,6 +166,24 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+  }
+
+  .submit-button:active {
+    animation: buttonClick 2s;
+  }
+
+  @keyframes buttonClick {
+    0% { content: "Submit Job"; }
+    10% { content: "Done!"; }
+    90% { content: "Done!"; }
+    100% { content: "Submit Job"; }
+  }
+
+  .submit-button:active::before {
+    content: "Done!";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .step-1-upload-section {
@@ -178,7 +210,6 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-top: 15px;
-    border: 1px solid #d1d968;
   }
 
   .step-2 p {
@@ -195,54 +226,179 @@
       margin-left: 10px;
       padding: 5px;
     font-size: 1rem;
-    border: 1px solid #ccc;
     border-radius: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .start-page-content button:first-of-type {
-    background-color: #b7f3b7;
+  hr {
+    margin-top: 20px;
+    width: 60%;
+    margin-left: 0;
   }
 
-  .start-page-content button:first-of-type:hover {
-    background-color: #90ee90;
+  .example-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+
+}
+.example-text {
+  margin: 0;
+  font-size: 0.6rem;
+}
+.example-button {
+  height: 25px;
+  width: 80px;
+  padding: 0 10px;
+}
+
+.multiverse-column {
+    background: #f8f8f8;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    overflow-y: auto;
   }
 
-  .start-page-content button:last-of-type {
-    background-color: #ffb6b6;
+  .multiverse-column h3 {
+    color: #333;
+    font-size: 1.6rem;
+    margin-bottom: 10px;
   }
 
-  .start-page-content button:last-of-type:hover {
-    background-color: #ff9999;
+  .multiverse-column details {
+    margin-bottom: 5px;
   }
+
+  .multiverse-column summary {
+    cursor: pointer;
+    padding: 5px 0;
+    color: #555;
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .multiverse-column summary:hover {
+    color: #333;
+  }
+
+  .multiverse-column ul {
+    list-style: none;
+    padding-left: 10px;
+    margin: 8px 0;
+  }
+
+  .multiverse-column li {
+    color: #666;
+    padding: 4px 0;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+  }
+
+  .multiverse-column li:hover {
+    color: #444;
+  }
+
 </style>
 
 <div class="start-page">
   <div class="start-page-content">
     <h2>Welcome to the Micro Stability App</h2>
-    <p><strong>Step 1:</strong> Upload the file, update the ASV file, and grouping file.</p>
-    <div class="step-1-upload-section">
-      <FileUploader 
-        {handleFileChange} 
-        {handleGroupingsChange} 
-        bind:asvFiles
-        bind:groupingsFile
-        bind:asvContent
-        bind:groupingsContent
-      />
-    </div>
+    <div class="columns-container">
+      <div class="left-column">
+        <p><strong>Step 1:</strong> Upload the file, update the ASV file, and grouping file.</p>
+        <div class="step-1-upload-section">
+          <FileUploader 
+            {handleFileChange} 
+            {handleGroupingsChange} 
+            bind:asvFiles
+            bind:groupingsFile
+            bind:asvContent
+            bind:groupingsContent
+          />
+        </div>
 
-    <div class="step-2">
-      <p><strong>Step 2:</strong> Choose a method you like to start: </p>
-      <select bind:value={startMethod}>
-        {#each DataPerturbationMethods as method}
-          <option value={method}>{method}</option>
-        {/each}
-      </select>
+        <div class="step-2">
+          <p><strong>Step 2:</strong> Choose a method you like to start: </p>
+          <select bind:value={startMethod}>
+            {#each DataPerturbationMethods as method}
+              <option value={method}>{method}</option>
+            {/each}
+          </select>
+        </div>
+        <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
+        <button on:click={startApp} class="submit-button" data-content="Submit Job">
+          Submit Job
+        </button>
+        <hr>
+        <div class="example-container">
+          <p class="example-text">See a quick example of how to use the app:</p>
+          <button on:click={startAppExample} class="example-button">Explore</button>
+        </div>
+      </div>
+      <div class="right-column">
+        <div class="multiverse-column">
+          <h3>Explore the Multiverse</h3>
+          
+          <details>
+              <summary>Filtering</summary>
+              <ul>
+                  <li>Low Abundance</li>
+                  <li>Prevalence</li>
+                  <li>Variance</li>
+                  <li>No Filtering</li>
+              </ul>
+          </details>
+      
+          <details>
+              <summary>Zero-Handling</summary>
+              <ul>
+                  <li>Pseudocount Addition</li>
+                  <li>k-NN Imputation</li>
+                  <li>No Zero-Handling</li>
+              </ul>
+          </details>
+      
+          <details>
+              <summary>Normalization</summary>
+              <ul>
+                  <li>TSS</li>
+                  <li>CSS</li>
+                  <li>TMM</li>
+                  <li>CLR</li>
+                  <li>No Normalization</li>
+              </ul>
+          </details>
+      
+          <details>
+              <summary>Transformation</summary>
+              <ul>
+                  <li>Log</li>
+                  <li>Logit</li>
+                  <li>AST</li>
+                  <li>No Transformation</li>
+              </ul>
+          </details>
+      
+          <details>
+              <summary>Model Perturbation</summary>
+              <ul>
+                  <li>DESeq2</li>
+                  <li>EdgeR</li>
+                  <li>Maaslin2</li>
+                  <li>Aldex2</li>
+                  <li>MetagenomeSeq</li>
+              </ul>
+          </details>
+      </div>
+      
+      
+      </div>
     </div>
-    <p><strong>Step 3:</strong> Start the app or explore an example.</p>
-    <button on:click={startApp}>Submit Job</button>
-    <button on:click={startAppExample}>Explore an example</button>
   </div>
 </div>
