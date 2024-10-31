@@ -76,6 +76,7 @@
   });
 
   selectedOperations.set(Object.fromEntries(steps.map((step) => [step, []])));
+  console.log("selectedOperations:", $selectedOperations);
   openMenus.set(Object.fromEntries(steps.map((step) => [step, false])));
 
   function toggleStepStatus(step) {
