@@ -984,13 +984,13 @@
       height: 200px;
       margin-top: 10px;
       margin-bottom: 20px;
-    }
+  }
 
     .control-panel {
       width: 100%;
       height: 200px;
       padding: 10px;
-    }
+  }
 
     .scatter-plot-ctn {
       width: 100%;
@@ -1000,98 +1000,7 @@
       overflow: hidden;
     }
 
-    /* Start Page Styles */
-    .start-page {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(10px);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .start-page-content {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 60px 40px;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      max-width: 900px;
-      width: 95%;
-    }
-
-    .start-page-content h2 {
-      margin-bottom: 20px;
-      font-size: 2.3rem;
-      color: #333;
-    }
-
-    .start-page-content p {
-      text-align: left;
-      margin: 15px 0;
-      font-size: 1.4rem;
-      color: #555;
-    }
-
-    .start-page-content button {
-      width: 120px;
-      height: 40px;
-      font-size: 1.1rem;
-      margin-top: 30px;
-    }
-
-    .step-1-upload-section {
-      position: relative;
-      padding: 20px;
-      margin-left: 20px;
-    }
-
-    .step-1-upload-section::before {
-      content: '';
-      position: absolute;
-      border-radius: 10px;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: calc(100% - 60px);
-      background-color: #636363;
-      z-index: -1;
-    }
-
-    .step-2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap; 
-      margin-top: 20px;
-    }
-    .step-2 p {
-      margin: 0;
-      font-size: 1.4rem;
-      color: #555;
-      white-space: nowrap;
-    }
-
-    .step-2 select {
-      flex: 0 0 auto;
-      width: 100px;
-      max-width: 100px;
-      margin-left: 10px;
-      padding: 5px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .normalization-description {
+  .normalization-description {
     font-size: 1.1rem;
     color: #4a4a4a;
     line-height: 1.6;
@@ -1133,46 +1042,126 @@
   display: block;
   margin-left: auto;
   margin-right: auto;
-}
+  }
 
-div[key='model-perturbation'] p {
+  div[key='model-perturbation'] p {
   margin: 5px;
-  font-size: 1.1rem;
-}
+    font-size: 1.1rem;
+  }
 
-div[key='model-perturbation'] button {
-  margin-left: 5px;
-}
+  /* Start Page Styles */
+  .start-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
 
-.start-page-content button {
-  width: 120px;
-  height: 40px;
-  font-size: 1.1rem;
-  margin-top: 30px;
-  margin-left: 10px;
-  margin-right: 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
+  .start-page-content {
+    background: #ffffff;
+    padding: 50px 30px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 900px;
+    width: 95%;
+  }
 
-.start-page-content button:first-of-type {
-  background-color: #b7f3b7;
-}
+  .start-page-content h2 {
+    margin-bottom: 15px;
+    font-size: 2.2rem;
+    color: #333;
+  }
 
-.start-page-content button:first-of-type:hover {
-  background-color: #90ee90;
-}
+  .start-page-content p {
+    text-align: left;
+    margin: 12px 0;
+    font-size: 1.3rem;
+    color: #555;
+  }
 
-.start-page-content button:last-of-type {
-  background-color: #ffb6b6;
-}
+  .start-page-content button {
+    width: 120px;
+    height: 40px;
+    font-size: 1.1rem;
+    margin: 25px 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
 
-.start-page-content button:last-of-type:hover {
-  background-color: #ff9999;
-}
+  .step-1-upload-section {
+    position: relative;
+    padding: 15px;
+    margin-left: 15px;
+  }
 
+  .step-1-upload-section::before {
+    content: '';
+    position: absolute;
+    border-radius: 8px;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: calc(100% - 50px);
+    background-color: #636363;
+    z-index: -1;
+  }
+
+  .step-2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+  }
+
+  .step-2 p {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #555;
+    white-space: nowrap;
+  }
+
+  .step-2 select {
+    flex: 0 0 auto;
+    width: 100px;
+    max-width: 100px;
+      margin-left: 10px;
+      padding: 5px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  div[key='model-perturbation'] button {
+    margin-left: 5px;
+  }
+
+  .start-page-content button:first-of-type {
+    background-color: #b7f3b7;
+  }
+
+  .start-page-content button:first-of-type:hover {
+    background-color: #90ee90;
+  }
+
+  .start-page-content button:last-of-type {
+    background-color: #ffb6b6;
+  }
+
+  .start-page-content button:last-of-type:hover {
+    background-color: #ff9999;
+  }
 </style>
 
 <div id="app" class="container">
