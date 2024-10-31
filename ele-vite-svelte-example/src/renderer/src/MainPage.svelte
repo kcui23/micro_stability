@@ -6,7 +6,8 @@
     stepStatus, 
     selectedOperations,
     singleSelectOperations,
-    params
+    params,
+    showStartPage
   } from './store.js';
   $: console.log("startMethod in MainPage.svelte:", startMethod);
   import D3Tree from './components/D3Tree.svelte';
@@ -20,6 +21,8 @@
   import StartPage from './components/StartPage.svelte';
 
   let startMethod = 'deseq2';
+  let asvContent = '';
+  let groupingsContent = '';
   let specific_interact = false;
   let scatterPlotClicked = false;
   let missingMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
@@ -887,17 +890,45 @@
   });
 
   // Added State for Start Page
-  let showStartPage = true;
-  $: if (!showStartPage) {
+  $: if (!$showStartPage) {
     selectedOperations.update((operations) => {
       operations['Raw data'].push('Preview');
       return operations;
     });
   }
+  async function uploadFiles() {
+    try {
+      const response = await fetch('http://localhost:8000/store_files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asv: asvContent,
+          groupings: groupingsContent,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Files stored successfully:', result);
+        updatePreVars()
+        return true;
+      } else {
+        console.error('Failed to store files');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      return false;
+    }
+  }
+
   let tmp_missingMethods = [];
   // Function to Hide Start Page
   function startApp() {
-    showStartPage = false;
+    showStartPage.set(false);
+    uploadFiles();
     calculateStabilityMetric(1,1,true); // set all data points to 0,0
     calculateStabilityMetric(startMethod, missingMethods); // start with the first method selected from start page
     missingMethods = missingMethods.filter(m => m !== startMethod);
@@ -908,9 +939,7 @@
     //   missingMethods = missingMethods.filter(m => m !== method);
     // }
   }
-  function startAppSkip() {
-    showStartPage = false;
-  }
+
 </script>
 
 <style>
@@ -1064,7 +1093,7 @@
 
 <div id="app" class="container">
   <!-- Start Page Overlay -->
-  {#if showStartPage}
+  {#if $showStartPage}
     <StartPage 
       {handleFileChange} 
       {handleGroupingsChange} 
@@ -1074,7 +1103,10 @@
       bind:startMethod
       {DataPerturbationMethods}
       {startApp}
-      {startAppSkip}
+      {data_points_updated_counter}
+      {uploadFiles}
+      bind:asvContent
+      bind:groupingsContent
     />
   {/if}
 

@@ -1,15 +1,107 @@
 <script>
+  import { autoLoaded, showStartPage } from '../store.js';
   import FileUploader from './FileUploader.svelte';
 
   export let handleFileChange;
   export let handleGroupingsChange;
-  export let updatePreVars;
-  export let asvFiles;
-  export let groupingsFile;
+  export let asvFiles = [];
+  export let groupingsFile = null;
+  export let asvContent = '';
+  export let groupingsContent = '';
   export let startMethod;
   export let startApp;
-  export let startAppSkip;
   export let DataPerturbationMethods;
+  export let updatePreVars;
+  export let data_points_updated_counter;
+  export let uploadFiles;
+
+  async function autoLoadFiles() {
+    if ($autoLoaded) {
+      return;
+    }
+    const asvPath = 'https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/main/ele-vite-svelte-example/datasets/Blueberry/Blueberry_ASVs_table.tsv';
+    const groupingPath = 'https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/main/ele-vite-svelte-example/datasets/Blueberry/Blueberry_metadata.tsv';
+
+    console.log("before autoLoadFiles try")
+    try {
+      const asvResponse = await fetch(asvPath);
+      const groupingResponse = await fetch(groupingPath);
+      console.log("after fetch")
+
+      if (asvResponse.ok && groupingResponse.ok) {
+        const asvBlob = await asvResponse.blob();
+        const groupingBlob = await groupingResponse.blob();
+        
+        const asvFile = new File([asvBlob], 'Blueberry_ASVs_table.tsv');
+        const groupingFile = new File([groupingBlob], 'Blueberry_metadata.tsv');
+        console.log("after new File")
+
+        // Update asvFiles using the spread operator to trigger reactivity
+        asvFiles = [asvFile];
+        console.log("after bind")
+
+        if (asvFile instanceof File && groupingFile instanceof File) {
+          try {
+            const [newAsvContent, newGroupingsContent] = await Promise.all([
+              asvFile.text(),
+              groupingFile.text()
+            ]);
+            asvContent = newAsvContent;
+            groupingsContent = newGroupingsContent;
+
+            
+            await handleFileChange({ target: { files: [asvFile] } });
+            await handleGroupingsChange({ target: { files: [groupingFile] } });
+
+            const uploadSuccess = await uploadFiles();
+            if (uploadSuccess) {
+              console.log('Files auto-loaded and uploaded successfully');
+              autoLoaded.set(true);
+              updatePreVars();
+            } else {
+              console.error('Failed to upload auto-loaded files');
+            }
+          } catch (error) {
+            console.error('Error reading file contents:', error);
+          }
+        } else {
+          console.error('Files not properly created');
+        }
+      } else {
+        console.error('Failed to fetch auto-loaded files');
+      }
+    } catch (error) {
+      console.error('Error auto-loading files:', error);
+    }
+  }
+
+  const set_datapoint_example = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/set_datapoint_example',{
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        data_points_updated_counter += 1;
+        console.log("Data points updated counter in set_datapoint_example:", data_points_updated_counter);
+        const result = await response.json();
+        return result.message; // Return the success message from the API
+      } else {
+        const errorMessage = await response.json();
+        console.error('Failed to set datapoint example:', errorMessage.error);
+        throw new Error(errorMessage.error);
+      }
+    } catch (error) {
+      console.error('Error setting datapoint example:', error);
+      throw error;
+    }
+  };
+
+  function startAppExample() {
+    showStartPage.set(false);
+    // autoLoadFiles();
+    set_datapoint_example();
+  }
 </script>
 
 <style>
@@ -134,9 +226,10 @@
       <FileUploader 
         {handleFileChange} 
         {handleGroupingsChange} 
-        {updatePreVars}
         bind:asvFiles
         bind:groupingsFile
+        bind:asvContent
+        bind:groupingsContent
       />
     </div>
 
@@ -148,7 +241,8 @@
         {/each}
       </select>
     </div>
-    <button on:click={startApp}>Start</button>
-    <button on:click={startAppSkip}>Skip</button>
+    <p><strong>Step 3:</strong> Start the app or explore an example.</p>
+    <button on:click={startApp}>Submit Job</button>
+    <button on:click={startAppExample}>Explore an example</button>
   </div>
 </div>

@@ -1,15 +1,12 @@
 <script>
-  import { onMount } from 'svelte';
-  import { autoLoaded } from '../store.js';
 
   export let handleFileChange;
   export let handleGroupingsChange;
-  export let updatePreVars;
   export let asvFiles = [];
   export let groupingsFile = null;
 
-  let asvContent = '';
-  let groupingsContent = '';
+  export let asvContent = '';
+  export let groupingsContent = '';
 
   function getFileName(files) {
     return files && files.length > 0 ? `Selected file: ${files[0].name}` : '';
@@ -37,80 +34,6 @@
     }
   }
 
-  async function uploadFiles() {
-    if (asvContent && groupingsContent) {
-      try {
-        const response = await fetch('http://localhost:8000/store_files', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            asv: asvContent,
-            groupings: groupingsContent,
-          }),
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Files stored successfully:', result);
-          updatePreVars()
-          return true;
-        } else {
-          console.error('Failed to store files');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error uploading files:', error);
-        return false;
-      }
-    } else {
-      console.warn('Please select both ASV and groupings files before uploading');
-      return false;
-    }
-  }
-
-  async function autoLoadFiles() {
-    if ($autoLoaded) {
-      return;
-    }
-    const asvPath = '../../datasets/Blueberry/Blueberry_ASVs_table.tsv';
-    const groupingPath = '../../datasets/Blueberry/Blueberry_metadata.tsv';
-
-    try {
-      const asvResponse = await fetch(asvPath);
-      const groupingResponse = await fetch(groupingPath);
-
-      if (asvResponse.ok && groupingResponse.ok) {
-        const asvFile = new File([await asvResponse.blob()], 'Blueberry_ASVs_table.tsv');
-        const groupingFile = new File([await groupingResponse.blob()], 'Blueberry_metadata.tsv');
-
-        asvFiles = [asvFile];
-        groupingsFile = groupingFile;
-
-        asvContent = await asvFile.text();
-        groupingsContent = await groupingFile.text();
-
-        handleFileChange({ target: { files: [asvFile] } });
-        handleGroupingsChange({ target: { files: [groupingFile] } });
-
-        const uploadSuccess = await uploadFiles();
-        if (uploadSuccess) {
-          console.log('Files auto-loaded and uploaded successfully');
-          autoLoaded.set(true);
-          updatePreVars();
-        } else {
-          console.error('Failed to upload auto-loaded files');
-        }
-      }
-    } catch (error) {
-      console.error('Error auto-loading files:', error);
-    }
-  }
-
-  onMount(() => {
-    autoLoadFiles();
-  });
 </script>
 
 <div class="upload-container">
@@ -139,8 +62,6 @@
   </div>
 </div>
 
-<button on:click={uploadFiles} class="upload-button">Upload Files</button>
-
 <style>
   .upload-container {
     display: flex;
@@ -157,12 +78,6 @@
     display: flex;
     align-items: center;
   }
-
-  .upload-button {
-    margin-left: 40%;
-    margin-right: auto;
-  }
-
   button {
     background-color: #f0f0f0;
     color: black;

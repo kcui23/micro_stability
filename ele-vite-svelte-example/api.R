@@ -122,6 +122,9 @@ function(req) {
   
   writeLines(as.character(body$asv), asv_file_path, sep = "\n")
   writeLines(as.character(body$groupings), groupings_file_path, sep = "\n")
+  # save files to ~/Downloads
+  file.copy(asv_file_path, file.path("~/Downloads", basename(asv_file_path)), overwrite = TRUE)
+  file.copy(groupings_file_path, file.path("~/Downloads", basename(groupings_file_path)), overwrite = TRUE)
 
   list(
     message = "Files stored successfully",
@@ -1309,4 +1312,42 @@ function(req, res) {
     res$status <- 500
     return(list(error = paste("Error processing request:", e$message)))
   })
+}
+
+#* Set datapoint example
+#* @post /set_datapoint_example
+#* @serializer json
+#* @response 200 list(message="Data points updated successfully")
+function(req, res) {
+  methods_sig_vectors <- readRDS(url("https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/main/ele-vite-svelte-example/example_data/methods_sig_vectors_example.rds"))
+  sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
+  n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
+  umap_result <- umap(sig_matrix,
+                    n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
+                    min_dist = 0.1,
+                    metric = "hamming",
+                    n_components = 2,
+                    n_epochs = 200,       # Due to large data size, increase training epochs
+                    init = "spectral",    # For large datasets, use spectral initialization
+                    verbose = FALSE)       # Show progress
+
+  plot_data <- data.frame(
+    x = umap_result[,1],
+    y = umap_result[,2],
+    leaf_id = methods_sig_vectors$leaf_id
+  )
+  leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+  leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE) # simplifyVector = TRUE -> data.frame
+
+  for (i in 1:nrow(plot_data)) {
+      leaf_id <- plot_data$leaf_id[i]
+      leaf_data[[leaf_id]]$data_point <- c(
+        plot_data$x[i],
+        plot_data$y[i]
+      )
+    }
+
+  write_json(leaf_data, leaf_json_path, pretty = TRUE, auto_unbox = TRUE)
+  res$status <- 200
+  return(list(message = "Data points updated successfully"))
 }
