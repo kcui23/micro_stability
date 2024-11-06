@@ -914,6 +914,15 @@
   // function startAppSkip() {
   //   showStartPage = false;
   // }
+
+  let showCheckmark = false;
+
+  function handleOkClick() {
+    showCheckmark = true;
+    setTimeout(() => {
+      showCheckmark = false;
+    }, 1000);
+  }
 </script>
 
 <style>
@@ -1063,6 +1072,43 @@
     margin-left: 5px;
   }
 
+  .random-seed {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .random-seed input[type="number"] {
+    width: 120px;
+    appearance: textfield;
+  }
+
+  .random-seed input[type="number"]::-webkit-outer-spin-button,
+  .random-seed input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .ok-btn {
+    position: relative;
+    width: 60px;
+    height: 25px;
+    padding: 5px 15px;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checkmark, .ok-text {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
 </style>
 
 <div id="app" class="container">
@@ -1123,9 +1169,29 @@
 
         {#if $selectedOperations['Raw data']?.includes('Set Random Seed')}
           <!-- Random Seed Input UI -->
-          <div>
+          <div class="random-seed">
             <label for="randomSeed">Set Random Seed:</label>
-            <input type="number" id="randomSeed" bind:value={randomSeed} min="1" />
+            <input 
+              type="number" 
+              id="randomSeed" 
+              bind:value={randomSeed}
+              min="1"
+              step="1"
+              on:input={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value < 1) e.target.value = 1;
+                randomSeed = parseInt(e.target.value) || 1;
+              }}
+              inputmode="numeric"
+              pattern="[0-9]*"
+            />
+            <button class="ok-btn" on:click={handleOkClick}>
+              {#if showCheckmark}
+                <span class="checkmark" in:fade={{duration: 200}} out:fade={{duration: 0}}>✓</span>
+              {:else}
+                <span class="ok-text" in:fade={{duration: 200}} out:fade={{duration: 0}}>OK</span>
+              {/if}
+            </button>
           </div>
         {/if}
 
