@@ -95,6 +95,16 @@
       if (response.ok) {
         data_points_updated_counter += 1;
         console.log("Data points updated counter in calculateStabilityMetric:", data_points_updated_counter);
+
+        missingMethods = missingMethods.filter(m => m !== method);
+        console.log("missingMethods:", missingMethods);
+        console.log("length of missingMethods:", missingMethods.length);
+        if (missingMethods.length === 0) {
+          showStartPage = false;
+          console.log("showStartPage set to false in calculateStabilityMetric");
+        }
+        console.log("showStartPage:", showStartPage);
+
         const result = await response.json();
         return result.message; // Return the success message from the API
       } else {
@@ -897,16 +907,14 @@
   let tmp_missingMethods = [];
   // Function to Hide Start Page
   function startApp() {
-    showStartPage = false;
     calculateStabilityMetric(1,1,true); // set all data points to 0,0
     calculateStabilityMetric(startMethod, missingMethods); // start with the first method selected from start page
     missingMethods = missingMethods.filter(m => m !== startMethod);
     tmp_missingMethods = missingMethods;
-    // for test
-    // for (let method of tmp_missingMethods) {
-    //   calculateStabilityMetric(method, missingMethods);
-    //   missingMethods = missingMethods.filter(m => m !== method);
-    // }
+    // commented for test
+    for (let method of tmp_missingMethods) {
+      calculateStabilityMetric(method, missingMethods);
+    }
   }
   function startAppSkip() {
     showStartPage = false;
