@@ -100,6 +100,7 @@
   }
 
   .submit-button {
+    background-color: #f0f0f0;
     width: 120px;
     height: 40px;
     font-size: 1.1rem;
@@ -107,25 +108,15 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.1s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #e2e8ef;
   }
 
   .submit-button:active {
-    animation: buttonClick 2s;
-  }
-
-  @keyframes buttonClick {
-    0% { content: "Submit Job"; }
-    10% { content: "Done!"; }
-    90% { content: "Done!"; }
-    100% { content: "Submit Job"; }
-  }
-
-  .submit-button:active::before {
-    content: "Done!";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    background-color: #b6c2ce;
   }
 
   .step-1-upload-section {
@@ -188,23 +179,6 @@
     margin-bottom: 10px;
   }
 
-  .multiverse-column details {
-    margin-bottom: 5px;
-  }
-
-  .multiverse-column summary {
-    cursor: pointer;
-    padding: 5px 0;
-    color: #555;
-    font-size: 1.2rem;
-    font-weight: 500;
-    transition: color 0.2s ease;
-  }
-
-  .multiverse-column summary:hover {
-    color: #333;
-  }
-
   .multiverse-column ul {
     list-style: none;
     padding-left: 10px;
@@ -257,6 +231,7 @@
 
   .content {
     padding: 0 12px;
+    overflow: hidden;
   }
 
   .content ul {
@@ -325,7 +300,7 @@
               {#if openSections[section.title]}
                 <div
                   class="content"
-                  transition:slide|local={{ duration: 300, easing: quintOut }}
+                  transition:slide|local={{ duration: 200, easing: quintOut }}
                 >
                   <ul>
                     {#each section.items as item}

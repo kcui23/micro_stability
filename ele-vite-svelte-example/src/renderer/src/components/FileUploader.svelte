@@ -171,11 +171,9 @@
     font-weight: bold;
     text-align: center;
     border-radius: 4px;
-    border: 1px solid #ccc;
+    border: none;
     cursor: pointer;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.1s ease;
-
     display: flex;
     align-items: center;
     justify-content: center;
