@@ -480,12 +480,13 @@
                       <input
                         type="checkbox"
                         value={method}
-                        checked={startSelectedMethods.includes(method)}
+                        checked={startSelectedMethods.includes(method.toLowerCase())}
                         on:change={(e) => {
                           if (e.target.checked) {
-                            startSelectedMethods = [...startSelectedMethods, method];
+                            let tmp_method = method.toLowerCase();
+                            startSelectedMethods = [...startSelectedMethods, tmp_method];
                           } else {
-                            startSelectedMethods = startSelectedMethods.filter(m => m !== method);
+                            startSelectedMethods = startSelectedMethods.filter(m => m !== method.toLowerCase());
                           }
                         }}
                       />
