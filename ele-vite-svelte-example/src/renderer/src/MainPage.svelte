@@ -121,7 +121,6 @@
 
   let asvFiles = [];
   let groupingsFile = null;
-  let isStatic = true;
   let zoomedImage = null;
   let zero_distribution_plot = null;
   let visualizations = {
@@ -793,10 +792,6 @@
       }
       highlightPoint(path, "handlePathChangeFromSidebar");
     }
-  }
-
-  function toggleView(view) {
-    isStatic = view === 'static';
   }
 
   function zoomImage(image) {
@@ -1496,14 +1491,11 @@
       {isCalculating}
       {showAllPlots}
       bind:showDetailedPlots
-      {isStatic}
-      {toggleView}
       {selectedPointsList}
       {selectedMethod}
       {isSubmitted}
       {downloadImage}
       {zoomedImage}
-      {specific_interact}
       {scatterPlotClicked}
     />
 

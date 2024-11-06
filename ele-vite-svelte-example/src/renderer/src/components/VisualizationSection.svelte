@@ -1,5 +1,4 @@
 <script>
-  import InteractiveValcano from './InteractiveValcano.svelte'
   import { fade, scale } from 'svelte/transition'
   import { currentPath, currentHighlightedPath } from '../store.js'
 
@@ -9,13 +8,10 @@
   export let isCalculating
   export let showAllPlots
   export let showDetailedPlots
-  export let isStatic
-  export let toggleView
   export let selectedPointsList
   export let selectedMethod
   export let isSubmitted
   export let zoomedImage
-  export let specific_interact
   export let scatterPlotClicked
 
   const refreshSingleVis = async () => {
@@ -110,14 +106,14 @@
   <hr>
   <div class="visualization-header">
     <h2>Visualizations</h2>
-    <div class="view-toggle">
+    <!-- <div class="view-toggle">
       <button class:activeToggle={isStatic} on:click={() => toggleView('static')}>
         Static
       </button>
       <button class:activeToggle={!isStatic} on:click={() => toggleView('interactive')}>
         Interactive
       </button>
-    </div>
+    </div> -->
   </div>
 
   {#if isCalculating}
@@ -131,33 +127,26 @@
           <h3>Overlap Visualizations</h3>
         </div>
         <div class="card-content">
-          {#if isStatic}
-            <button
-              type="button"
-              class="image-button"
-              on:click={() => zoomImage('overlap_volcano')}
-            >
-              <img
-                src={visualizations.overlap_volcano}
-                alt="Overlap Volcano Plot"
-              />
-            </button>
-            <button
-              type="button"
-              class="image-button"
-              on:click={() => zoomImage('overlap_pvalue_distribution')}
-            >
-              <img
-                src={visualizations.overlap_pvalue_distribution}
-                alt="Overlap P-value Distribution"
-              />
-            </button>
-          {:else}
-            <InteractiveValcano 
-              {specific_interact}
-              {selectedMethod}
+          <button
+            type="button"
+            class="image-button"
+            on:click={() => zoomImage('overlap_volcano')}
+          >
+            <img
+              src={visualizations.overlap_volcano}
+              alt="Overlap Volcano Plot"
             />
-          {/if}
+          </button>
+          <button
+            type="button"
+            class="image-button"
+            on:click={() => zoomImage('overlap_pvalue_distribution')}
+          >
+            <img
+              src={visualizations.overlap_pvalue_distribution}
+              alt="Overlap P-value Distribution"
+            />
+          </button>
         </div>
       </div>
 
@@ -182,7 +171,7 @@
         </div>
       {/if}
 
-      {#if showDetailedPlots && isStatic}
+      {#if showDetailedPlots}
         {#each ['deseq2', 'aldex2', 'edger', 'maaslin2', 'metagenomeseq'] as method}
           <div class="card">
             <div class="card-header">
@@ -209,7 +198,6 @@
 
     <button
       on:click={() => showDetailedPlots = !showDetailedPlots}
-      disabled={!isStatic}
     >
       {showDetailedPlots ? 'Collapse Details' : 'Show More Details'}
     </button>
@@ -234,7 +222,6 @@
         </button>
       </div>
       <div class="card-content">
-        {#if isStatic}
           {#each [1, 2, 3] as plotNumber}
             <button
               type="button"
@@ -247,12 +234,6 @@
               />
             </button>
           {/each}
-        {:else}
-          <InteractiveValcano 
-            {specific_interact}
-            {selectedMethod}
-          />
-        {/if}
       </div>
     </div>
   {/if}
@@ -301,7 +282,7 @@
     margin-bottom: 1rem;
   }
 
-  .view-toggle {
+  /* .view-toggle {
     display: flex;
   }
 
@@ -325,7 +306,7 @@
 
   .view-toggle button.activeToggle:hover {
     background-color: #0073ee;
-  }
+  } */
 
   .card-container {
     display: flex;
