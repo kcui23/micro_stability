@@ -1077,13 +1077,12 @@
       {handleFileChange} 
       {handleGroupingsChange} 
       {updatePreVars}
-      bind:asvFiles
-      bind:groupingsFile
-      bind:startMethod
       {DataPerturbationMethods}
       {startApp}
-      {missingMethods}
+      bind:asvFiles
+      bind:groupingsFile
       bind:showStartPage
+      bind:missingMethods
     />
   {/if}
 

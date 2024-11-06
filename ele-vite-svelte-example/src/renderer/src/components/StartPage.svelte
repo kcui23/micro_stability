@@ -9,11 +9,11 @@
   export let updatePreVars;
   export let asvFiles;
   export let groupingsFile;
-  export let startMethod;
   export let startApp;
   export let DataPerturbationMethods;
   export let missingMethods;
   export let showStartPage;
+  let startSelectedMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
 
   const sections = [
     {
@@ -53,6 +53,7 @@
 
   async function handleSubmit() {
     isSubmitting = true;
+    missingMethods = startSelectedMethods;
     startApp();
     setTimeout(() => {
       isSubmitting = false;
@@ -61,8 +62,10 @@
   }
 
   $: progress = missingMethods ? 
-    ((DataPerturbationMethods.length - missingMethods.length ) / DataPerturbationMethods.length) * 100 : 
+    ((startSelectedMethods.length - missingMethods.length ) / startSelectedMethods.length) * 100 : 
     0;
+
+  let isOpen = false;
 </script>
 
 <style>
@@ -227,18 +230,6 @@
     white-space: nowrap;
   }
 
-  .step-2 select {
-    flex: 0 0 auto;
-    width: 100px;
-    max-width: 100px;
-      margin-left: 10px;
-      padding: 5px;
-    font-size: 1rem;
-    border-radius: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
 .multiverse-column {
     background: #f8f8f8;
     padding: 20px;
@@ -360,6 +351,86 @@
     color: #666;
     min-width: 48px;
   }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown-button {
+    height: 30px;
+    margin-top: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    min-width: 200px;
+    text-align: left;
+  }
+
+  .dropdown-button:hover {
+    background-color: #e2e8ef;
+  }
+
+  .dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    margin-top: 4px;
+    min-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .checkbox-group {
+    padding: 8px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-label:hover {
+    background-color: #f5f5f5;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
 </style>
 
 <div class="start-page">
@@ -379,12 +450,36 @@
         </div>
 
         <div class="step-2">
-          <p><strong>Step 2:</strong> Choose a method you like to start: </p>
-          <select bind:value={startMethod}>
-            {#each DataPerturbationMethods as method}
-              <option value={method}>{method}</option>
-            {/each}
-          </select>
+          <p><strong>Step 2:</strong> Choose methods you like to start: </p>
+          <div class="dropdown">
+            <button class="dropdown-button" on:click|preventDefault={() => isOpen = !isOpen}>
+              Select Methods ({startSelectedMethods.length} selected) ▼
+            </button>
+            
+            {#if isOpen}
+              <div class="dropdown-content" transition:slide|local={{ duration: 200 }}>
+                <div class="checkbox-group">
+                  {#each DataPerturbationMethods as method}
+                    <label class="checkbox-label">
+                      <input
+                        type="checkbox"
+                        value={method}
+                        checked={startSelectedMethods.includes(method)}
+                        on:change={(e) => {
+                          if (e.target.checked) {
+                            startSelectedMethods = [...startSelectedMethods, method];
+                          } else {
+                            startSelectedMethods = startSelectedMethods.filter(m => m !== method);
+                          }
+                        }}
+                      />
+                      {method}
+                    </label>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
         <div class="submit-section">
