@@ -6,7 +6,8 @@
     stepStatus, 
     selectedOperations,
     singleSelectOperations,
-    params
+    params,
+    StabilityMetricCalFinished
   } from './store.js';
   $: console.log("startMethod in MainPage.svelte:", startMethod);
   import D3Tree from './components/D3Tree.svelte';
@@ -100,10 +101,10 @@
         console.log("missingMethods:", missingMethods);
         console.log("length of missingMethods:", missingMethods.length);
         if (missingMethods.length === 0) {
-          showStartPage = false;
-          console.log("showStartPage set to false in calculateStabilityMetric");
+          StabilityMetricCalFinished.set(true);
+          console.log("StabilityMetricCalFinished set to true in calculateStabilityMetric");
         }
-        console.log("showStartPage:", showStartPage);
+        console.log("StabilityMetricCalFinished:", StabilityMetricCalFinished);
 
         const result = await response.json();
         return result.message; // Return the success message from the API
@@ -1082,6 +1083,7 @@
       {DataPerturbationMethods}
       {startApp}
       {missingMethods}
+      bind:showStartPage
     />
   {/if}
 

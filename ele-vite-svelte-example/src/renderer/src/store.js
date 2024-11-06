@@ -65,3 +65,4 @@ export const autoLoaded = writable(false);
 export const params = writable({});
 export const currentHighlightedPath = writable([]);
 export const fileUploaded = writable(false);
+export const StabilityMetricCalFinished = writable(false);

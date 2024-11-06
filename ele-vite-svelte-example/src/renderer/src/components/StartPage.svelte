@@ -2,7 +2,7 @@
   import FileUploader from './FileUploader.svelte';
   import { quintOut } from 'svelte/easing';
   import { slide } from 'svelte/transition';
-  import { fileUploaded } from '../store.js';
+  import { fileUploaded, StabilityMetricCalFinished } from '../store.js';
 
   export let handleFileChange;
   export let handleGroupingsChange;
@@ -13,6 +13,7 @@
   export let startApp;
   export let DataPerturbationMethods;
   export let missingMethods;
+  export let showStartPage;
 
   const sections = [
     {
@@ -65,7 +66,6 @@
 </script>
 
 <style>
-  /* Start Page Styles */
   .start-page {
     position: fixed;
     top: 0;
@@ -108,6 +108,7 @@
     flex: 0 0 30%;
     max-height: 400px;
     overflow-y: hidden;
+    margin-left: 10px;
   }
 
   .start-page-content p {
@@ -158,10 +159,39 @@
     animation: loading 1.5s infinite;
   }
 
+  .submit-button:not(:disabled):hover {
+    background-color: #e2e8ef;
+  }
+
+  .submit-button:not(:disabled):active {
+    background-color: #b6c2ce;
+  }
+
   @keyframes loading {
     100% {
       left: 100%;
     }
+  }
+
+  .go-to-main-page-button {
+    position: relative;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    width: 155px;
+    height: 40px;
+    font-size: 1.1rem;
+    margin-top: 25px;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .go-to-main-page-button:hover {
+    background-color: #e2e8ef;
+  }
+
+  .go-to-main-page-button:active {
+    background-color: #b6c2ce;
   }
 
   .step-1-upload-section {
@@ -299,7 +329,7 @@
   .submit-section {
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: 20px;
     margin-top: 25px;
   }
 
@@ -381,6 +411,15 @@
               </div>
               <span class="progress-text">{Math.round(progress)}%</span>
             </div>
+          {/if}
+          
+          {#if $StabilityMetricCalFinished}
+            <button 
+              class="go-to-main-page-button"
+              on:click={() => showStartPage = false}
+            >
+              Go to Main Page
+            </button>
           {/if}
         </div>
       </div>
