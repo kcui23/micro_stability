@@ -1,30 +1,39 @@
 <script>
   import { onMount } from 'svelte';
   import Plotly from 'plotly.js-dist-min';
-  import { selectedPoints } from '../store.js';
+  import { selectedPoints, currentHighlightedPath } from '../store.js';
 
-  export let specific_interact
-  export let selectedMethod
+  export let specific_interact;
+  export let selectedMethod;
   let plotDiv;
 
   onMount(async () => {
     try {
-      const response = await fetch(`http://localhost:8000/get_overlap_combined_results?specific_interact=${specific_interact}&selectedMethod=${selectedMethod}`);
+      const response = await fetch(`http://localhost:8000/get_overlap_combined_results?specific_interact=${specific_interact}&selectedMethod=${selectedMethod}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ path: $currentHighlightedPath })
+        }
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }
-      const tsvData = await response.text();
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      // Parse TSV data
-      const rows = tsvData.trim().split('\n').map(row => row.split('\t'));
-      const headers = rows[0];
-      const values = rows.slice(1);
-
-      const asvNames = values.map(row => row[headers.indexOf('asv_name')]);
-      const log2FoldChanges = values.map(row => parseFloat(row[headers.indexOf('log2FoldChange')]));
-      const negLog10Pvalues = values.map(row => -Math.log10(parseFloat(row[headers.indexOf('pvalue')])));
-      const significantValues = values.map(row => parseFloat(row[headers.indexOf('pvalue')]) < 0.05 ? 'Significant' : 'Not Significant');
-      const methods = values.map(row => row[headers.indexOf('method')]);
+      // Extract arrays from the JSON data
+      const asvNames = data.asv_name;
+      const log2FoldChanges = data.log2FoldChange.map(val => parseFloat(val));
+      const pvalues = data.pvalue.map(val => parseFloat(val));
+      const negLog10Pvalues = pvalues.map(p => -Math.log10(p));
+      const significantValues = pvalues.map(p => p < 0.05 ? 'Significant' : 'Not Significant');
+      const methods = data.method || Array(asvNames.length).fill(selectedMethod);
 
       const trace = {
         x: log2FoldChanges,
@@ -56,37 +65,34 @@
       };
 
       const layout = {
-        title: 'Volcano plot overlap',
+        title: specific_interact ? `${selectedMethod} Volcano Plot` : 'Volcano Plot Overlap',
         xaxis: { title: 'log2FoldChange' },
         yaxis: { title: '-log10(pvalue)' },
         showlegend: false,
         hovermode: 'closest'
       };
 
-      // draw the plot
+      // Draw the plot
       Plotly.newPlot(plotDiv, [trace], layout, { responsive: true });
 
-      // add click event listener
+      // Add click event listener
       plotDiv.on('plotly_click', function(data) {
-        // get the point that was clicked
         const point = data.points[0];
-        console.log('Clicked point:', point);
-        console.log('x:', point.x);
-        console.log('y:', point.y);
-        console.log('ASV Name:', point.text);
+        selectedPoints.update(points => {
+          const newPoints = [...points, { 
+            name: point.text,
+            x: point.x,
+            y: point.y,
+            method: methods[asvNames.indexOf(point.text)]
+          }];
+          console.log("Updated selectedPoints:", newPoints);
+          return newPoints;
+        });
       });
+
     } catch (error) {
       console.error('Error fetching or plotting data:', error);
     }
-    
-    plotDiv.on('plotly_click', function(data) {
-      const point = data.points[0];
-      selectedPoints.update(points => {
-        const newPoints = [...points, { name: point.text }];
-        console.log("Updated selectedPoints:", newPoints)
-        return newPoints;
-      });
-    });
   });
 </script>
 

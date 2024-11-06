@@ -1,6 +1,10 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { scale } from 'svelte/transition';
+  import InteractiveValcano from './InteractiveValcano.svelte';
+
+  export let selectedMethod;
+  
   const dispatch = createEventDispatcher();
 
   function closePage() {
@@ -34,7 +38,9 @@
       aria-label="Close page">×</div>
     <div class="page-content">
       <div class="left-section">
-        <div class="graph-placeholder"></div>
+        <div class="graph-placeholder">
+            <InteractiveValcano {selectedMethod} specific_interact=true />
+        </div>
       </div>
       <div class="right-section">
         <div class="content-placeholder"></div>

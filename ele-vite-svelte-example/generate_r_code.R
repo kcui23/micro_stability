@@ -140,6 +140,11 @@ vis_deseq2 <- "deseq2_results <- result_data
   # Visualization 1: Volcano plot of log2FoldChange vs. -log10(pvalue)
 deseq2_results$log10pvalue <- -log10(deseq2_results$pvalue)
 deseq2_results$point_size <- ifelse(deseq2_results$pvalue < 0.05, 2, 1)
+  
+# Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- deseq2_results %>%
+    dplyr::select(asv_name, log2FoldChange, pvalue) %>%
+    mutate(method = 'DESeq2')
 
 p1 <- ggplot(deseq2_results, aes(x = log2FoldChange, y = log10pvalue)) +
     geom_point(aes(color = pvalue < 0.05, size=point_size)) +
@@ -209,6 +214,11 @@ vis_aldex2 <- "aldex2_results <- result_data
   alog <- aldex2_results %>%
     mutate(neg_log10_pvalue = -log10(we.eBH),
            point_size = ifelse(we.eBH < 0.05, 3, 1))
+  
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- alog %>%
+    dplyr::select(asv_name, effect, we.eBH) %>%
+    mutate(method = 'ALDEx2', log2FoldChange = effect, pvalue = we.eBH)
   
   p1 <- ggplot(alog, aes(x = effect, y = neg_log10_pvalue)) +
     geom_point(aes(color = we.eBH < 0.05, size=point_size)) +  # Coloring significant points
@@ -284,6 +294,11 @@ vis_edger <- "edgeR_results <- result_data
   edgeR_results <- edgeR_results %>%
     mutate(neg_log10_pvalue = -log10(PValue),
            point_size = ifelse(FDR < 0.05, 3, 1))
+
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- edgeR_results %>%
+    dplyr::select(asv_name, logFC, PValue) %>%
+    mutate(method = 'edgeR', log2FoldChange = logFC, pvalue = PValue)
   
   p1 <- ggplot(edgeR_results, aes(x = logFC, y = neg_log10_pvalue)) +
     geom_point(aes(color = FDR < 0.05, size=point_size)) +  # Coloring significant points
@@ -333,6 +348,11 @@ vis_maaslin2 <- "maaslin2_results <- result_data
   maaslin2_results <- maaslin2_results %>%
     mutate(neg_log10_pvalue = -log10(pval),
            point_size = ifelse(qval < 0.05, 3, 1))
+  
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- maaslin2_results %>%
+    dplyr::select(asv_name, coef, pval) %>%
+    mutate(method = 'Maaslin2', log2FoldChange = coef, pvalue = pval)
   
   p1 <- ggplot(maaslin2_results, aes(x = coef, y = neg_log10_pvalue)) +
     geom_point(aes(color = qval < 0.05, size=point_size)) +
@@ -387,6 +407,11 @@ vis_metagenomeseq <- "metagenomeSeq_results <- result_data
 # Visualization 1: Volcano plot of logFC vs. -log10(pvalue)
   metagenomeSeq_results$log10pvalue <- -log10(metagenomeSeq_results$pvalues)
   metagenomeSeq_results$point_size <- ifelse(metagenomeSeq_results$pvalues < 0.05, 2, 1)
+
+  # Save data for drawing p1 to the persistent directory
+  volcano_plot_data <- metagenomeSeq_results %>%
+    dplyr::select(asv_name, logFC, pvalues) %>%
+    mutate(method = 'metagenomeSeq', log2FoldChange = logFC, pvalue = pvalues)
   
   p1 <- ggplot(metagenomeSeq_results, aes(x = logFC, y = log10pvalue)) +
     geom_point(aes(color = pvalues < 0.05, size = point_size)) +
@@ -477,9 +502,8 @@ generate_cartesian_product <- function(operations) {
     normalization <- operations$Normalization
     transformation <- operations$Transformation
     model_perturbation <- operations$`Model Perturbation`
-    stability_metric <- operations$`Stability Metric`
 
-    lists <- list(filtering, zero_handling, normalization, transformation, model_perturbation, stability_metric)
+    lists <- list(filtering, zero_handling, normalization, transformation, model_perturbation)
     cartesian_product <- expand.grid(lists)
     cartesian_strings_tidyr <- apply(cartesian_product, 1, paste, collapse = "_")
     return(cartesian_strings_tidyr)
@@ -492,7 +516,6 @@ generate_r_code_for_each_combination <- function(cartesian_string, parameters, c
     normalization <- split_string[3]
     transformation <- split_string[4]
     model_perturbation <- split_string[5]
-    stability_metric <- split_string[6]
 
     threshold <- switch(filtering,
         'Low Abundance Filtering' = parameters[['Low Abundance Filtering']],

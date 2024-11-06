@@ -166,23 +166,46 @@ function() {
 }
 
 #* Get overlap combined results
-#* @get /get_overlap_combined_results
-#* @serializer contentType list(type="text/tab-separated-values")
+#* @post /get_overlap_combined_results
+#* @serializer json
 function(req, res, specific_interact, selectedMethod) {
-  if (specific_interact) {
-    file_path <- safe_file_path(persistent_temp_dir, paste0(selectedMethod, "_volcano_plot_data.tsv"))
-  } else {
-    file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
-  }
-  if (!file.exists(file_path)) {
-    res$status <- 404
-    return(list(error = "Overlap combined results file not found"))
-  }
-  file_content <- readLines(file_path)
-  
-  res$body <- paste(file_content, collapse = "\n")
-  res$headers$`Content-Disposition` <- "attachment; filename=overlap_combined_results.tsv"
-  res
+  tryCatch({
+    body <- fromJSON(req$postBody)
+    path_array <- body$path
+    path_string <- paste(path_array, collapse = "_")
+    message(crayon::green$bold("path_string: "), path_string)
+    if (specific_interact) {
+      message("========================")
+      message("Selected method: ", selectedMethod)
+      pattern <- paste0("^", path_string, ".*_volcano_plot_data\\.tsv$")
+      matching_files <- list.files(persistent_temp_dir, pattern = pattern, full.names = TRUE)
+      
+      if (length(matching_files) == 0) {
+        return(list(error = "Volcano plot data file not found"))
+      }
+      file_path <- matching_files[1]  # Take the first match if multiple exist
+      message("File path: ", file_path)
+      
+      if (!file.exists(file_path)) {
+        return(list(error = "Volcano plot data file not found"))
+      }
+      
+      # Read and return the data as JSON instead of TSV
+      volcano_data <- read_tsv(file_path, show_col_types = FALSE)
+      return(as.list(volcano_data))
+    } else {
+      file_path <- safe_file_path(persistent_temp_dir, "overlap_combined_results.tsv")
+      if (!file.exists(file_path)) {
+        return(list(error = "Overlap combined results file not found"))
+      }
+      
+      overlap_data <- read_tsv(file_path, show_col_types = FALSE)
+      return(as.list(overlap_data))
+    }
+  }, error = function(e) {
+    message("Error in get_overlap_combined_results: ", e$message)
+    return(list(error = paste("Error reading data:", e$message)))
+  })
 }
 
 #* Upload dataset and select processing method
@@ -1150,7 +1173,12 @@ function(req, res) {
         suppressWarnings(suppressMessages(source(r_path, local = env)))
         tmp_file_name <- substr(basename(r_path), 1, nchar(basename(r_path)) - 2)
         tmp_tsv_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_results.tsv'))
+        tmp_volcano_path <- file.path(persistent_temp_dir, paste0(tmp_file_name, '_volcano_plot_data.tsv'))
+        message("tmp_volcano_path:")
+        message(tmp_volcano_path)
         write_tsv(env$result_data, tmp_tsv_path)
+        write_tsv(env$volcano_plot_data, tmp_volcano_path)
+        message(crayon::blue$bold("saved volcano_plot_data"))
 
         result_plots <- list(env$p1, env$p2, env$p3)
         for (i in 1:length(result_plots)) {

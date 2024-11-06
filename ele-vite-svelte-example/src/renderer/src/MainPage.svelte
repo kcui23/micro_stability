@@ -1133,6 +1133,8 @@
       currentStep={currentStep} 
       setCurrentStep={goToStep}
       on:pathChange={handlePathChangeFromSidebar}
+      {selectedMethod}
+      {scatterPlotClicked}
     />
   </div>
 
