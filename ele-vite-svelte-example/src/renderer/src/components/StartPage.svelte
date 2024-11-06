@@ -12,6 +12,7 @@
   export let startMethod;
   export let startApp;
   export let DataPerturbationMethods;
+  export let missingMethods;
 
   const sections = [
     {
@@ -44,6 +45,18 @@
   function toggleSection(title) {
     openSections[title] = !openSections[title];
     openSections = openSections; // Trigger reactivity
+  }
+
+  let isSubmitting = false;
+  let isSubmitted = false;
+
+  async function handleSubmit() {
+    isSubmitting = true;
+    startApp();
+    setTimeout(() => {
+      isSubmitting = false;
+      isSubmitted = true;
+    }, 2000);
   }
 </script>
 
@@ -101,6 +114,8 @@
   }
 
   .submit-button {
+    position: relative;
+    overflow: hidden;
     background-color: #f0f0f0;
     width: 120px;
     height: 40px;
@@ -108,14 +123,41 @@
     margin: 25px 8px 0;
     border: none;
     border-radius: 4px;
-    transition: background-color 0.1s ease;
+    transition: all 0.3s ease;
   }
 
-  .submit-button:hover {
-    background-color: #e2e8ef;
+  .submit-button.submitting {
+    background-color: #4CAF50;
+    color: white;
+    cursor: wait;
   }
-  .submit-button:not([disabled]):active {
-    background-color: #b6c2ce;
+
+  .submit-button.submitted {
+    background-color: #45a049;
+    color: white;
+    cursor: default;
+  }
+
+  .submit-button.submitting::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    100% {
+      left: 100%;
+    }
   }
 
   .step-1-upload-section {
@@ -277,8 +319,20 @@
           </select>
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
-        <button on:click={startApp} class="submit-button" data-content="Submit Job" disabled={!$fileUploaded}>
-          Submit Job
+        <button 
+          on:click={handleSubmit} 
+          class="submit-button" 
+          class:submitting={isSubmitting}
+          class:submitted={isSubmitted}
+          disabled={!$fileUploaded || isSubmitting || isSubmitted}
+        >
+          {#if isSubmitting}
+            Submitting...
+          {:else if isSubmitted}
+            Submitted!
+          {:else}
+            Submit Job
+          {/if}
         </button>
       </div>
       <div class="right-column">

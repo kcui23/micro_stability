@@ -916,9 +916,9 @@
       calculateStabilityMetric(method, missingMethods);
     }
   }
-  function startAppSkip() {
-    showStartPage = false;
-  }
+  // function startAppSkip() {
+  //   showStartPage = false;
+  // }
 </script>
 
 <style>
@@ -1082,6 +1082,7 @@
       bind:startMethod
       {DataPerturbationMethods}
       {startApp}
+      {missingMethods}
     />
   {/if}
 
