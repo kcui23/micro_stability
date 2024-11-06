@@ -1077,7 +1077,6 @@
       {handleFileChange} 
       {handleGroupingsChange} 
       {updatePreVars}
-      {DataPerturbationMethods}
       {startApp}
       bind:asvFiles
       bind:groupingsFile

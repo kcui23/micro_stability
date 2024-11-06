@@ -1,4 +1,5 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
   import FileUploader from './FileUploader.svelte';
   import { quintOut } from 'svelte/easing';
   import { slide } from 'svelte/transition';
@@ -10,10 +11,10 @@
   export let asvFiles;
   export let groupingsFile;
   export let startApp;
-  export let DataPerturbationMethods;
   export let missingMethods;
   export let showStartPage;
   let startSelectedMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
+  let DataPerturbationMethods = ['DESeq2', 'EdgeR', 'Maaslin2', 'Aldex2', 'MetagenomeSeq'];
 
   const sections = [
     {
@@ -66,6 +67,21 @@
     0;
 
   let isOpen = false;
+
+  function handleClickOutside(event) {
+    const dropdown = document.querySelector('.dropdown');
+    if (dropdown && !dropdown.contains(event.target)) {
+      isOpen = false;
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleClickOutside);
+  });
+
+  onDestroy(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
 </script>
 
 <style>
