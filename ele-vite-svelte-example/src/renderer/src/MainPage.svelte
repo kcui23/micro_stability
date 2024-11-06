@@ -908,9 +908,8 @@
   // Function to Hide Start Page
   function startApp() {
     calculateStabilityMetric(1,1,true); // set all data points to 0,0
+    tmp_missingMethods = missingMethods.filter(m => m !== startMethod);
     calculateStabilityMetric(startMethod, missingMethods); // start with the first method selected from start page
-    missingMethods = missingMethods.filter(m => m !== startMethod);
-    tmp_missingMethods = missingMethods;
     // commented for test
     for (let method of tmp_missingMethods) {
       calculateStabilityMetric(method, missingMethods);

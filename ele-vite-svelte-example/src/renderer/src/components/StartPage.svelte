@@ -58,6 +58,10 @@
       isSubmitted = true;
     }, 2000);
   }
+
+  $: progress = missingMethods ? 
+    ((DataPerturbationMethods.length - missingMethods.length ) / DataPerturbationMethods.length) * 100 : 
+    0;
 </script>
 
 <style>
@@ -292,6 +296,40 @@
     color: #444;
   }
 
+  .submit-section {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-top: 25px;
+  }
+
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+    margin-left: 15px;
+  }
+
+  .progress-container {
+    width: 400px;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    font-size: 1.1rem;
+    color: #666;
+    min-width: 48px;
+  }
 </style>
 
 <div class="start-page">
@@ -319,21 +357,32 @@
           </select>
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
-        <button 
-          on:click={handleSubmit} 
-          class="submit-button" 
-          class:submitting={isSubmitting}
-          class:submitted={isSubmitted}
-          disabled={!$fileUploaded || isSubmitting || isSubmitted}
-        >
-          {#if isSubmitting}
-            Submitting...
-          {:else if isSubmitted}
-            Submitted!
-          {:else}
-            Submit Job
+        <div class="submit-section">
+          <button 
+            on:click={handleSubmit} 
+            class="submit-button" 
+            class:submitting={isSubmitting}
+            class:submitted={isSubmitted}
+            disabled={!$fileUploaded || isSubmitting || isSubmitted}
+          >
+            {#if isSubmitting}
+              Submitting...
+            {:else if isSubmitted}
+              Submitted!
+            {:else}
+              Submit Job
+            {/if}
+          </button>
+          
+          {#if isSubmitted}
+            <div class="progress-section">
+              <div class="progress-container">
+                <div class="progress-bar" style="width: {progress}%"></div>
+              </div>
+              <span class="progress-text">{Math.round(progress)}%</span>
+            </div>
           {/if}
-        </button>
+        </div>
       </div>
       <div class="right-column">
         <div class="multiverse-column">
