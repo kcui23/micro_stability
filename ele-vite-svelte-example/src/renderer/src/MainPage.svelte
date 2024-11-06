@@ -1074,7 +1074,6 @@
       bind:startMethod
       {DataPerturbationMethods}
       {startApp}
-      {startAppSkip}
     />
   {/if}
 

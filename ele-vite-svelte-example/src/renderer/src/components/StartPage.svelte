@@ -1,5 +1,7 @@
 <script>
   import FileUploader from './FileUploader.svelte';
+  import { quintOut } from 'svelte/easing';
+  import { slide } from 'svelte/transition';
 
   export let handleFileChange;
   export let handleGroupingsChange;
@@ -8,8 +10,40 @@
   export let groupingsFile;
   export let startMethod;
   export let startApp;
-  export let startAppSkip;
   export let DataPerturbationMethods;
+
+  const sections = [
+    {
+      title: 'Filtering',
+      items: ['Low Abundance', 'Prevalence', 'Variance', 'No Filtering']
+    },
+    {
+      title: 'Zero-Handling',
+      items: ['Pseudocount Addition', 'k-NN Imputation', 'No Zero-Handling']
+    },
+    {
+      title: 'Normalization',
+      items: ['TSS', 'CSS', 'TMM', 'CLR', 'No Normalization']
+    },
+    {
+      title: 'Transformation',
+      items: ['Log', 'Logit', 'AST', 'No Transformation']
+    },
+    {
+      title: 'Model Perturbation',
+      items: ['DESeq2', 'EdgeR', 'Maaslin2', 'Aldex2', 'MetagenomeSeq']
+    }
+  ];
+
+  let openSections = {};
+  sections.forEach(section => {
+    openSections[section.title] = false;
+  });
+
+  function toggleSection(title) {
+    openSections[title] = !openSections[title];
+    openSections = openSections; // Trigger reactivity
+  }
 </script>
 
 <style>
@@ -188,6 +222,60 @@
     color: #444;
   }
 
+  .details-wrapper {
+    margin-bottom: 8px;
+  }
+
+  .summary-button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: color 0.2s ease;
+  }
+
+  .summary-button:hover {
+    color: #333;
+  }
+
+  .arrow {
+    transition: transform 0.3s ease;
+    font-size: 0.8em;
+  }
+
+  .arrow.open {
+    transform: rotate(180deg);
+  }
+
+  .content {
+    padding: 0 12px;
+  }
+
+  .content ul {
+    list-style: none;
+    padding-left: 10px;
+    margin: 8px 0;
+  }
+
+  .content li {
+    color: #666;
+    padding: 4px 0;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+  }
+
+  .content li:hover {
+    color: #444;
+  }
+
 </style>
 
 <div class="start-page">
@@ -223,57 +311,32 @@
         <div class="multiverse-column">
           <h3>Explore the Multiverse</h3>
           
-          <details>
-              <summary>Filtering</summary>
-              <ul>
-                  <li>Low Abundance</li>
-                  <li>Prevalence</li>
-                  <li>Variance</li>
-                  <li>No Filtering</li>
-              </ul>
-          </details>
-      
-          <details>
-              <summary>Zero-Handling</summary>
-              <ul>
-                  <li>Pseudocount Addition</li>
-                  <li>k-NN Imputation</li>
-                  <li>No Zero-Handling</li>
-              </ul>
-          </details>
-      
-          <details>
-              <summary>Normalization</summary>
-              <ul>
-                  <li>TSS</li>
-                  <li>CSS</li>
-                  <li>TMM</li>
-                  <li>CLR</li>
-                  <li>No Normalization</li>
-              </ul>
-          </details>
-      
-          <details>
-              <summary>Transformation</summary>
-              <ul>
-                  <li>Log</li>
-                  <li>Logit</li>
-                  <li>AST</li>
-                  <li>No Transformation</li>
-              </ul>
-          </details>
-      
-          <details>
-              <summary>Model Perturbation</summary>
-              <ul>
-                  <li>DESeq2</li>
-                  <li>EdgeR</li>
-                  <li>Maaslin2</li>
-                  <li>Aldex2</li>
-                  <li>MetagenomeSeq</li>
-              </ul>
-          </details>
-      </div>
+          {#each sections as section}
+            <div class="details-wrapper">
+              <button 
+                class="summary-button" 
+                class:open={openSections[section.title]}
+                on:click={() => toggleSection(section.title)}
+              >
+                {section.title}
+                <span class="arrow" class:open={openSections[section.title]}>▼</span>
+              </button>
+              
+              {#if openSections[section.title]}
+                <div
+                  class="content"
+                  transition:slide|local={{ duration: 300, easing: quintOut }}
+                >
+                  <ul>
+                    {#each section.items as item}
+                      <li>{item}</li>
+                    {/each}
+                  </ul>
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
       
       
       </div>
