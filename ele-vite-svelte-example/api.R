@@ -1137,6 +1137,7 @@ function(req, res) {
         file.copy(r_path, download_path, overwrite = TRUE)
       } else if (length(matching_files) > 1) {
         message("length(matching_files) > 1")
+        print(matching_files)
         r_path <- matching_files[1]
       } else {
         message("length(matching_files) == 0")

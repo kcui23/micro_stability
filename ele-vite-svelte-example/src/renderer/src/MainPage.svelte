@@ -201,7 +201,7 @@
     }
   }
 
-  const steps = ['Raw data', 'Filtering', 'Zero-Handling', 'Normalization', 'Transformation', 'Model Perturbation', 'Stability Metric'];
+  const steps = ['Raw data', 'Filtering', 'Zero-Handling', 'Normalization', 'Transformation', 'Model Perturbation'];
 
   const previewFileContent = (fileContent) => {
     const rows = fileContent.split('\n').slice(0, 5);
@@ -729,25 +729,25 @@
     });
 
     // deal with single select and multi-select in 'Stability Metric' step
-    selectedOperations.update((selections) => {
-      // these 6 and 7 are the 'Stability Metric' step
-      const isSingleSelect = $singleSelectOperations['Stability Metric'] && $singleSelectOperations['Stability Metric'].includes(path[6]);
-      if (isSingleSelect) {
-        const existingSingleSelect = $singleSelectOperations['Stability Metric'].find(op => selections['Stability Metric'].includes(op));
-        if (existingSingleSelect) {
-          selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== existingSingleSelect);
-        }
-        selections['Stability Metric'].push(path[6]);
-      } else {
-        if (selections['Stability Metric'].includes(path[6])) {
-          selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== path[6]);
-        } else {
-          selections['Stability Metric'] = [...selections['Stability Metric'], path[6]];
-        }
-      }
+    // selectedOperations.update((selections) => {
+    //   // these 6 and 7 are the 'Stability Metric' step
+    //   const isSingleSelect = $singleSelectOperations['Stability Metric'] && $singleSelectOperations['Stability Metric'].includes(path[6]);
+    //   if (isSingleSelect) {
+    //     const existingSingleSelect = $singleSelectOperations['Stability Metric'].find(op => selections['Stability Metric'].includes(op));
+    //     if (existingSingleSelect) {
+    //       selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== existingSingleSelect);
+    //     }
+    //     selections['Stability Metric'].push(path[6]);
+    //   } else {
+    //     if (selections['Stability Metric'].includes(path[6])) {
+    //       selections['Stability Metric'] = selections['Stability Metric'].filter(op => op !== path[6]);
+    //     } else {
+    //       selections['Stability Metric'] = [...selections['Stability Metric'], path[6]];
+    //     }
+    //   }
 
-      return selections;
-    });
+    //   return selections;
+    // });
   }
 
   function highlightPoint(path, parent_func='') {
@@ -783,7 +783,7 @@
       path[3] = data[steps[3]][0]
       path[4] = data[steps[4]][0]
       path[5] = data[steps[5]][0]
-      path[6] = data[steps[6]][0]
+      // path[6] = data[steps[6]][0]
       // Update d3 tree
       currentPath.set(path);
       if (d3TreeComponent) {
@@ -934,7 +934,7 @@
     margin: 20px 0;
   }
 
-  .method-file-status {
+  /* .method-file-status {
     margin-top: 20px;
   }
 
@@ -987,7 +987,7 @@
     }
     .input-group input {
       width: 60px;
-    }
+    } */
 
     img {
       max-width: 100%;
@@ -1355,6 +1355,8 @@
         {/if}
 
       </div>
+
+    <!--
     {:else if currentStep === 'Stability Metric'}
       <div key='stability-metric' in:fade class="step-content" class:active={currentStep === 'Stability Metric'}>
         <h2>Stability Metric</h2>
@@ -1418,7 +1420,7 @@
         {/if}
 
         {#if $selectedOperations['Stability Metric']?.includes('View Stability Plot')}
-          <!-- Stability Plot Viewing UI -->
+        [COMMENT_START] Stability Plot Viewing UI [COMMENT_END]
           {#if stabilityPlot}
             <div class="stability-plot">
               <h3>Stability Plot</h3>
@@ -1427,7 +1429,7 @@
           {/if}
         {/if}
         {#if $selectedOperations['Stability Metric']?.includes('Run Shuffled Analysis')}
-          <!-- Shuffled Analysis UI -->
+          [COMMENT_START] Shuffled Analysis UI [COMMENT_END]
           <h3>Shuffled Analysis</h3>
 
           <div class="input-group">
@@ -1485,6 +1487,8 @@
         
       </div>
     </div>
+    -->
+    {/if}
 
     <VisualizationSection
       {visualizations} 
