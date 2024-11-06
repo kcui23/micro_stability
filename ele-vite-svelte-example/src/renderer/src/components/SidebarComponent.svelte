@@ -10,6 +10,7 @@
     crossStepMutuallyExclusiveOptions
   } from '../store.js';
   import { fade, slide } from 'svelte/transition';
+  import SelectASVsPage from './SelectASVsPage.svelte';
 
   export let steps;
   export let currentStep;
@@ -179,6 +180,14 @@
       return menus;
     });
   });
+
+  // Add new state variable
+  let showASVsPage = false;
+
+  // Modify the function
+  function selectASVsfun() {
+    showASVsPage = true;
+  }
 </script>
 
 <div class="adg-container">
@@ -260,7 +269,7 @@
     {/each}
   </div>
   <div class="button-group">
-    <button class="sidebar-button" on:click={() => downloadCodes()}>
+    <button class="sidebar-button" on:click={downloadCodes}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="3"></path>
         <polyline points="7 10 12 15 17 10" stroke-width="2" color="#a3a3a3"></polyline>
@@ -268,7 +277,7 @@
       </svg>
       Download codes
     </button>
-    <button class="sidebar-button">
+    <button class="sidebar-button" on:click={selectASVsfun}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke-width="3"/>
       </svg>
@@ -276,6 +285,11 @@
     </button>
   </div>
 </div>
+
+<!-- Add this just before the closing </div> of adg-container -->
+{#if showASVsPage}
+  <SelectASVsPage on:close={() => showASVsPage = false} />
+{/if}
 
 <style>
   .button-group {
