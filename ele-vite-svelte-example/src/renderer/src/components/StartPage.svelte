@@ -2,6 +2,7 @@
   import FileUploader from './FileUploader.svelte';
   import { quintOut } from 'svelte/easing';
   import { slide } from 'svelte/transition';
+  import { fileUploaded } from '../store.js';
 
   export let handleFileChange;
   export let handleGroupingsChange;
@@ -107,15 +108,13 @@
     margin: 25px 8px 0;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
     transition: background-color 0.1s ease;
   }
-  
+
   .submit-button:hover {
     background-color: #e2e8ef;
   }
-
-  .submit-button:active {
+  .submit-button:not([disabled]):active {
     background-color: #b6c2ce;
   }
 
@@ -278,7 +277,7 @@
           </select>
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
-        <button on:click={startApp} class="submit-button" data-content="Submit Job">
+        <button on:click={startApp} class="submit-button" data-content="Submit Job" disabled={!$fileUploaded}>
           Submit Job
         </button>
       </div>

@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { autoLoaded } from '../store.js';
+  import { autoLoaded, fileUploaded } from '../store.js';
 
   export let handleFileChange;
   export let handleGroupingsChange;
@@ -20,6 +20,7 @@
   }
 
   async function handleASVFileChange(event) {
+    fileUploaded.set(false);
     const file = event.target.files[0];
     if (file) {
       asvFiles = [file];
@@ -29,6 +30,7 @@
   }
 
   async function handleGroupingsFileChange(event) {
+    fileUploaded.set(false);
     const file = event.target.files[0];
     if (file) {
       groupingsFile = file;
@@ -55,6 +57,7 @@
           const result = await response.json();
           console.log('Files stored successfully:', result);
           updatePreVars()
+          fileUploaded.set(true);
           return true;
         } else {
           console.error('Failed to store files');
@@ -98,6 +101,7 @@
         if (uploadSuccess) {
           console.log('Files auto-loaded and uploaded successfully');
           autoLoaded.set(true);
+          fileUploaded.set(true);
           updatePreVars();
         } else {
           console.error('Failed to upload auto-loaded files');
@@ -119,7 +123,7 @@
     <span class="file-label">Upload ASV File:</span>
     <div class="button-group">
       <button type="button" on:click={() => triggerFileInput('fileInput1')}>Choose File</button>
-      <button type="button" class="clear-button" on:click={() => { asvFiles = []; asvContent = ''; }}>Clear</button>
+      <button type="button" class="clear-button" on:click={() => { asvFiles = []; asvContent = ''; fileUploaded.set(false); }}>Clear</button>
     </div>
     <input id="fileInput1" type="file" accept=".tsv" on:change={handleASVFileChange} style="display: none;" />
     <div class="note">Note: Please upload a .tsv file</div>
@@ -131,7 +135,7 @@
     <span class="file-label">Upload Groupings File:</span>
     <div class="button-group">
       <button type="button" on:click={() => triggerFileInput('fileInput2')}>Choose File</button>
-      <button type="button" class="clear-button" on:click={() => { groupingsFile = null; groupingsContent = ''; }}>Clear</button>
+      <button type="button" class="clear-button" on:click={() => { groupingsFile = null; groupingsContent = ''; fileUploaded.set(false); }}>Clear</button>
     </div>
     <input id="fileInput2" type="file" accept=".tsv" on:change={handleGroupingsFileChange} style="display: none;" />
     <div class="note">Note: Please upload a .tsv file</div>
