@@ -500,8 +500,6 @@
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
         <div class="submit-section">
-          <!-- for testing -->
-          <button on:click={() => showStartPage = false}>pass</button>
           <button 
             on:click={handleSubmit} 
             class="submit-button" 
