@@ -1076,9 +1076,9 @@
     font-size: 1.1rem;
   }
 
-  div[key='model-perturbation'] button {
+  /* div[key='model-perturbation'] button {
     margin-left: 5px;
-  }
+  } */
 
   .random-seed {
     margin-top: 20px;
@@ -1131,6 +1131,11 @@
     cursor: default;
     backdrop-filter: blur(2px);
     z-index: 997; /* Just below the ScatterPlot overlay 999 and the scatterplot container 998 */
+  }
+
+  .quick-explore-text {
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
 </style>
 
@@ -1229,6 +1234,12 @@
         {/if}
 
         {#if $selectedOperations['Raw data']?.includes('Quick Explore')}
+          <div class="quick-explore-text">
+            <h2>Quick Explore</h2>
+            <p class="normalization-description">
+              Explore the performence of all methods on the raw data.
+            </p>
+          </div>
           <div class="tooltip">
             <button on:click={handleQuickExplore} disabled={asvFiles.length === 0 || !groupingsFile}>Quick Explore</button>
             <span class="tooltiptext">Upload files to continue</span>
@@ -1298,6 +1309,11 @@
               <button on:click={handleFilter}>Apply Threshold</button>
             </div>
         {/if}
+        {#if $selectedOperations['Filtering']?.includes('No Filtering')}
+          <p class="normalization-description">
+            <strong>No Filtering:</strong> Do not perform filtering.
+          </p>
+        {/if}
       </div>
 
       {:else if currentStep === 'Zero-Handling'}
@@ -1336,6 +1352,11 @@
             <span>{knn_bound}</span> <br>
             <button on:click={handleZeroHandling}>Apply k-NN Imputation</button>
           </div>
+        {/if}
+        {#if $selectedOperations['Zero-Handling']?.includes('No Zero-Handling')}
+          <p class="normalization-description">
+            <strong>No Zero-Handling:</strong> Do not perform zero-handling.
+          </p>
         {/if}
       </div>
 
@@ -1410,7 +1431,9 @@
             <button on:click={handleTransformation} class="apply-button">Apply AST</button>
           {/if}
           {#if $selectedOperations['Transformation']?.includes('No Transformation')}
-            <strong>No Transformation:</strong> Do not perform transformation.
+            <p class="normalization-description">
+              <strong>No Transformation:</strong> Do not perform transformation.
+            </p>
           {/if}
       </div>
 
@@ -1443,10 +1466,10 @@
           </select>
         </div> -->
 
-        {#if $selectedOperations['Model Perturbation'].length > 0 && asvFiles.length > 0 && groupingsFile && selectedMethod}
+        <!-- {#if $selectedOperations['Model Perturbation'].length > 0 && asvFiles.length > 0 && groupingsFile && selectedMethod}
           <button on:click={handleSubmit}>Submit</button>
           <button on:click={handleDownload} disabled={!selectedMethod || !isSubmitted || isCalculating}>Download</button>
-        {/if}
+        {/if} -->
 
       </div>
 
