@@ -751,7 +751,8 @@
     let allEnabled = Object.values($stepStatus).every(value => value === 'Enabled');;
     
     if (allEnabled) {
-      let path = new Array(7).fill('');
+      const path_length = 6; // 6 steps in the pipeline
+      let path = new Array(path_length).fill('');
       path[0] = steps[0]
       path[1] = data[steps[1]][0]
       // path[2] = data[steps[1]]&&data[steps[1]].length > 0 ? data[steps[1]][0] : data[2]

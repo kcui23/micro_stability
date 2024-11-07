@@ -41,6 +41,13 @@
         const marginLeft = 40;
 
         const root = d3.hierarchy(data);
+
+        root.descendants().forEach(node => {
+            if (Array.isArray(node.data.name)) {
+                node.data.name = node.data.name[0];
+            }
+        });
+
         const dx = 25;
         const dy = (width - marginRight - marginLeft) / (1.5 + root.height);
 
