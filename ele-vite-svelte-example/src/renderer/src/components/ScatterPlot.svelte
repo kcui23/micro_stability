@@ -318,5 +318,6 @@
     color: #333;
     font-size: 1.2em;
     font-weight: bold;
+    text-shadow: 0 0 10px white;
   }
 </style>

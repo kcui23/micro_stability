@@ -57,7 +57,6 @@ function(req, res) {
       
       message("Code directory zipped to: ", zip_file)
       local_path <- file.path("~/Downloads", basename(zip_file))
-      file.copy(zip_file, local_path, overwrite = TRUE)
       message(paste("Downloaded file to:", local_path))
     }, error = function(e) {
       print(paste("Error generating R code:", e$message))
@@ -149,7 +148,14 @@ function(req, res) {
 function(req) {
   body <- fromJSON(req$postBody)
   
+  # First write the raw ASV data to a temporary file
   writeLines(as.character(body$asv), asv_file_path, sep = "\n")
+  
+  # Then read it back, modify, and write again
+  asv_data <- read_tsv(asv_file_path, show_col_types = FALSE)
+  names(asv_data)[1] <- "asv"
+  write_tsv(asv_data, asv_file_path)
+  
   writeLines(as.character(body$groupings), groupings_file_path, sep = "\n")
 
   list(
@@ -1184,9 +1190,6 @@ function(req, res) {
         r_path <- matching_files[1]
         print("r_path:")
         print(r_path)
-        # Download the R script file to user's Downloads directory
-        download_path <- file.path("~/Downloads/cal_codes", basename(r_path))
-        file.copy(r_path, download_path, overwrite = TRUE)
       } else if (length(matching_files) > 1) {
         message("length(matching_files) > 1")
         print(matching_files)
@@ -1221,9 +1224,6 @@ function(req, res) {
         tmp_file_name <- substr(tmp_file_name, 1, nchar(tmp_file_name) - 2) # remove .R
         tmp_file_name <- paste0(tmp_file_name, ".rds")
         saveRDS(env$result_data, file.path(persistent_temp_dir, tmp_file_name))
-        file.copy(file.path(persistent_temp_dir, tmp_file_name),
-                  file.path("~/Downloads/cal_codes", tmp_file_name),
-                  overwrite = TRUE)
 
         sig_asvs <- get_significant_asvs(env$result_data, method)
         is_significant <- as.numeric(all_asvs %in% sig_asvs) # convert to 0-1 vector, length = length(all_asvs)
@@ -1234,11 +1234,6 @@ function(req, res) {
           ))
         current_method_count <- current_method_count + 1
         message(crayon::green$bold(paste("Current method ", method, " count: ", current_method_count)))
-        # if (current_method_count > 2) {
-        #   break
-        # }
-        # for test
-        break
       }, error = function(e) {
         bad_paths <- c(bad_paths, id) # just in case
         print(e$message)
@@ -1246,30 +1241,21 @@ function(req, res) {
     }
 
     saveRDS(methods_sig_vectors, file.path(persistent_temp_dir, "methods_sig_vectors.rds"))
-    file.copy(file.path(persistent_temp_dir, "methods_sig_vectors.rds"),
-              file.path("~/Downloads", "methods_sig_vectors.rds"),
-              overwrite = TRUE)
 
-    # for test
-    # sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
-    # n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
-    # umap_result <- umap(sig_matrix,
-    #                   n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
-    #                   min_dist = 0.1,
-    #                   metric = "hamming",
-    #                   n_components = 2,
-    #                   n_epochs = 200,       # Due to large data size, increase training epochs
-    #                   init = "spectral",    # For large datasets, use spectral initialization
-    #                   verbose = FALSE)       # Show progress
+    sig_matrix <- do.call(rbind, methods_sig_vectors$is_significant)
+    n_neighbors <- as.integer(dim(sig_matrix)[1]/3)+1
+    umap_result <- umap(sig_matrix,
+                      n_neighbors = n_neighbors,     # Due to large data size, use more neighbors
+                      min_dist = 0.1,
+                      metric = "hamming",
+                      n_components = 2,
+                      n_epochs = 200,       # Due to large data size, increase training epochs
+                      init = "spectral",    # For large datasets, use spectral initialization
+                      verbose = FALSE)       # Show progress
 
-    # plot_data <- data.frame(
-    #   x = umap_result[,1],
-    #   y = umap_result[,2],
-    #   leaf_id = methods_sig_vectors$leaf_id
-    # )
     plot_data <- data.frame(
-      x = 1,
-      y = 1,
+      x = umap_result[,1],
+      y = umap_result[,2],
       leaf_id = methods_sig_vectors$leaf_id
     )
 
@@ -1307,9 +1293,9 @@ find_path_from_id <- function(id, tree = tree_data) {
             return(result)
             }
         }
-        }
-        
-        return(NULL)
+      }
+      
+      return(NULL)
     }
     path <- recurse(tree, id, c())
     if (is.null(path)) {

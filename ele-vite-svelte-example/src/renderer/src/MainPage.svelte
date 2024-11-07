@@ -97,12 +97,15 @@
         data_points_updated_counter += 1;
         console.log("Data points updated counter in calculateStabilityMetric:", data_points_updated_counter);
 
-        missingMethods = missingMethods.filter(m => m !== method);
-        console.log("missingMethods:", missingMethods);
-        console.log("length of missingMethods:", missingMethods.length);
-        if (missingMethods.length === 0) {
-          StabilityMetricCalFinished.set(true);
-          console.log("StabilityMetricCalFinished set to true in calculateStabilityMetric");
+        if (!destroy) {
+          missingMethods = missingMethods.filter(m => m !== method);
+          console.log("missingMethods:", missingMethods);
+          console.log("length of missingMethods:", missingMethods.length);
+        
+          if (missingMethods.length === 0) {
+            StabilityMetricCalFinished.set(true);
+            console.log("StabilityMetricCalFinished set to true in calculateStabilityMetric");
+          }
         }
         console.log("StabilityMetricCalFinished:", StabilityMetricCalFinished);
 
@@ -903,10 +906,14 @@
   let tmp_missingMethods = [];
   // Function to Hide Start Page
   function startApp() {
-    calculateStabilityMetric(1,1,true); // set all data points to 0,0
+    // Reset all data points
+    calculateStabilityMetric(startMethod, missingMethods, true);
+    
+    // Calculate for the start method
+    calculateStabilityMetric(startMethod, missingMethods);
+    
+    // Calculate for remaining methods
     tmp_missingMethods = missingMethods.filter(m => m !== startMethod);
-    calculateStabilityMetric(startMethod, missingMethods); // start with the first method selected from start page
-    // commented for test
     for (let method of tmp_missingMethods) {
       calculateStabilityMetric(method, missingMethods);
     }
