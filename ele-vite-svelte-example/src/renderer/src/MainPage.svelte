@@ -923,6 +923,14 @@
       showCheckmark = false;
     }, 1000);
   }
+
+  let showGlobalOverlay = false;
+  
+  $: if (!showStartPage && !scatterPlotClicked) {
+    showGlobalOverlay = true;
+  } else {
+    showGlobalOverlay = false;
+  }
 </script>
 
 <style>
@@ -1109,6 +1117,21 @@
     top: 50%;
     transform: translate(-50%, -50%);
   }
+
+  .global-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(200, 200, 200, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+    backdrop-filter: blur(2px);
+    z-index: 997; /* Just below the ScatterPlot overlay 999 and the scatterplot container 998 */
+  }
 </style>
 
 <div id="app" class="container">
@@ -1124,6 +1147,14 @@
       bind:showStartPage
       bind:missingMethods
     />
+  {/if}
+
+  {#if showGlobalOverlay}
+    <div 
+      class="global-overlay"
+      transition:fade={{ duration: 300 }}
+      role="presentation">
+    </div>
   {/if}
 
   <!-- Sidebar -->

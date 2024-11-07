@@ -5,6 +5,7 @@
     selectedColorStep, 
     scatterPlotColors,
     colorStatus } from '../store.js';
+  import { fade } from 'svelte/transition';
 
   const dispatch = createEventDispatcher();
   let svg;
@@ -12,6 +13,7 @@
   let leafIdDataPoints;
   let selectedPointId = null;
   let gradientId;
+  let overlayVisible = true;
 
   export let data_points_updated_counter;
   export let highlight_point_path;
@@ -217,6 +219,7 @@
   }
 
   function handlePointClick(d) {
+    overlayVisible = false;
     selectedPointId = d.id;
     dispatch('pointClick', { path: d.path });
     highlightPoint(d.path);
@@ -262,20 +265,58 @@
     }
     return points;
   }
+
+  function handleOverlayClick() {
+    overlayVisible = false;
+  }
 </script>
 
 <div class="scatter-plot-container">
   <svg bind:this={svg}></svg>
+  {#if overlayVisible}
+    <div 
+      class="overlay"
+      transition:fade={{ duration: 300 }}
+      role="button" 
+      tabindex="0"
+      on:click={handleOverlayClick}
+      on:keydown={e => e.key === 'Enter' && handleOverlayClick()}>
+      <span>Click any point to start</span>
+    </div>
+  {/if}
 </div>
 
 <style>
   .scatter-plot-container {
-        flex: 0 0 80%;
-        height: 100%;
-        background-color: #fff;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        box-sizing: border-box;
-    }
+    position: relative;
+    flex: 0 0 80%;
+    height: 100%;
+    background-color: #fff;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-sizing: border-box;
+    z-index: 998;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(200, 200, 200, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+    backdrop-filter: blur(2px);
+    z-index: 999;
+  }
+
+  .overlay span {
+    color: #333;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
 </style>

@@ -68,6 +68,7 @@ body {
 /* it is weird... the default scroll not working anymore... */
 ::-webkit-scrollbar {
   width: 12px;
+  height: 12px;
   background-color: transparent;
 }
 
