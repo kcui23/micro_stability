@@ -21,6 +21,12 @@
   const pointRadius = 3;
   const selectedPointRadius = 7;
 
+  let tooltip;
+  let tooltipVisible = false;
+  let tooltipContent = '';
+  let tooltipX = 0;
+  let tooltipY = 0;
+
   $: if (data_points_updated_counter) {
     main_function();
   }
@@ -165,7 +171,20 @@
             .attr('cy', d => y(d.y))
             .attr('r', pointRadius)
             .attr('fill', d => getColorForPoint(d))
-            .on('click', (event, d) => handlePointClick(d)),
+            .on('click', (event, d) => handlePointClick(d))
+            .on('mouseenter', (event, d) => {
+              tooltipContent = d.path.join(' → ');
+              tooltipVisible = true;
+              tooltipX = event.pageX;
+              tooltipY = event.pageY;
+            })
+            .on('mousemove', (event) => {
+              tooltipX = event.pageX;
+              tooltipY = event.pageY;
+            })
+            .on('mouseleave', () => {
+              tooltipVisible = false;
+            }),
           update => update
             .attr('cx', d => x(d.x))
             .attr('cy', d => y(d.y))
@@ -274,7 +293,12 @@
 </script>
 
 <div class="scatter-plot-container">
-  <svg bind:this={svg}></svg>
+  <div class="tip-container">
+    <p class="path-change-tip">Click to change path</p>
+  </div>
+  <div class="svg-container">
+    <svg bind:this={svg}></svg>
+  </div>
   {#if overlayVisible}
     <div 
       class="overlay"
@@ -284,6 +308,13 @@
       on:click={handleOverlayClick}
       on:keydown={e => e.key === 'Enter' && handleOverlayClick()}>
       <span>Click any point to start</span>
+    </div>
+  {/if}
+  {#if tooltipVisible}
+    <div 
+      class="tooltip" 
+      style="left: {tooltipX - 310}px; top: {tooltipY + 10}px">
+      {tooltipContent}
     </div>
   {/if}
 </div>
@@ -299,6 +330,23 @@
     border-radius: 8px;
     box-sizing: border-box;
     z-index: 998;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tip-container {
+    text-align: center;
+  }
+
+  .path-change-tip {
+    margin-top: 10px;
+    font-size: 1.1em;
+    color: #666;
+  }
+
+  .svg-container {
+    flex: 1;
+    position: relative;
   }
 
   .overlay {
@@ -313,7 +361,7 @@
     align-items: center;
     cursor: default;
     backdrop-filter: blur(2px);
-    z-index: 999;
+    z-index: 1000;
   }
 
   .overlay span {
@@ -321,5 +369,18 @@
     font-size: 1.2em;
     font-weight: bold;
     text-shadow: 0 0 10px white;
+  }
+
+  .tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 300px;
+    word-wrap: break-word;
   }
 </style>

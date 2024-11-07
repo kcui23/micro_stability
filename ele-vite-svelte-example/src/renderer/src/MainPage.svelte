@@ -1077,10 +1077,10 @@
   margin-right: auto;
   }
 
-  div[key='model-perturbation'] p {
+  /* div[key='model-perturbation'] p {
   margin: 5px;
     font-size: 1.1rem;
-  }
+  } */
 
   /* div[key='model-perturbation'] button {
     margin-left: 5px;
@@ -1446,21 +1446,6 @@
     {:else if currentStep === 'Model Perturbation'}
       <div key='model-perturbation' in:fade class="step-content" class:active={currentStep === 'Model Perturbation'}>
         <h2>Model Perturbation</h2>
-        {#if $selectedOperations['Model Perturbation']?.includes('deseq2')}
-          <p>DESeq2</p>
-        {/if}
-        {#if $selectedOperations['Model Perturbation']?.includes('edger')}
-          <p>edgeR</p>
-        {/if}
-        {#if $selectedOperations['Model Perturbation']?.includes('maaslin2')}
-          <p>MaAsLin2</p>
-        {/if}
-        {#if $selectedOperations['Model Perturbation']?.includes('aldex2')}
-          <p>ALDEx2</p>
-        {/if}
-        {#if $selectedOperations['Model Perturbation']?.includes('metagenomeseq')}
-          <p>metagenomeSeq</p>
-        {/if}
 
         <!-- Method Selection UI -->
         <!-- <div class="methods">

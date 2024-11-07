@@ -65,7 +65,7 @@
       };
 
       const layout = {
-        title: specific_interact ? `${selectedMethod} Volcano Plot` : 'Volcano Plot Overlap',
+        title: specific_interact ? 'Click to select ASV' : 'Volcano Plot Overlap',
         xaxis: { title: 'log2FoldChange' },
         yaxis: { title: '-log10(pvalue)' },
         showlegend: false,
