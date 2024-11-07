@@ -251,17 +251,18 @@
     if (node && node.id && leafIdDataPoints[node.id]) {
       const dataPoint = leafIdDataPoints[node.id].data_point;
       if (dataPoint) {
+        const flatPath = [...path, node.name].flat();
         points.push({ 
           id: node.id, 
           x: dataPoint[0], 
           y: dataPoint[1], 
-          path: [...path, node.name] 
+          path: flatPath 
         });
       }
     }
     if (node && node.children) {
       for (const child of node.children) {
-        points = points.concat(extractDataPoints(child, [...path, node.name]));
+        points = points.concat(extractDataPoints(child, [...path, node.name].flat()));
       }
     }
     return points;

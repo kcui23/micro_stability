@@ -12,6 +12,7 @@ suppressPackageStartupMessages({
   library(metagenomeSeq)
   library(edgeR)
   library(uwot)
+  library(httr)
 })
 
 # Create a persistent temp directory to save the output files
@@ -63,18 +64,10 @@ function(req, res) {
     })
 
     # generate the path data
-    leaf_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
-    tree_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
-    leaf_response <- httr::GET(leaf_json_path)
-    tree_response <- httr::GET(tree_json_path)
-    
-    # Check for successful responses
-    httr::stop_for_status(leaf_response)
-    httr::stop_for_status(tree_response)
-    
-    # Parse the JSON content
-    leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
-    tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
+    leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+    tree_json_path <- file.path(persistent_temp_dir, "data.json")
+    leaf_data <- fromJSON(read_file(leaf_json_path), simplifyVector = TRUE)
+    tree_data <- fromJSON(read_file(tree_json_path), simplifyVector = FALSE)
     
     path_df <- data.frame(
       leaf_id = character(),
@@ -1153,26 +1146,12 @@ function(req, res) {
 
     if (destroy) {
       print("=====destroy is true=====")
-      leaf_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
-      tree_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
-      leaf_response <- httr::GET(leaf_json_path)
-      tree_response <- httr::GET(tree_json_path)
       
-      # Check for successful responses
-      httr::stop_for_status(leaf_response)
-      httr::stop_for_status(tree_response)
-      
-      # Parse the JSON content
-      leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
-      tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
-      message("After reading JSON files...")
-      # write these two to local files
       leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
-      write_json(leaf_data, leaf_json_path, 
-                 pretty = TRUE, auto_unbox = TRUE, overwrite = TRUE)
       tree_json_path <- file.path(persistent_temp_dir, "data.json")
-      write_json(tree_data, tree_json_path, 
-                 pretty = TRUE, auto_unbox = TRUE, overwrite = TRUE)
+      leaf_data <- fromJSON(read_file(leaf_json_path), simplifyVector = TRUE)
+      tree_data <- fromJSON(read_file(tree_json_path), simplifyVector = FALSE)
+
       for (leaf in names(leaf_data)) {
         leaf_data[[leaf]]$data_point <- c(0, 0)
       }
@@ -1183,7 +1162,7 @@ function(req, res) {
     method <- body$method
     missing_methods <- body$missing_methods
     leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
-    leaf_data <- fromJSON(read_file(leaf_json_path))
+    leaf_data <- fromJSON(read_file(leaf_json_path), simplifyVector = TRUE)
 
     message("Reading path_df.rds...")
     path_df <- readRDS(file.path(persistent_temp_dir, "path_df.rds"))
@@ -1390,20 +1369,11 @@ function(req, res) {
 #* @serializer json
 function(req, res) {
   tryCatch({
-    # Define file paths in persistent temp directory
-    leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
-    tree_json_path <- file.path(persistent_temp_dir, "data.json")
-    
-    # Check if files exist
-    if (!file.exists(leaf_json_path) || !file.exists(tree_json_path)) {
-      res$status <- 404
-      return(list(error = "Required data files not found in temp directory"))
-    }
-    
-    # Read from local files
-    leaf_data <- fromJSON(read_file(leaf_json_path))
-    tree_data <- fromJSON(read_file(tree_json_path))
-    
+    leaf_file_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+    tree_file_path <- file.path(persistent_temp_dir, "data.json")
+    leaf_data <- fromJSON(read_file(leaf_file_path), simplifyVector = TRUE)
+    tree_data <- fromJSON(read_file(tree_file_path), simplifyVector = FALSE)
+
     return(list(
       leaf_data = leaf_data,
       tree_data = tree_data
@@ -1411,5 +1381,40 @@ function(req, res) {
   }, error = function(e) {
     res$status <- 500
     return(list(error = paste("Error fetching plot data:", e$message)))
+  })
+}
+
+#* Load JSON files from GitHub
+#* @post /load_web_json_files
+#* @serializer json
+function(req, res) {
+  tryCatch({
+    # GitHub raw file URLs
+    leaf_json_web_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+    tree_json_web_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
+    
+    # Download and parse JSON files
+    leaf_response <- httr::GET(leaf_json_web_path)
+    tree_response <- httr::GET(tree_json_web_path)
+    
+    # Check for successful responses
+    httr::stop_for_status(leaf_response)
+    httr::stop_for_status(tree_response)
+    
+    # Parse the JSON content
+    leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
+    tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
+    
+    # Save to local files
+    leaf_file_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+    tree_file_path <- file.path(persistent_temp_dir, "data.json")
+    write_json(leaf_data, leaf_file_path, pretty = TRUE, auto_unbox = TRUE)
+    write_json(tree_data, tree_file_path, pretty = TRUE, auto_unbox = TRUE)
+    
+    res$status <- 200
+    return(list(message = "JSON files successfully loaded from GitHub"))
+  }, error = function(e) {
+    res$status <- 500
+    return(list(error = paste("Error loading JSON files:", e$message)))
   })
 }

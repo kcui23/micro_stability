@@ -177,32 +177,6 @@
   let ws;
   let ws_id;
 
-  const interactWithJson = async () => {
-
-    try {
-      const response = await fetch(`http://localhost:8000/update_leaf_data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      });
-
-      if (response.ok) {
-        data_points_updated_counter += 1;
-        const jsonResponse = await fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json');
-        if (jsonResponse.ok) {
-          const jsonData = await jsonResponse.json();
-        } else {
-          console.error("Not able to fetch local data points JSON file");
-        }
-      } else {
-        console.error("Failed to update data points JSON file");
-      }
-    } catch (error) {
-      console.error("Error during fetch:", error);
-    }
-  }
-
   const steps = ['Raw data', 'Filtering', 'Zero-Handling', 'Normalization', 'Transformation', 'Model Perturbation'];
 
   const previewFileContent = (fileContent) => {
@@ -860,7 +834,34 @@
     }
   }
 
-  onMount(() => {
+  async function loadWebJsonFiles() {
+    try {
+      const response = await fetch('http://localhost:8000/load_web_json_files', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load web JSON files');
+      }
+      const result = await response.json();
+      console.log('Web JSON files loaded successfully:', result);
+      return true;
+    } catch (error) {
+      console.error('Error loading web JSON files:', error);
+      return false;
+    }
+  }
+
+  onMount(async () => {
+    // First load web JSON files
+    const jsonFilesLoaded = await loadWebJsonFiles();
+    
+    if (!jsonFilesLoaded) {
+      console.error('Failed to load initial JSON files');
+      return;
+    }
+
+    // Then proceed with other initialization
     window.addEventListener('keydown', handleKeydown);
 
     ws = new WebSocket('ws://localhost:8000/ws');
@@ -876,16 +877,13 @@
       }
     };
 
-    fetch('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json')
+    // Remove the direct GitHub fetch since we're now loading via the API
+    treeData = await fetch('http://localhost:8000/get_plot_data')
       .then(response => response.json())
-      .then(data => {
-        treeData = data
-      })
-      .catch(error => console.error('Error loading or parsing data.json:', error));
+      .then(data => data.tree_data)
+      .catch(error => console.error('Error loading plot data:', error));
 
     start_generate_all_codes();
-
-
   });
 
   onDestroy(() => {
