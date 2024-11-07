@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: ele-vite-svelte-example
+appId: com.electron.MicroStability
+productName: MicroStability
 directories:
   buildResources: build
 files:
@@ -11,7 +11,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: ele-vite-svelte-example
+  executableName: MicroStability
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
