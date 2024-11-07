@@ -38,22 +38,23 @@ body {
   position: relative;
 }
 
-.content-right::after {
-  content: '';
-  position: absolute;
-  top: 20px; /* Space at the top */
-  bottom: 20px; /* Space at the bottom */
-  left: 0;
-  width: 1.5px;
-  background-color: #ccc;
-}
-
 .content-right {
   width: 40%;
   padding: 10px 10px 20px 10px;
-  overflow-x: hidden;
-  overflow-y: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-right::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 0;
+  width: 1.5px;
+  background-color: #ccc;
 }
 
 .loader {
@@ -87,4 +88,18 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.control-panel {
+  height: 200px;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.scatter-plot-ctn {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }

@@ -322,7 +322,7 @@
 <style>
   .scatter-plot-container {
     position: relative;
-    flex: 0 0 80%;
+    flex: 1;
     height: 100%;
     background-color: #fff;
     overflow: hidden;
@@ -347,6 +347,8 @@
   .svg-container {
     flex: 1;
     position: relative;
+    width: 100%;
+    height: 100%;
   }
 
   .overlay {
