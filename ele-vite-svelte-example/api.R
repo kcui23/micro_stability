@@ -112,6 +112,35 @@ function(req, res) {
   res
 }
 
+#* Download results file
+#* @post /download_results
+#* @serializer contentType list(type="text/tab-separated-values")
+function(req, res) {
+  tryCatch({
+    body <- fromJSON(req$postBody)
+    path_array <- body$path
+    path_string <- paste(path_array, collapse = "_")
+    pattern <- paste0("^", path_string, ".*_results\\.tsv$")
+    matching_files <- list.files(persistent_temp_dir, pattern = pattern, full.names = TRUE)
+    
+    if (length(matching_files) == 0) {
+      res$status <- 404
+      return(list(error = "Results file not found"))
+    }
+    
+    file_path <- matching_files[1]
+    file_content <- readLines(file_path)
+    res$setHeader("Content-Type", "text/tab-separated-values")
+    res$setHeader("Content-Disposition", "attachment; filename=results.tsv")
+    res$body <- paste(file_content, collapse = "\n")
+    return(res)
+    
+  }, error = function(e) {
+    res$status <- 500
+    return(list(error = paste("Error downloading results:", e$message)))
+  })
+}
+
 #* Store uploaded files
 #* @post /store_files
 #* @param asv The ASV file content

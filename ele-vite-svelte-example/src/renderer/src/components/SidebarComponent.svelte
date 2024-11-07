@@ -7,7 +7,8 @@
     selectedOperations,
     openMenus,
     singleSelectOperations,
-    crossStepMutuallyExclusiveOptions
+    crossStepMutuallyExclusiveOptions,
+    currentHighlightedPath
   } from '../store.js';
   import { fade, slide } from 'svelte/transition';
   import SelectASVsPage from './SelectASVsPage.svelte';
@@ -67,6 +68,31 @@
     }
   }
 
+  async function downloadResults() {
+    try {
+      const response = await fetch('http://localhost:8000/download_results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: $currentHighlightedPath })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'results.tsv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading the results:', error);
+    }
+  }
   stepStatus.set(
     steps.reduce((acc, step) => {
       acc[step] = step === 'Raw data' ? 'Enabled' : 'Disabled';
@@ -278,6 +304,14 @@
         <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" color="#a3a3a3"></line>
       </svg>
       Download codes
+    </button>
+    <button class="sidebar-button" on:click={downloadResults} disabled={!scatterPlotClicked}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="3"></path>
+        <polyline points="7 10 12 15 17 10" stroke-width="2" color="#a3a3a3"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" color="#a3a3a3"></line>
+      </svg>
+      Download results
     </button>
     <button class="sidebar-button" on:click={selectASVsfun} disabled={!scatterPlotClicked}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
