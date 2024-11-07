@@ -79,14 +79,21 @@
       plotDiv.on('plotly_click', function(data) {
         const point = data.points[0];
         selectedPoints.update(points => {
-          const newPoints = [...points, { 
-            name: point.text,
-            x: point.x,
-            y: point.y,
-            method: methods[asvNames.indexOf(point.text)]
-          }];
-          console.log("Updated selectedPoints:", newPoints);
-          return newPoints;
+          // Check if point already exists
+          const existingPointIndex = points.findIndex(p => p.name === point.text);
+          
+          if (existingPointIndex !== -1) {
+            // Remove point if already selected
+            return points.filter((_, index) => index !== existingPointIndex);
+          } else {
+            // Add new point
+            return [...points, { 
+              name: point.text,
+              x: point.x,
+              y: point.y,
+              method: methods[asvNames.indexOf(point.text)]
+            }];
+          }
         });
       });
 
