@@ -63,11 +63,19 @@ function(req, res) {
     })
 
     # generate the path data
-    leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
-    tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
-    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE)
-    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE)
-
+    leaf_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+    tree_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
+    leaf_response <- httr::GET(leaf_json_path)
+    tree_response <- httr::GET(tree_json_path)
+    
+    # Check for successful responses
+    httr::stop_for_status(leaf_response)
+    httr::stop_for_status(tree_response)
+    
+    # Parse the JSON content
+    leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
+    tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
+    
     path_df <- data.frame(
       leaf_id = character(),
       path = I(list()),
@@ -1100,21 +1108,26 @@ function(req, res) {
 #* @response 200 list(message="JSON file successfully updated")
 #* @response 500 list(error="Error updating JSON file") 
 function(req, res) {
-  json_file_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+  # Create a local path for the JSON file
+  local_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
   
   tryCatch({
-    json_data <- fromJSON(json_file_path)
+    # Read from local file
+    json_data <- fromJSON(read_file(local_json_path))
     
     for (leaf in names(json_data)) {
       json_data[[leaf]]$data_point <- generate_random_pair()
     }
     
-    write_json(json_data, json_file_path, pretty = TRUE, auto_unbox = TRUE)
+    # Write to local file instead of URL
+    write_json(json_data, local_json_path, pretty = TRUE, auto_unbox = TRUE)
     
     res$status <- 200
-    return(list(message = "JSON file successfully updated"))
+    return(list(
+      message = "JSON file successfully updated",
+      data = json_data  # Return the updated data to the client
+    ))
   }, error = function(e) {
-    
     res$status <- 500
     return(list(error = paste("Error updating the JSON file:", e$message)))
   })
@@ -1138,13 +1151,28 @@ function(req, res) {
 
     message("Starting stability metric calculation...")
 
-    leaf_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
-    tree_json_path <- "/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json"
-    leaf_data <- fromJSON(leaf_json_path, simplifyVector = TRUE) # simplifyVector = TRUE -> data.frame
-    tree_data <- fromJSON(tree_json_path, simplifyVector = FALSE) # simplifyVector = FALSE -> list like [[1]] $key [1] value [[2]]...
-    message("After reading JSON files...")
     if (destroy) {
       print("=====destroy is true=====")
+      leaf_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
+      tree_json_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
+      leaf_response <- httr::GET(leaf_json_path)
+      tree_response <- httr::GET(tree_json_path)
+      
+      # Check for successful responses
+      httr::stop_for_status(leaf_response)
+      httr::stop_for_status(tree_response)
+      
+      # Parse the JSON content
+      leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
+      tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
+      message("After reading JSON files...")
+      # write these two to local files
+      leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+      write_json(leaf_data, leaf_json_path, 
+                 pretty = TRUE, auto_unbox = TRUE, overwrite = TRUE)
+      tree_json_path <- file.path(persistent_temp_dir, "data.json")
+      write_json(tree_data, tree_json_path, 
+                 pretty = TRUE, auto_unbox = TRUE, overwrite = TRUE)
       for (leaf in names(leaf_data)) {
         leaf_data[[leaf]]$data_point <- c(0, 0)
       }
@@ -1154,6 +1182,8 @@ function(req, res) {
     }
     method <- body$method
     missing_methods <- body$missing_methods
+    leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+    leaf_data <- fromJSON(read_file(leaf_json_path))
 
     message("Reading path_df.rds...")
     path_df <- readRDS(file.path(persistent_temp_dir, "path_df.rds"))
@@ -1352,5 +1382,34 @@ function(req, res) {
     message(e$message)
     res$status <- 500
     return(list(error = paste("Error processing request:", e$message)))
+  })
+}
+
+#* Get plot data (tree and leaf data)
+#* @get /get_plot_data
+#* @serializer json
+function(req, res) {
+  tryCatch({
+    # Define file paths in persistent temp directory
+    leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+    tree_json_path <- file.path(persistent_temp_dir, "data.json")
+    
+    # Check if files exist
+    if (!file.exists(leaf_json_path) || !file.exists(tree_json_path)) {
+      res$status <- 404
+      return(list(error = "Required data files not found in temp directory"))
+    }
+    
+    # Read from local files
+    leaf_data <- fromJSON(read_file(leaf_json_path))
+    tree_data <- fromJSON(read_file(tree_json_path))
+    
+    return(list(
+      leaf_data = leaf_data,
+      tree_data = tree_data
+    ))
+  }, error = function(e) {
+    res$status <- 500
+    return(list(error = paste("Error fetching plot data:", e$message)))
   })
 }

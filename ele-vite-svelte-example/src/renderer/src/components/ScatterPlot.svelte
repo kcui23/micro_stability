@@ -56,12 +56,13 @@
 
   async function main_function() {
     try {
-      const [dataResponse, leafIdDataPointsResponse] = await Promise.all([
-        fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/data.json'),
-        fetchData('/Users/kai/Desktop/MSDS/micro_stability/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json')
-      ]);
-      data = dataResponse;
-      leafIdDataPoints = leafIdDataPointsResponse;
+      const response = await fetch('http://localhost:8000/get_plot_data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch plot data');
+      }
+      const plotData = await response.json();
+      data = plotData.tree_data;
+      leafIdDataPoints = plotData.leaf_data;
 
       initializeSVG();
       updateScatterPlot();
