@@ -1,5 +1,5 @@
 <script>
-  import { fade, scale } from 'svelte/transition'
+  import { fade, scale, fly } from 'svelte/transition'
   import { currentPath, currentHighlightedPath } from '../store.js'
 
   let isRefreshing = false;
@@ -13,6 +13,7 @@
   export let isSubmitted
   export let zoomedImage
   export let scatterPlotClicked
+  let showWarning = false;
 
   const refreshSingleVis = async () => {
     isCalculating = true;
@@ -27,6 +28,8 @@
 
       if (response.status === 404) {
         console.log('No visualization data found for this path');
+        showWarning = true;
+        setTimeout(() => showWarning = false, 2000);
       } else if (response.ok) {
         const data = await response.json();
         console.log(data);
@@ -100,6 +103,21 @@
       console.error('Error downloading selected points:', response.statusText);
     }
   };
+
+  let refreshButton;
+  let warningContainer;
+  
+  function updateWarningPosition() {
+    if (refreshButton && warningContainer) {
+      const rect = refreshButton.getBoundingClientRect();
+      warningContainer.style.top = `${rect.top - 50}px`; // 警告消息位于按钮上方40px
+      warningContainer.style.left = `${rect.left - 50}px`;
+    }
+  }
+
+  $: if (showWarning) {
+    setTimeout(updateWarningPosition, 0);
+  }
 </script>
 
 <div class="visualizations-section" hidden={!showAllPlots && !isSubmitted && !scatterPlotClicked}>
@@ -205,8 +223,23 @@
     <div class="card">
       <div class="card-header">
         <h3>{selectedMethod.toUpperCase()} Plots</h3>
+        {#if showWarning}
+          <div 
+            class="warning-container"
+            bind:this={warningContainer}
+          >
+            <div 
+              class="warning-message"
+              in:fly="{{ y: 20, duration: 400 }}"
+              out:fly="{{ y: -20, duration: 400 }}"
+            >
+              Images not available
+            </div>
+          </div>
+        {/if}
         <button 
-          class="refresh-button" 
+          class="refresh-button"
+          bind:this={refreshButton}
           on:click|preventDefault={() => {
             isRefreshing = true;
             setTimeout(() => isRefreshing = false, 2000);
@@ -332,6 +365,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
   }
 
   .card-header h3 {
@@ -505,4 +539,24 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+  .warning-container {
+    position: fixed;
+    z-index: 1000;
+  }
+
+  .warning-message {
+    position: absolute;
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+  }
+
+  .card-header {
+    position: relative;
+  }
 </style>
