@@ -2,6 +2,28 @@ import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import path from 'path'
+import execa from 'execa';
+import { chmod } from 'fs/promises';
+
+const rPath = 'r-mac';
+// const rpath = path.join(app.getAppPath(), rPath);
+const rpath = path.join(process.resourcesPath, rPath);
+const libPath = path.join(rpath, 'library');
+const rscript = path.join(rpath, 'bin', 'R');
+// const rScriptPath = path.join(app.getAppPath(), 'r-scripts');
+const rScriptPath = path.join(process.resourcesPath, 'r-scripts');
+let rProcess = null;
+
+async function makeExecutable(filePath) {
+  if (process.platform === 'darwin' || process.platform === 'linux') {
+    try {
+      await chmod(filePath, '755');
+    } catch (error) {
+      console.error('Error making file executable:', error);
+    }
+  }
+}
 
 app.commandLine.appendSwitch('lang', 'en-US');
 
@@ -43,10 +65,29 @@ function createWindow() {
   }
 }
 
+app.on('ready', () => {
+  rProcess = execa(rscript,
+    // ['--vanilla', '-f', path.join(app.getAppPath(), 'run-api.R')], { 
+    ['--vanilla', '-f', path.join(process.resourcesPath, 'run-api.R')], { 
+      env: { // all these vars are sent to the R process as environment variables
+             // can be accessed in R with Sys.getenv("VAR_NAME")
+        'WITHIN_ELECTRON': '1', 
+        'RHOME': rpath,
+        'R_HOME_DIR': rpath,
+        'R_LIBS': libPath,
+        // 'RE_SHINY_PORT': shinyPort,
+        // 'RE_SHINY_PATH': shinyAppPath,
+        'R_LIBS_USER': libPath,
+        'R_LIBS_SITE': libPath,
+        'R_LIB_PATHS': libPath} }).catch((e) => {
+          console.error(e)
+        })
+})
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -60,6 +101,7 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  await makeExecutable(rscript);
   createWindow()
 
   app.on('activate', function () {
@@ -75,6 +117,11 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+  try {
+    rProcess.kill();
+  } catch (e) {
+    console.error(e);
   }
 })
 

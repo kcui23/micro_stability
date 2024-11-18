@@ -24,6 +24,7 @@
     "d3-selection": "^3.0.0",
     "d3-transition": "^3.0.1",
     "dagre": "^0.8.5",
+    "execa": "^5.1.1",
     "plotly.js-dist-min": "^2.34.0"
   },
   "devDependencies": {

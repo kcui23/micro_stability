@@ -171,7 +171,7 @@ active_ws_connections <- new.env()
 
 # Helper function to ensure consistent file path handling
 safe_file_path <- function(...) {
-  normalizePath(file.path(...), winslash = "/", mustWork = FALSE)
+  normalizePath(file.path("r-scripts", ...), winslash = "/", mustWork = FALSE)
 }
 
 #* Preview ASV and grouping data

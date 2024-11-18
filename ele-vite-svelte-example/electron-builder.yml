@@ -8,8 +8,24 @@ files:
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  # 下边都是新加的
+  - "r-mac/**/*"
+  - "r-scripts/**/*" 
+  - "./r-setup.sh"
+  - "./api.R"
+  - "./run-api.R"
+  - "out/**/*"
 asarUnpack:
-  - resources/**
+  - "r-mac/**/*"
+  - "*.R"
+  - "r-scripts/**/*"
+extraResources:
+  - from: "r-mac"
+    to: "r-mac"
+  - from: "run-api.R"
+    to: "run-api.R"
+  - from: "api.R"
+    to: "api.R"
 win:
   executableName: MicroStability
 nsis:
