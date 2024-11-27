@@ -52,21 +52,27 @@ install_bioc_packages <- function(packages) {
   missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
   if (length(missing_packages) > 0) {
     options(repos = BiocManager::repositories())
-    phyloseq_idx <- which(missing_packages == "phyloseq")
-    if (length(phyloseq_idx) > 0) {
-      BiocManager::install("phyloseq", ask = FALSE, update = FALSE, type = "source")
-      missing_packages <- missing_packages[-phyloseq_idx]
-    }
+    # phyloseq_idx <- which(missing_packages == "phyloseq")
+    # if (length(phyloseq_idx) > 0) {
+    #   BiocManager::install("phyloseq", ask = FALSE, update = FALSE, type = "source")
+    #   missing_packages <- missing_packages[-phyloseq_idx]
+    # }
 
     if (length(missing_packages) > 0) {
-      BiocManager::install(missing_packages, ask = FALSE, update = FALSE, type = "binary")
+      BiocManager::install(missing_packages, ask = FALSE, update = FALSE)
     }
   }
+  cat('\033[32m')  # Start green text
+  cat("Currently installed packages (after installation Bioc_pkgs):\n")
+  cat(paste(sort(installed.packages()[,"Package"]), collapse="\n"))
+  cat('\033[0m\n') # Reset color
 }
 
 cran_packages <- c(
   "BiocManager",
   "plumber",
+  "Rcpp",
+  "cpp11",
   "readr",
   "ggplot2",
   "base64enc",
@@ -76,16 +82,17 @@ cran_packages <- c(
   "tidyverse",
   "scales",
   "uwot",
-  "httr"
+  "httr",
+  "vegan"
 )
 
 bioc_packages <- c(
-  "phyloseq",
   "impute",
   "metagenomeSeq",
   "edgeR",
   "Maaslin2",
   "DESeq2",
+  "phyloseq",
   "ALDEx2"
 )
 
