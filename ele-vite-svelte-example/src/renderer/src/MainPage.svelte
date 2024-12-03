@@ -819,48 +819,7 @@
     return updatedParams;
   })
 
-  async function start_generate_all_codes() {
-    try {
-      const response = await fetch('http://localhost:8000/generate_all_r_code', {
-        method: 'POST'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate all codes');
-      }
-      const result = await response.json();
-      console.log('All codes generated successfully:', result);
-    } catch (error) {
-      console.error('Error generating all codes:', error);
-    }
-  }
-
-  async function loadWebJsonFiles() {
-    try {
-      const response = await fetch('http://localhost:8000/load_web_json_files', {
-        method: 'POST'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load web JSON files');
-      }
-      const result = await response.json();
-      console.log('Web JSON files loaded successfully:', result);
-      return true;
-    } catch (error) {
-      console.error('Error loading web JSON files:', error);
-      return false;
-    }
-  }
-
   onMount(async () => {
-    // First load web JSON files
-    const jsonFilesLoaded = await loadWebJsonFiles();
-    
-    if (!jsonFilesLoaded) {
-      console.error('Failed to load initial JSON files');
-      return;
-    }
 
     // Then proceed with other initialization
     window.addEventListener('keydown', handleKeydown);
@@ -883,8 +842,6 @@
       .then(response => response.json())
       .then(data => data.tree_data)
       .catch(error => console.error('Error loading plot data:', error));
-
-    start_generate_all_codes();
   });
 
   onDestroy(() => {

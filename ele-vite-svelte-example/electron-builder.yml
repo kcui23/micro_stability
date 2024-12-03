@@ -15,13 +15,17 @@ files:
   - "./api.R"
   - "./run-api.R"
   - "out/**/*"
+  - "public/**/*"
 asarUnpack:
   - "r-mac/**/*"
   - "*.R"
   - "r-scripts/**/*"
+  - "public/**/*"
 extraResources:
   - from: "r-mac"
     to: "r-mac"
+  - from: "r-script"
+    to: "r-script"
   - from: "run-api.R"
     to: "run-api.R"
   - from: "api.R"

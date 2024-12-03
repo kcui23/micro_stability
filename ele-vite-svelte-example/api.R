@@ -171,7 +171,7 @@ active_ws_connections <- new.env()
 
 # Helper function to ensure consistent file path handling
 safe_file_path <- function(...) {
-  normalizePath(file.path("r-scripts", ...), winslash = "/", mustWork = FALSE)
+  file.path("./r-scripts", ...)
 }
 
 #* Preview ASV and grouping data
@@ -1389,21 +1389,10 @@ function(req, res) {
 #* @serializer json
 function(req, res) {
   tryCatch({
-    # GitHub raw file URLs
-    leaf_json_web_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/leaf_id_data_points.json"
-    tree_json_web_path <- "https://raw.githubusercontent.com/kcui23/micro_stability/refs/heads/no_example_data/ele-vite-svelte-example/src/renderer/src/public/data.json"
-    
-    # Download and parse JSON files
-    leaf_response <- httr::GET(leaf_json_web_path)
-    tree_response <- httr::GET(tree_json_web_path)
-    
-    # Check for successful responses
-    httr::stop_for_status(leaf_response)
-    httr::stop_for_status(tree_response)
-    
-    # Parse the JSON content
-    leaf_data <- fromJSON(rawToChar(leaf_response$content), simplifyVector = TRUE)
-    tree_data <- fromJSON(rawToChar(tree_response$content), simplifyVector = FALSE)
+    leaf_json_web_path <- "./public/leaf_id_data_points.json"
+    tree_json_web_path <- "./public/data.json"
+    leaf_data <- fromJSON(read_file(leaf_json_web_path), simplifyVector = TRUE)
+    tree_data <- fromJSON(read_file(tree_json_web_path), simplifyVector = FALSE)
     
     # Save to local files
     leaf_file_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
@@ -1417,4 +1406,56 @@ function(req, res) {
     res$status <- 500
     return(list(error = paste("Error loading JSON files:", e$message)))
   })
+}
+
+#* @get /test_json_files
+function() {
+  leaf_json_path <- file.path(persistent_temp_dir, "leaf_id_data_points.json")
+  tree_json_path <- file.path(persistent_temp_dir, "data.json")
+  leaf_data <- fromJSON(read_file(leaf_json_path), simplifyVector = TRUE)
+  tree_data <- fromJSON(read_file(tree_json_path), simplifyVector = FALSE)
+
+  return(list(leaf_data = leaf_data, tree_data = tree_data))
+}
+
+
+#* @get /test-deseq2
+function() {
+    library(DESeq2)
+    groupings <- data.frame(
+        sampleid = c("029SS", "116JS", "129GP", "46", "215", "300", "023TD", "077SF", "193MR"),
+        comparison = c("H", "H", "H", "HIV", "HIV", "HIV", "H", "HIV", "H")
+    )
+    
+    # Generate sample ASV table
+    set.seed(123)
+    ASV_table <- data.frame(
+        asv = paste0("asv", 1:20),
+        matrix(
+            rpois(180, lambda = 20),
+            nrow = 20,                
+            ncol = 9,                 
+            dimnames = list(
+                NULL,
+                groupings$sampleid
+            )
+        )
+    )
+    
+    count_matrix <- as.matrix(ASV_table[, -1])
+    rownames(count_matrix) <- ASV_table$asv
+    
+    dds <- DESeq2::DESeqDataSetFromMatrix(
+        countData = count_matrix,
+        colData = groupings,
+        design = ~ comparison
+    )
+    
+    dds_res <- DESeq2::DESeq(dds, sfType = 'poscounts')
+    res <- DESeq2::results(dds_res, tidy = TRUE, format = 'DataFrame')
+
+    colnames(res)[colnames(res) == 'row'] <- 'asv_name'
+    res <- res[, c('asv_name', setdiff(colnames(res), 'asv_name'))]
+    result_data <- as.data.frame(res)
+    return(result_data)
 }

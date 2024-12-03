@@ -41,6 +41,8 @@
 
   async function uploadFiles() {
     if (asvContent && groupingsContent) {
+      const jsonFilesLoaded = await loadWebJsonFiles();
+      const generateAllCodes = await start_generate_all_codes();
       try {
         const response = await fetch('http://localhost:8000/store_files', {
           method: 'POST',
@@ -70,6 +72,41 @@
     } else {
       console.warn('Please select both ASV and groupings files before uploading');
       return false;
+    }
+  }
+
+  async function loadWebJsonFiles() {
+    try {
+      const response = await fetch('http://localhost:8000/load_web_json_files', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load web JSON files');
+      }
+      const result = await response.json();
+      console.log('Web JSON files loaded successfully:', result);
+      loaded_web_json_files = true;
+      return true;
+    } catch (error) {
+      console.error('Error loading web JSON files:', error);
+      return false;
+    }
+  }
+
+  async function start_generate_all_codes() {
+    try {
+      const response = await fetch('http://localhost:8000/generate_all_r_code', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate all codes');
+      }
+      const result = await response.json();
+      console.log('All codes generated successfully:', result);
+    } catch (error) {
+      console.error('Error generating all codes:', error);
     }
   }
 

@@ -15,6 +15,16 @@
   export let showStartPage;
   let startSelectedMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let DataPerturbationMethods = ['DESeq2', 'EdgeR', 'Maaslin2', 'Aldex2', 'MetagenomeSeq'];
+  let raw_total_data = null;
+  // const test_json_files = async () => {
+  //   const res = await fetch(`http://localhost:8000/test_json_files`)
+  //   raw_total_data = await res.json()
+  // }
+  // let result_data = []
+  // const testdeseq2 = async () => {
+  //   const res = await fetch(`http://localhost:8000/test-deseq2`)
+  //   result_data = await res.json()
+  // }
 
   const sections = [
     {
@@ -75,7 +85,34 @@
     }
   }
 
-  onMount(() => {
+  let loaded_web_json_files = false;
+  async function loadWebJsonFiles() {
+    try {
+      const response = await fetch('http://localhost:8000/load_web_json_files', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load web JSON files');
+      }
+      const result = await response.json();
+      console.log('Web JSON files loaded successfully:', result);
+      loaded_web_json_files = true;
+      return true;
+    } catch (error) {
+      console.error('Error loading web JSON files:', error);
+      return false;
+    }
+  }
+
+  onMount(async () => {
+    // First load web JSON files
+    // const jsonFilesLoaded = await loadWebJsonFiles();
+    
+    if (!jsonFilesLoaded) {
+      console.error('Failed to load initial JSON files');
+      return;
+    }
     document.addEventListener('click', handleClickOutside);
   });
 
@@ -500,6 +537,7 @@
         </div>
         <p><strong>Step 3:</strong> Start the app by submitting your job. It may take hours to complete.</p>
         <div class="submit-section">
+          <!-- <button on:click={() => showStartPage = false}>Skip</button> -->
           <button 
             on:click={handleSubmit} 
             class="submit-button" 
@@ -534,6 +572,12 @@
             </button>
           {/if}
         </div>
+        <!-- <p>missingMethods: {missingMethods}</p>
+        <p>startSelectedMethods: {startSelectedMethods}</p>
+        <button on:click={testdeseq2}>test deseq2</button>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 8px;">
+          <p>result_data: {JSON.stringify(result_data)}</p>
+        </div> -->
       </div>
       <div class="right-column">
         <div class="multiverse-column">
@@ -564,6 +608,19 @@
               {/if}
             </div>
           {/each}
+          <!--
+          <div>
+            <button 
+              on:click={loadWebJsonFiles}
+              style="background-color: {loaded_web_json_files ? '#4CAF50' : '#f44336'}; color: white;"
+            >
+              load web json files
+            </button>
+          </div>
+          <button on:click={test_json_files}>test_json_files</button>
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 8px;">
+            <p>raw_total_data: {JSON.stringify(raw_total_data)}</p>
+          </div> -->
         </div>
       
       
