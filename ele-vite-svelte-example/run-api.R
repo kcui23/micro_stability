@@ -87,12 +87,12 @@ cran_packages <- c(
 )
 
 bioc_packages <- c(
+  "phyloseq",
   "impute",
   "metagenomeSeq",
   "edgeR",
   "Maaslin2",
   "DESeq2",
-  "phyloseq",
   "ALDEx2"
 )
 
@@ -106,4 +106,22 @@ install_bioc_packages(bioc_packages)
 
 
 library(plumber)
-plumber::plumb(file='api.R')$run(host='0.0.0.0', port=8000)
+# Get resources path from environment variable
+resources_path <- Sys.getenv("RESOURCES_PATH")
+cat("RESOURCES_PATH:", resources_path, "\n")
+
+if (resources_path == "") {
+  # If not in electron (development), use current directory
+  api_path <- "api.R"
+} else {
+  # In electron (production), use resources path
+  api_path <- file.path(resources_path, "api.R")
+}
+
+tryCatch({
+  plumber::plumb(file=api_path)$run(host='0.0.0.0', port=8000)
+}, error = function(e) {
+  # set current working directory to resources path
+  setwd(resources_path)
+  plumber::plumb(file='api.R')$run(host='0.0.0.0', port=8000)
+})

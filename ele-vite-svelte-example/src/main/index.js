@@ -79,7 +79,9 @@ app.on('ready', () => {
         // 'RE_SHINY_PATH': shinyAppPath,
         'R_LIBS_USER': libPath,
         'R_LIBS_SITE': libPath,
-        'R_LIB_PATHS': libPath} }).catch((e) => {
+        'R_LIB_PATHS': libPath,
+        'RESOURCES_PATH': process.resourcesPath
+      }}).catch((e) => {
           console.error(e)
         })
 })

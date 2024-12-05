@@ -15,6 +15,16 @@ suppressPackageStartupMessages({
   library(httr)
 })
 
+resources_path <- Sys.getenv("RESOURCES_PATH")
+# Helper function to ensure consistent file path handling
+safe_file_path <- function(...) {
+  if (resources_path == "") {
+    file.path("./r-scripts", ...)
+  } else {
+    file.path(resources_path, "r-scripts", ...)
+  }
+}
+
 # Create a persistent temp directory to save the output files
 persistent_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
 # Directory to store uploaded files
@@ -168,11 +178,6 @@ function(req) {
 
 # Global variable to store active WebSocket connections
 active_ws_connections <- new.env()
-
-# Helper function to ensure consistent file path handling
-safe_file_path <- function(...) {
-  file.path("./r-scripts", ...)
-}
 
 #* Preview ASV and grouping data
 #* @get /preview_data
