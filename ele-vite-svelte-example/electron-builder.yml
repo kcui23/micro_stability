@@ -9,7 +9,7 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   # 下边都是新加的
-  - "r-mac/**/*"
+  # - "r-mac/**/*"
   - "r-scripts/**/*" 
   - "./r-setup.sh"
   - "./api.R"
@@ -17,7 +17,7 @@ files:
   - "out/**/*"
   - "public/**/*"
 asarUnpack:
-  - "r-mac/**/*"
+  # - "r-mac/**/*"
   - "*.R"
   - "r-scripts/**/*"
   - "public/**/*"

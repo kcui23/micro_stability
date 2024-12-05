@@ -96,16 +96,6 @@ bioc_packages <- c(
   "ALDEx2"
 )
 
-if (dir.exists("r-mac")) {
-  install_cran_packages(
-    cran_pkgs = cran_packages, library_path = Sys.getenv("R_LIB_PATHS"),
-    type = "mac.binary.big-sur-arm64", decompress = untar
-  )
-}
-install_bioc_packages(bioc_packages)
-
-
-library(plumber)
 # Get resources path from environment variable
 resources_path <- Sys.getenv("RESOURCES_PATH")
 cat("RESOURCES_PATH:", resources_path, "\n")
@@ -117,6 +107,16 @@ if (resources_path == "") {
   # In electron (production), use resources path
   api_path <- file.path(resources_path, "api.R")
 }
+
+install_cran_packages(
+  cran_pkgs = cran_packages, library_path = Sys.getenv("R_LIB_PATHS"),
+  type = "mac.binary.big-sur-arm64", decompress = untar
+  )
+
+install_bioc_packages(bioc_packages)
+
+
+library(plumber)
 
 tryCatch({
   plumber::plumb(file=api_path)$run(host='0.0.0.0', port=8000)
