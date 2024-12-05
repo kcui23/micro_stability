@@ -13,19 +13,12 @@
   export let startApp;
   export let missingMethods;
   export let showStartPage;
+
+  let timerInterval;
+  let hasRefreshed = false;
   let startSelectedMethods = ['deseq2', 'edger', 'maaslin2', 'aldex2', 'metagenomeseq'];
   let DataPerturbationMethods = ['DESeq2', 'EdgeR', 'Maaslin2', 'Aldex2', 'MetagenomeSeq'];
-  let raw_total_data = null;
-  // const test_json_files = async () => {
-  //   const res = await fetch(`http://localhost:8000/test_json_files`)
-  //   raw_total_data = await res.json()
-  // }
-  // let result_data = []
-  // const testdeseq2 = async () => {
-  //   const res = await fetch(`http://localhost:8000/test-deseq2`)
-  //   result_data = await res.json()
-  // }
-
+  
   const sections = [
     {
       title: 'Filtering',
@@ -85,7 +78,6 @@
     }
   }
 
-  let loaded_web_json_files = false;
   async function loadWebJsonFiles() {
     try {
       const response = await fetch('http://localhost:8000/load_web_json_files', {
@@ -97,7 +89,6 @@
       }
       const result = await response.json();
       console.log('Web JSON files loaded successfully:', result);
-      loaded_web_json_files = true;
       return true;
     } catch (error) {
       console.error('Error loading web JSON files:', error);
@@ -105,19 +96,60 @@
     }
   }
 
+  async function testConnection() {
+    try {
+      const response = await fetch('http://localhost:8000/test');
+      console.log('Connection test response:', response);
+      return response.ok;
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      return false;
+    }
+  }
+
   onMount(async () => {
-    // First load web JSON files
-    // const jsonFilesLoaded = await loadWebJsonFiles();
+    document.addEventListener('click', handleClickOutside);
+
+    const jsonFilesLoaded = await loadWebJsonFiles();
+    console.log('Initial JSON files loaded:', jsonFilesLoaded);
     
     if (!jsonFilesLoaded) {
-      console.error('Failed to load initial JSON files');
+      console.error('====Failed to load initial JSON files');
+    }
+
+    const refreshed = localStorage.getItem('hasRefreshed');
+    console.log('Checking refresh status:', refreshed);
+    
+    if (refreshed === 'true') {
+      console.log('Already refreshed, skipping connection test');
+      hasRefreshed = true; // to update the reactive variable
       return;
     }
-    document.addEventListener('click', handleClickOutside);
+    
+    console.log('Starting connection test interval');
+    timerInterval = setInterval(async () => {
+      console.log('Testing connection...');
+      const isConnected = await testConnection();
+      console.log('Connection test result:', isConnected);
+      console.log('localStorage:', localStorage);
+      console.log('hasRefreshed:', hasRefreshed);
+      console.log('localStorage.getItem:', localStorage.getItem('hasRefreshed'));
+      
+      if (isConnected) {
+        console.log('Connection successful, preparing to refresh');
+        clearInterval(timerInterval);
+        localStorage.setItem('hasRefreshed', 'true');
+        hasRefreshed = true;
+        window.location.reload();
+      }
+    }, 1000);
   });
 
   onDestroy(() => {
     document.removeEventListener('click', handleClickOutside);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
   });
 </script>
 
@@ -484,7 +516,59 @@
     height: 16px;
     cursor: pointer;
   }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+  }
+
+  .loading-message {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #333;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 10px auto;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #a7a7a7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
 </style>
+
+{#if !hasRefreshed}
+  <div class="loading-overlay">
+    <div class="loading-message">
+      <div class="loading-spinner"></div>
+      Loading Models...<span class="loading-dots"></span>
+      <p>This process may take several minutes</p>
+    </div>
+  </div>
+{/if}
 
 <div class="start-page">
   <div class="start-page-content">
@@ -572,12 +656,6 @@
             </button>
           {/if}
         </div>
-        <!-- <p>missingMethods: {missingMethods}</p>
-        <p>startSelectedMethods: {startSelectedMethods}</p>
-        <button on:click={testdeseq2}>test deseq2</button>
-        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 8px;">
-          <p>result_data: {JSON.stringify(result_data)}</p>
-        </div> -->
       </div>
       <div class="right-column">
         <div class="multiverse-column">
@@ -608,22 +686,7 @@
               {/if}
             </div>
           {/each}
-          <!--
-          <div>
-            <button 
-              on:click={loadWebJsonFiles}
-              style="background-color: {loaded_web_json_files ? '#4CAF50' : '#f44336'}; color: white;"
-            >
-              load web json files
-            </button>
-          </div>
-          <button on:click={test_json_files}>test_json_files</button>
-          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 8px;">
-            <p>raw_total_data: {JSON.stringify(raw_total_data)}</p>
-          </div> -->
         </div>
-      
-      
       </div>
     </div>
   </div>

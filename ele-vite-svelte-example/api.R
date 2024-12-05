@@ -1394,8 +1394,9 @@ function(req, res) {
 #* @serializer json
 function(req, res) {
   tryCatch({
-    leaf_json_web_path <- "./public/leaf_id_data_points.json"
-    tree_json_web_path <- "./public/data.json"
+    json_base_path <- file.path(resources_path, "public")
+    leaf_json_web_path <- file.path(json_base_path, "leaf_id_data_points.json")
+    tree_json_web_path <- file.path(json_base_path, "data.json")
     leaf_data <- fromJSON(read_file(leaf_json_web_path), simplifyVector = TRUE)
     tree_data <- fromJSON(read_file(tree_json_web_path), simplifyVector = FALSE)
     
